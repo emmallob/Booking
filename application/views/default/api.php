@@ -120,6 +120,14 @@ else if(
                 $params[$key] = (is_array($value)) ? $value : xss_clean($value);
             }
         }
+        // append files to the parameters
+        foreach($_FILES as $key => $value) {
+            // only parse if the value is not empty
+            if(!empty($value)) {
+                // append the parameters
+                $params[$key] = (is_array($value)) ? $value : $value;
+            }
+        }
     }
 }
 
