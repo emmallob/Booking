@@ -15,10 +15,17 @@
     <?php global $rootDir, $SITEURL; ?>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
     <script src="<?= $rootDir ?>assets/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.min.js" crossorigin="anonymous"></script>
+    <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.js" crossorigin="anonymous"></script>
+    <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
+    <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <script src="<?= $rootDir ?>assets/demo/chart-area-demo.js"></script>
     <script src="<?= $rootDir ?>assets/demo/chart-bar-demo.js"></script>
+    <script src="<?= $rootDir ?>assets/js/booking.js"></script>
     <sb-customizer project="sb-admin-pro"></sb-customizer>
+    <script>
+        confirmNotice("dashboard");
+    </script>
 </body>
 </html>

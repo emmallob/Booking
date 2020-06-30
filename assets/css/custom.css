@@ -1,0 +1,6 @@
+.close-notice {
+    position: absolute;
+    right: 13px;
+    top: 5px;
+    cursor: pointer;
+}
