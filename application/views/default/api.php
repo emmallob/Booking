@@ -27,8 +27,8 @@ $clientId = $session->clientId;
 $brandId = $session->currentBrandId;
 
 // set the global variables
-$followinClass->user_guid = $userId;
-$followinClass->clientId = $clientId;
+$bookingClass->user_guid = $userId;
+$bookingClass->clientId = $clientId;
 
 // init the params variable
 $params = [];
@@ -105,7 +105,9 @@ else if( in_array($inner_url, ["halls", "events", "tickets", "reports"]) && ($re
 
 else if(
     (($inner_url == "halls") && ($outer_url == "create") && ($requestMethod == "POST")) ||
-    (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST"))
+    (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST")) ||
+    (($inner_url == "events") && ($outer_url == "add") && ($requestMethod == "POST")) || 
+    (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) 
 ) {
     // empty the parameters list
     $params = [];

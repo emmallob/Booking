@@ -49,8 +49,9 @@ $accessObject->userId = $userId;
 	<link rel="mask-icon" href='<?= "{$baseUrl}assets/img/favicon.png" ?>' color="#da532c">
 	<link rel="shortcut icon" href='<?= "{$baseUrl}assets/img/favicon/favicon.ico" ?>'>
 	<link href='<?= "{$baseUrl}assets/css/styles.css" ?>' rel="stylesheet" type="text/css" />
-	<link href='<?= "{$baseUrl}assets/css/custom.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/libs/datatables/css/datatable.css" ?>' rel="stylesheet" type="text/css" />
+	<link href='<?= "{$baseUrl}assets/libs/select/select.css" ?>' rel="stylesheet" type="text/css" />
+	<link href='<?= "{$baseUrl}assets/css/custom.css" ?>' rel="stylesheet" type="text/css" />
 	<script data-search-pseudo-elements defer src="<?= $baseUrl ?>assets/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
 	<script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
 </head>

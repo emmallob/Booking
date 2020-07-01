@@ -81,7 +81,7 @@ class Apis {
 				) AS requests_count
 			FROM 
 				users_api_keys a
-			LEFT JOIN users b ON b.guid = a.user_guid
+			LEFT JOIN users b ON b.user_guid = a.user_guid
 			WHERE 
 				a.username = '{$username}'
 			LIMIT 1

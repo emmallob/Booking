@@ -57,7 +57,7 @@
                         $columns = 10;
                         $removed = [];
                         $counter = 1;
-                        // $removed = ["2_1", "3_3", "5_4", "2_7", "5_8"];
+                        
                         // draw the items
                         for($i = 1; $i < $rows + 1; $i++) {
                             print "<tr>\n";

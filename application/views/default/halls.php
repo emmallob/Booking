@@ -26,7 +26,7 @@ require "headtags.php";
                         List of Available Halls to host Events
                     </div>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
-                        <button class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</button>
+                        <a href="<?= $baseUrl ?>halls-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
                     </div>
                 </div>
             </div>

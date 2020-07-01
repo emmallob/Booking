@@ -21,6 +21,9 @@
         trigger: "focus"
     });
 
+    $(`select[class~="selectpicker"]`).select2();
+
+    $(`span[class="required"]`).attr("title", "Required Parameter");
     // Add active state to sidbar nav links
     var path = window.location.href; // because the 'href' property of the DOM element is the absolute path
     $("#layoutSidenav_nav .sidenav a.nav-link").each(function() {
