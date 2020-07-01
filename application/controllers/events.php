@@ -17,11 +17,11 @@ class Events extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) {
+    public function listItems(stdClass $params) : array {
         
         try {
 
-            
+            return [];
 
         } catch(\Exception $e) {
             return [];
