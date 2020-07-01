@@ -51,6 +51,7 @@ $accessObject->userId = $userId;
 	<link href='<?= "{$baseUrl}assets/css/styles.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/libs/datatables/css/datatable.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/libs/select/select.css" ?>' rel="stylesheet" type="text/css" />
+	<link href='<?= "{$baseUrl}assets/libs/sweetalert/sweetalert.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/css/custom.css" ?>' rel="stylesheet" type="text/css" />
 	<script data-search-pseudo-elements defer src="<?= $baseUrl ?>assets/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
 	<script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
@@ -134,8 +135,8 @@ $accessObject->userId = $userId;
 					<a class="dropdown-item" href="<?= $baseUrl ?>configuration">
 						<div class="dropdown-item-icon"><i data-feather="settings"></i></div>
 						Account</a>
-						<a class="dropdown-item" href="javascript:void(0)">
-							<div class="dropdown-item-icon data-logout"><i data-feather="log-out"></i></div>Logout
+						<a class="dropdown-item data-logout" href="javascript:void(0)">
+							<div class="dropdown-item-icon"><i data-feather="log-out"></i></div>Logout
 						</a>
 				</div>
 			</li>
@@ -157,7 +158,7 @@ $accessObject->userId = $userId;
 							Halls
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["halls", "halls-add"]) ? "show" : null ?>" id="collapseHalls" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["halls", "halls-add", "halls-edit", "halls-configuration"]) ? "show" : null ?>" id="collapseHalls" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav accordion" id="accordionSidenavLayout">
 								<a class="nav-link" href="<?= $baseUrl ?>halls">List Halls</a>
 								<a class="nav-link" href="<?= $baseUrl ?>halls-add">Add Hall</a>
@@ -168,7 +169,7 @@ $accessObject->userId = $userId;
 							Events
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["events", "events-add"]) ? "show" : null ?>" id="collapseLayouts" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["events", "events-add", "events-edit"]) ? "show" : null ?>" id="collapseLayouts" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav accordion" id="accordionSidenavLayout">
 								<a class="nav-link" href="<?= $baseUrl ?>events">List Events</a>
 								<a class="nav-link" href="<?= $baseUrl ?>events-add">Add Event</a>
@@ -182,7 +183,6 @@ $accessObject->userId = $userId;
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>tickets">Tickets</a>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-generate">Generate</a>
-								<a class="nav-link" href="<?= $baseUrl ?>tickets-assign">Assign</a>
 							</nav>
 						</div>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseFlows" aria-expanded="false" aria-controls="collapseFlows">

@@ -1,3 +1,22 @@
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top',
+    showConfirmButton: false,
+    timer: 6000,
+    onOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
+var responseCode = (code) => {
+    if (code == 200 || code == 201) {
+        return "success";
+    } else {
+        return "error";
+    }
+}
+
 var confirmNotice = (noticeName) => {
     let itemId = Cookies.get(`${noticeName}_notice`);
     if (itemId === 'true') {
@@ -15,11 +34,26 @@ var hideNotice = (noticeName) => {
     $(`div[data-notice="${noticeName}"]`).html(``);
 }
 
+$(`a[class~="data-logout"]`).on("click", function() {
+    $.post(`${baseUrl}api/users/logout`, function(response) {
+        if (response.code == 200) {
+            Cookies.set(`dashboard_notice`, 'false');
+            Toast.fire({
+                title: "You have successfully been logged out",
+                type: "success"
+            });
+            setTimeout(() => {
+                window.location.href = `${baseUrl}logout`;
+            }, 1000);
+        }
+    }, 'json');
+});
+
 $(`span[data-notice="dashboard"]`).on('click', function() {
     hideNotice('dashboard');
 });
 
-$(`select[name="is_payable"]`).on('change', function() {
+$(`select[name="event_is_payable"]`).on('change', function() {
     let value = $(this).val();
     value == 0 ? $(`select[name="event_ticket"]`).parents(`div[class~="cards"]:first`).addClass("hidden") : $(`select[name="event_ticket"]`).parents(`div[class~="cards"]:first`).removeClass("hidden");
     $(`select[class~="selectpicker2"]`).select2();
@@ -28,6 +62,11 @@ $(`select[name="is_payable"]`).on('change', function() {
 $(`select[name="multiple_booking"]`).on('change', function() {
     let value = $(this).val();
     value == 0 ? $(`input[name="maximum_booking"]`).parents(`div[class~="cards"]:first`).addClass("hidden") : $(`input[name="maximum_booking"]`).parents(`div[class~="cards"]:first`).removeClass("hidden");
+});
+
+$(`select[name="ticket_is_payable"]`).on('change', function() {
+    let value = $(this).val();
+    value == 0 ? $(`input[name="ticket_amount"]`).parents(`div[class~="cards"]:first`).addClass("hidden") : $(`input[name="ticket_amount"]`).parents(`div[class~="cards"]:first`).removeClass("hidden");
 });
 
 $(`input[name="hall_columns"], input[name="hall_rows"]`).on('input', function() {

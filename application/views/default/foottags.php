@@ -19,7 +19,9 @@
     <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.min.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/select/select.js" crossorigin="anonymous"></script>
+    <script src="<?= $rootDir ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
+    <script>var baseUrl = "<?= $rootDir ?>";</script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <!-- <script src="<?= $rootDir ?>assets/demo/chart-area-demo.js"></script> -->
     <!-- <script src="<?= $rootDir ?>assets/demo/chart-bar-demo.js"></script> -->

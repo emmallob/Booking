@@ -8,7 +8,7 @@ require "headtags.php";
         <div class="container-fluid">
             <div class="page-header-content">
                 <h1 class="page-header-title">
-                    <div class="page-header-icon"><i data-feather="sunset"></i></div>
+                    <div class="page-header-icon"><i data-feather="home"></i></div>
                     <span><?= $page_title ?></span>
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
@@ -31,7 +31,7 @@ require "headtags.php";
             </div>
             <div class="card-body">
 
-                <form action="<?= $baseUrl ?>api/halls/add" method="POST" >
+                <form action="<?= $baseUrl ?>api/halls/add" method="POST" class="appForm">
                     <div class="row">
                         <div class="col-lg-8">
                             <div class="row">
@@ -49,7 +49,7 @@ require "headtags.php";
                                 </div>
                                 <div class="col-lg-4 col-md-4">
                                     <div class="form-group">
-                                        <label for="hall_columns">Hall hall_Columns <span class="required">*</span></label>
+                                        <label for="hall_columns">Hall Columns <span class="required">*</span></label>
                                         <input type="number" min="1" name="hall_columns" id="hall_columns" class="form-control">
                                     </div>
                                 </div>

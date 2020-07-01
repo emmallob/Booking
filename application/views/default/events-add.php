@@ -8,7 +8,7 @@ require "headtags.php";
         <div class="container-fluid">
             <div class="page-header-content">
                 <h1 class="page-header-title">
-                    <div class="page-header-icon"><i data-feather="sunset"></i></div>
+                    <div class="page-header-icon"><i data-feather="box"></i></div>
                     <span><?= $page_title ?></span>
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
@@ -31,7 +31,7 @@ require "headtags.php";
             </div>
             <div class="card-body">
 
-                <form action="<?= $baseUrl ?>api/events/add" method="POST" >
+                <form action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm">
                     <div class="row">
                         <div class="col-lg-8 col-md-8">
                             <div class="form-group">
@@ -85,8 +85,8 @@ require "headtags.php";
                                 <div class="col-lg-4">
                                     <div class="cards">
                                         <div class="form-group">
-                                            <label for="is_payable">Is Payable</label>
-                                            <select name="is_payable" id="is_payable" class="form-control selectpicker">
+                                            <label for="event_is_payable">Is Payable</label>
+                                            <select name="event_is_payable" id="event_is_payable" class="form-control selectpicker">
                                                 <option value="0">Free Event</option>
                                                 <option value="1">Paid Event</option>
                                             </select>
