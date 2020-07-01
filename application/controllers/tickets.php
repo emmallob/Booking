@@ -2,6 +2,9 @@
 
 class Tickets extends Booking {
 
+    /** Output */
+    private $output = [];
+    
     /**
      * Initialize the parent class
      */
@@ -21,7 +24,7 @@ class Tickets extends Booking {
         
         try {
 
-            return [];
+            return $this->output;
 
         } catch(\Exception $e) {
             return [];
