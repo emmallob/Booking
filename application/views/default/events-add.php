@@ -68,13 +68,13 @@ require "headtags.php";
                         <div class="col-lg-3 col-md-4">
                             <div class="form-group">
                                 <label for="bookink_starttime">Booking Start Time <span class="required">*</span></label>
-                                <input type="datetime-local" name="bookink_starttime" id="bookink_starttime" class="form-control">
+                                <input type="datetime-local" name="booking_starttime" id="booking_starttime" class="form-control">
                             </div>
                         </div>
                         <div class="col-lg-3 col-md-4">
                             <div class="form-group">
-                                <label for="bookink_endtime">Booking End Time <span class="required">*</span></label>
-                                <input type="datetime-local" name="bookink_endtime" id="bookink_endtime" class="form-control">
+                                <label for="booking_endtime">Booking End Time <span class="required">*</span></label>
+                                <input type="datetime-local" name="booking_endtime" id="booking_endtime" class="form-control">
                             </div>
                         </div>
                         <div class="col-lg-12">

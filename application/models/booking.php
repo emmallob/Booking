@@ -21,7 +21,7 @@ class Booking {
 	/* This is the global value for the browser and platform to use by all methods */
 	public $browser;
 	public $platform;
-	public $clientId;
+	public $client_guid;
 	public $user_guid;
 	public $clientData;
 
@@ -29,58 +29,28 @@ class Booking {
 		global $booking, $session, $config;
 
 		$this->db = $booking;
+		$this->booking = $booking;
 		$this->config = $config;
 		$this->session = $session;
-		$this->clientId = $this->session->clientId;
+		$this->client_guid = $this->session->client_guid;
 		$this->ip_address = ip_address();
 		$this->baseUrl = $this->config->base_url();
 
 		$this->user_agent = load_class('user_agent', 'libraries');
 		$this->platform = $this->user_agent->platform();
 		$this->browser = $this->user_agent->browser();
-		$this->clientData = $this->clientData($this->clientId);
+		$this->clientData = $this->clientData($this->client_guid);
 	}
 
-	/**
-	 * @method thisClient
-	 * @desc This method returns the variables that appends to all queries to limit the query the client Id
-	 * @return string of clientId query
-	 */
-	public function thisClient() {
-
-		// call the access level object
-		$accessObject = load_class('accesslevel', 'controllers');
-		$accessObject->userId = $this->user_guid;
-
-		// confirm if the is a super user
-		if($accessObject->hasAccess('monitoring', 'clients')) {
-
-			// check if a variable has been parsed
-			if(!empty($this->session->superclientId)) {
-
-				// set the client id
-				$clientId = xss_clean($this->session->superclientId);
-				
-				// continue with the query to use for the query
-				return $clientId;
-			} else {
-				return $this->session->clientId;	
-			}
-		} else {
-			return $this->session->clientId;
-		}
-
-	}
-
-	public function clientData($clientId = null) {
+	public function clientData($client_guid = null) {
 		try {
 
-			$clientId = (!empty($clientId)) ? $clientId : $this->session->clientId;
+			$client_guid = (!empty($client_guid)) ? $client_guid : $this->session->client_guid;
 
 			$stmt = $this->db->prepare(
 				"SELECT a.*, b.country_name
 				FROM users_accounts a
-				LEFT JOIN country b ON b.id = a.id WHERE a.clientId='{$clientId}'
+				LEFT JOIN country b ON b.id = a.id WHERE a.client_guid='{$client_guid}'
 			");
 			$stmt->execute();
 
@@ -108,11 +78,11 @@ class Booking {
 
 			// call the access level object
 			$accessObject = load_class('accesslevel', 'controllers');
-			$accessObject->userId = $this->user_guid;
+			$accessObject->user_guid = $this->user_guid;
 
 
 			$filter = (!empty($recordId)) ? "mn.unique_id = '{$recordId}'" : null;
-			$clientLimit = ($this->tableName == "countries") ? null : "mn.clientId = '{$this->clientId}' AND ";
+			$clientLimit = ($this->tableName == "countries") ? null : "mn.client_guid = '{$this->client_guid}' AND ";
 
 			$stmt = $this->db->prepare("
 				SELECT {$columnNames} FROM {$this->tableName} mn $joinClause WHERE $clientLimit {$filter} {$whereClause}
@@ -172,32 +142,11 @@ class Booking {
 	public function lastRowId($tableName) {
 
 		$stmt = $this->db->prepare("
-				SELECT id AS rowId FROM {$tableName} WHERE clientId = ? ORDER BY id DESC LIMIT 1
+				SELECT id AS rowId FROM {$tableName} WHERE client_guid = ? ORDER BY id DESC LIMIT 1
 		");
-		$stmt->execute([$this->clientId]);
+		$stmt->execute([$this->client_guid]);
 
 		return $stmt->fetch(PDO::FETCH_OBJ)->rowId;
-	}
-
-	/**
-	 * @method deleteRecord($recordId)
-	 * @desc This method is used for deleting a record from the database
-	 * @desc This will be used in all aspects of the application
-	 * @return bool
-	 **/
-	private function deleteRecord($tableName, $recordId) : bool {
-
-		try {
-
-			$stmt = $this->db->prepare("
-				UPDATE {$tableName} SET status = ? WHERE unique_id = ? AND clientId = ?
-			");
-			return $stmt->execute([0, $recordId, $this->clientId]);
-
-		} catch(PDOException $e) {
-			return false;
-		}
-
 	}
 
 	/**
@@ -211,9 +160,9 @@ class Booking {
 		try {
 
 			$stmt = $this->db->prepare("
-				SELECT * FROM {$tableName} WHERE $whereClause AND clientId = ?
+				SELECT * FROM {$tableName} WHERE $whereClause AND client_guid = ?
 			");
-			$stmt->execute([$this->clientId]);
+			$stmt->execute([$this->client_guid]);
 
 			return $stmt->rowCount();
 
@@ -257,12 +206,12 @@ class Booking {
 	/**
 	 * @method userLogs
 	 * @param $page 	This is the page that the user is managing
-	 * @param $itemId	This relates to the item that is being managed
+	 * @param $item_guid	This relates to the item that is being managed
 	 * @param $description This is the full description of what is being done
 	 * @return null
 	 *
 	 **/
-	final function userLogs($page, $itemId, $description, $userId = null, $clientId = null) {
+	final function userLogs($page, $item_guid, $description, $user_guid = null, $client_guid = null) {
 		
 		try {
 
@@ -272,9 +221,9 @@ class Booking {
 				INSERT INTO 
 					users_activity_logs 
 				SET 
-					userId = ?, page = ?, itemId = ?, description = ?, user_agent = ?, clientId = ?
+					user_guid = ?, page = ?, item_guid = ?, description = ?, user_agent = ?, client_guid = ?
 			");
-			return $stmt->execute([($userId ?? $this->user_guid), $page, $itemId, $description, $ur_agent, ($clientId ?? $this->clientId)]);
+			return $stmt->execute([($user_guid ?? $this->user_guid), $page, $item_guid, $description, $ur_agent, ($client_guid ?? $this->client_guid)]);
 
 		} catch(PDOException $e) {
 			return false;
@@ -300,11 +249,11 @@ class Booking {
 					users_data_monitoring 
 				SET 
 					data_type = ?, unique_id = ?, data_set = ?, 
-					user_id = ?, user_agent = ?, clientId = ?
+					user_guid = ?, user_agent = ?, client_guid = ?
 			");
 			return $stmt->execute([
 				$data_type, $uniqueId, $data_set, 
-				$this->user_guid, $ur_agent, $this->clientId
+				$this->user_guid, $ur_agent, $this->client_guid
 			]);
 
 		} catch(PDOException $e) {
@@ -355,9 +304,9 @@ class Booking {
 	final function sendEmail($unique_id, $template = 'default', $fullname = null, $subject, $sent_to, $message, $copy_to = null) : bool {
 
 		$stmt = $this->db->prepare("
-			INSERT INTO emails SET unique_id = ?, template=?, subject = ?, fullname = ?, sent_to = ?, message = ?, copy_to = ?, clientId = ?
+			INSERT INTO emails SET unique_id = ?, template=?, subject = ?, fullname = ?, sent_to = ?, message = ?, copy_to = ?, client_guid = ?
 		");
-		return $stmt->execute([$unique_id, $template, $subject, $fullname, $sent_to, $message, $copy_to, $this->clientId]);
+		return $stmt->execute([$unique_id, $template, $subject, $fullname, $sent_to, $message, $copy_to, $this->client_guid]);
 	}
 
 	/**
@@ -583,10 +532,10 @@ class Booking {
 			// insert the record
 			$stmt = $this->db->prepare("
 				INSERT INTO breach_notifications
-				SET request_method = ?, clientId = ?, table_name = ?, severity = ?, suspected_ids = ?
+				SET request_method = ?, client_guid = ?, table_name = ?, severity = ?, suspected_ids = ?
 			");
 			return $stmt->execute([
-				$endpoint, $this->clientId, $tableName, $severity, json_encode($invalids)
+				$endpoint, $this->client_guid, $tableName, $severity, json_encode($invalids)
 			]);
 
 		} catch(PDOException $e) {
@@ -617,13 +566,13 @@ class Booking {
 		foreach($itemIds as $eachItem) {
 
 			// confirm that the item already exists
-			$prevData = $this->pushQuery("id, guid", $tableName, "guid='{$eachItem}' AND clientId='{$this->clientId}' AND status='1'");
+			$prevData = $this->pushQuery("id, guid", $tableName, "guid='{$eachItem}' AND client_guid='{$this->client_guid}' AND status='1'");
 
 			// confirm that the request returned some dataset
 			if(!empty($prevData)) {
 
 				// update the row information
-				$queryData .= "UPDATE $tableName SET status = '0' WHERE guid = '{$eachItem}' AND clientId = '{$this->clientId}';";
+				$queryData .= "UPDATE $tableName SET status = '0' WHERE guid = '{$eachItem}' AND client_guid = '{$this->client_guid}';";
 
 			} else {
 				$error = true;
@@ -742,188 +691,7 @@ class Booking {
 		}
 		
 		return $mediaData;
-	}
-
-	/**
-	 * Confirm that a page already exists in the brand_channels table
-	 * 
-	 * @param $brandId		This is the brand id
-	 * @param $pageId		The id of the page or the username if twitter or linkedin
-	 * @param $channelCode	This is the unique code for each social media channel
-	 * @param $clientId		This is the current user account id
-	 * 
-	 * @return bool
-	 */
-	public function confirmPageExistence($brandId, $pageId, $channelCode, $clientId) {
-
-		try {
-
-			$stmt = $this->db->prepare("
-				SELECT COUNT(*) AS rows_count
-				FROM brand_channels 
-				WHERE channel_code = '{$channelCode}' AND page_id = '{$pageId}' 
-				AND brand_id = '{$brandId}' AND clientId = '{$clientId}'
-			");
-			$stmt->execute();
-
-			return ($stmt->fetch(PDO::FETCH_OBJ)->rows_count > 0) ? true : false;
-
-		} catch(PDOException $e) { }
-	}
-
-	/**
-	 * Get the equivalent of the code using the name
-	 * 
-	 * @param $code 	This specifies the social media code
-	 * 
-	 * @return string
-	 */
-	public function channelToCode($code) {
-
-		$arrayList = [
-			"facebook" => "FB",
-			"twitter" => "TW",
-			"pinterest" => "PT",
-			"youtube" => "YT",
-			"linkedin" => "LI",
-			"instagram" => "IG"
-		];
-
-		return (isset($arrayList[$code])) ? $arrayList[$code] : null;
-
-	}
-
-	/**
-	 * Get the equivalent of the name to get the channel
-	 * 
-	 * @param $code 	This specifies the social media code
-	 * 
-	 * @return string
-	 */
-	public function codeToChannel($code) {
-
-		$arrayList = [
-			"FB" => "facebook",
-			"TW" => "twitter",
-			"PT" => "pinterest",
-			"YT" => "youtube",
-			"LI" => "linkedin",
-			"IG" => "instagram" 
-		];
-
-		return (isset($arrayList[$code])) ? $arrayList[$code] : null;
-
-	}
-
-	/**
-	 * Return the brand ids of this client
-	 * 
-	 * @param String $clientId 	The client id to query the data
-	 * 
-	 * @return Array
-	 */
-	public function clientBrandIds($clientId) {
-
-		$stmt = $this->db->prepare("SELECT GROUP_CONCAT(brand_id) brand_ids FROM brand WHERE clientId= ? AND status=?");
-		$stmt->execute([$clientId, 1]);
-
-		return ($stmt->rowCount() > 0) ? $this->stringToArray($stmt->fetch(PDO::FETCH_OBJ)->brand_ids) : [];	
-	}
-
-	/**
-	 * Return the brand ids of this current user
-	 * 
-	 * @param String $userId 	The client id to query the data
-	 * 
-	 * @return Array
-	 */
-	public function userBrandIds($userId) {
-
-		$stmt = $this->db->prepare("SELECT brand_ids FROM users WHERE user_id= ?");
-		$stmt->execute([$userId]);
-
-		return ($stmt->rowCount() > 0) ? $this->stringToArray($stmt->fetch(PDO::FETCH_OBJ)->brand_ids, "|") : [];	
-	}
-
-	/**
-	 * This method loads the brand settings of the logged in user
-	 * 
-	 * @param $userId		This the id of the logged in user
-	 * 
-	 * @return Object		Returns an object of the results
-	 */
-	public function defaultBrandSetting($userId) {
-
-		try {
-
-			// confirm that the values arent empty
-			if(!empty($userId)) {
-				
-				$stmt = $this->db->prepare("SELECT brand_id, facebook, twitter, instagram, linkedin, pinterest, youtube FROM users_brand_settings WHERE user_id = ?");
-				$stmt->execute([$userId]);
-
-				if($stmt->rowCount() == 1) {
-					return $stmt->fetch(PDO::FETCH_OBJ);
-				}
-
-			}
-
- 		} catch(PDOException $e) { }
- 		
- 		return $this;
-	}
-
-	/**
-	 * Count the number of accounts that an email address is connected to
-	 * 
-	 * @param String $email 		The email address of the user
-	 * 
-	 * @return Int
-	 */
-	public function userAccountsCount($email) {
-
-		try {
-
-			$stmt = $this->db->prepare("SELECT COUNT(*) AS rows_count FROM users WHERE email= ? AND deleted='0'");
-			$stmt->execute([$email]);
-
-			return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ)->rows_count : 0;
-			
-		} catch(PDOException $e) {
-			return 0;
-		}
-	}
-
-	/**
-	 * Returns the user id, brand_ids and instance_ids for the user of using the client id and email address
-	 * 
-	 * @param String $email 		The email address of the user
-	 * @param String $clientId		The client id to use for the search
-	 * 
-	 * @return Object
-	 */
-	public function userIdSearch($email, $clientId) {
-
-		try {
-
-			$stmt = $this->db->prepare("
-				SELECT 
-					a.user_id, a.brand_ids, a.instance_ids,
-					(
-						SELECT b.brand_id FROM users_brand_settings b 
-						WHERE b.user_id = a.user_id AND b.clientId = a.clientId LIMIT 1
-					) AS current_brand_id
-				FROM users a
-				WHERE a.email= ? AND a.deleted='0' AND a.clientId = ?
-			");
-			$stmt->execute([$email, $clientId]);
-
-			return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ) : null;
-			
-		} catch(PDOException $e) {
-			return null;
-		}
-	}
+	}	
 
 	/**
 	 * Compare array and remove item from the list
@@ -953,142 +721,19 @@ class Booking {
 	 * @param stdClass 	$params				This object contains the item and its id to delete
 	 * 					$params->item 		This refers to either a brand or user or any other item to remove
 	 * 					$params->item_id	This is the unique id of the item to remove
-	 * 					$params->clientId	This is the unique id for the user account
+	 * 					$params->client_guid	This is the unique id for the user account
 	 * 
 	 * @return String | Bool
 	 */
 	public function removeRecord(stdClass $params) {
 		/** Process the request */
-		if(empty($params->item) || empty($params->item_id) || empty($params->clientId)) {
+		if(empty($params->item) || empty($params->item_id) || empty($params->client_guid)) {
 			return "denied";
 		}
 
 		try {
 			
-			/** Begin transaction */
-			$this->db->beginTransaction();
 			
-			/** If the user wants to remove a brand */
-			if($params->item == "brand") {
-				
-				/** Confirm that brand is active */
-				$brandActive = $this->db->prepare("SELECT id FROM brand WHERE status=? AND brand_id = ? AND clientId = ?");
-				$brandActive->execute([1, $params->item_id, $params->clientId]);
-
-				/** Count the number of rows */
-				if($brandActive->rowCount() != 1) {
-					return "denied";
-				} else {
-					/** Remove the brand from the list of brands by setting it as been deleted */
-					$stmt = $this->db->prepare("UPDATE brand SET status=? WHERE brand_id = ? AND clientId = ?");
-					$stmt->execute([0, $params->item_id, $params->clientId]);
-
-					/** Disable all channels connected to this brand */
-					$stmt = $this->db->prepare("UPDATE brand_channels SET status = ?, deleted = ? WHERE brand_id = ? AND clientId = ?");
-					$stmt->execute([0, 1, $params->item_id, $params->clientId]);
-
-					/** Remove the brand id from the list of user brands */
-					$users = $this->db->prepare("SELECT id, brand_ids FROM users WHERE clientId = ? AND deleted = ?");
-					$users->execute([$params->clientId, 0]);
-					
-					// loop through the list of users
-					while($user = $users->fetch(PDO::FETCH_OBJ)) {
-						/** Remove the brand id from the list of brand ids */
-						$brands = $this->removeArrayValue($user->brand_ids, $params->item_id, "|");
-						$brandIds = implode("|", $brands);
-						
-						/** Update the user ids */
-						$this->db->query("UPDATE users SET brand_ids='{$brandIds}' WHERE id='{$user->id}'");
-					}
-					
-					/** Reduce the number of brands created for this account */
-					$cSubscribe = json_decode( $this->clientData->subscription, true );
-					$cSubscribe['brands_created'] = ($cSubscribe['brands_created'] - 1);
-
-					/** update the client brands subscription count */
-					$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE clientId='{$params->clientId}'");
-
-					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted the Brand From the List of Brands for this Account.", $params->userId, $params->clientId);
-					
-					/** Unset the current user session */
-					$this->session->remove("brandsListData");
-
-					/** Update the package session */
-					$this->session->accountPackage = $cSubscribe;
-
-					/** Commit the transactions */
-					$this->db->commit();
-					
-					/** Return the success response */
-					return "great";
-				}
-				
-			}
-
-			/** If the user wants to remove a user */
-			elseif($params->item == "user") {
-				
-				/** Confirm that user is not already deleted */
-				$userActive = $this->db->prepare("SELECT id FROM users WHERE deleted=? AND user_id = ? AND clientId = ?");
-				$userActive->execute([0, $params->item_id, $params->clientId]);
-
-				/** Count the number of rows */
-				if($userActive->rowCount() != 1) {
-					return "denied";
-				} else {
-					/** Remove the user from the list of users by setting it as been deleted */
-					$stmt = $this->db->prepare("UPDATE users SET status=?, deleted=? WHERE user_id = ? AND clientId = ?");
-					$stmt->execute([0, 1, $params->item_id, $params->clientId]);
-
-					/** Reduce the number of brands created for this account */
-					$cSubscribe = json_decode( $this->clientData->subscription, true );
-					$cSubscribe['users_created'] = ($cSubscribe['users_created'] - 1);
-
-					/** update the client brands subscription count */
-					$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE clientId='{$params->clientId}'");
-
-					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted the User From the List of Users for this Account.", $params->userId, $params->clientId);
-
-					/** Update the package session */
-					$this->session->accountPackage = $cSubscribe;
-
-					/** Commit the transactions */
-					$this->db->commit();
-					
-					/** Return the success response */
-					return "great";
-				}
-				
-			}
-
-			/** If the competitor wants to remove a competitor */
-			elseif($params->item == "competitor") {
-				
-				/** Confirm that user is not already deleted */
-				$competitorActive = $this->db->prepare("SELECT id FROM competitors WHERE status=? AND id = ? AND clientId = ?");
-				$competitorActive->execute([1, $params->item_id, $params->clientId]);
-
-				/** Count the number of rows */
-				if($competitorActive->rowCount() != 1) {
-					return "denied";
-				} else {
-					/** Remove the user from the list of users by setting it as been deleted */
-					$stmt = $this->db->prepare("UPDATE competitors SET status=? WHERE id = ? AND clientId = ?");
-					$stmt->execute([0, $params->item_id, $params->clientId]);
-
-					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted a competitor the List of Users for this Account.", $params->userId, $params->clientId);
-
-					/** Commit the transactions */
-					$this->db->commit();
-					
-					/** Return the success response */
-					return "great";
-				}
-				
-			}
 
 		} catch(PDOException $e) {
 			$this->db->rollBack();

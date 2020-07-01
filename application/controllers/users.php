@@ -31,7 +31,7 @@ class Users extends Booking {
 	 * @return bool
 	 */
 	public function logged_InControlled() {
-		return ($this->session->userLoggedIn && $this->session->userId) ? true : false;
+		return ($this->session->evcrmLoggedIn && $this->session->userId) ? true : false;
 	}
 
 	/**
@@ -43,6 +43,90 @@ class Users extends Booking {
 		$this->session->remove("userId");
 		$this->session->remove("userName");
 		$this->session->destroy();
+	}
+
+	/**
+	 * This method lists all users
+	 * 
+	 * @param stdClass	$params		This is an object of all the parameters to use for the query
+	 */
+	public function listUsers(stdClass $params) {
+
+		global $accessObject;
+
+		$condition = "";
+		$result = [];
+
+		$condition = !empty($params->user_guid) ? "AND user_guid='{$params->user_guid}'" : null;
+
+		$query = $this->booking->prepare("
+			SELECT a.*, b.access_level_name
+				FROM users a 
+			LEFT JOIN users_access_levels b
+				ON a.access_level = b.id
+				WHERE a.client_guid = ? && a.deleted = ? {$condition}
+			LIMIT {$params->limit}
+		");
+
+		if ($query->execute([$params->clientId, 0])) {
+			$i = 0;
+
+			while ($data = $query->fetch(PDO::FETCH_OBJ)) {
+				$i++;
+
+				$date = date('jS F, Y', strtotime($data->created_on));
+
+				$action = '<div width="100%" align="center">';
+
+				if($accessObject->hasAccess('update', 'users')) {
+					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+							$action .= "<button title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
+							<i class=\"fa fa-edit\"></i>
+						</button> ";
+					} elseif(!in_array($data->access_level, [1, 2])) {
+						$action .= "<button title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
+							<i class=\"fa fa-edit\"></i>
+						</button> ";
+					}
+				}
+
+				if($accessObject->hasAccess('accesslevel', 'users')) {
+					$action .= "<button title=\"Manage access permissions of {$data->name}\" class=\"btn btn-sm btn-outline-primary edit-access-level\" data-user-id=\"{$data->user_guid}\">
+							<i class=\"fa fa-sitemap\"></i>
+						</button> ";
+				}
+
+				if($accessObject->hasAccess('delete', 'users')) {
+					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_id}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+							<i class=\"fa fa-trash\"></i>
+						</button> ";
+					} elseif(!in_array($data->access_level, [1, 2])) {
+						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_id}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+							<i class=\"fa fa-trash\"></i>
+						</button> ";
+					}
+				}
+
+				$action .= "</div>";
+
+				$result[] = [
+					'user_id' => $data->user_guid,
+					'row_id' => $i,
+					'fullname' => $data->name . ((!$data->status) ? "<br><span class='badge badge-danger'>Inactive</span>" : "<br><span class='badge badge-success'>Active</span>"),
+					'access_level' => $data->access_level_name,
+					'access_level_id' => $data->access_level,
+					'gender' => $data->gender,
+					'contact' => $data->contact,
+					'email' => $data->email,
+					'registered_date' => $date,
+					'action' => $action,
+					'deleted' => 0
+				];
+
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -360,203 +444,118 @@ class Users extends Booking {
 
 	/**
 	 * Add a new user account
-	 * @param stdClass $params
+	 * @param stdClass $userData
 	 * 
 	 * @return String
 	 */
-	public function addUserProfile(stdClass $params) {
-		
+	public function addUserProfile(stdClass $userData) {
+		// global variable
+		global $accessObject;
+
 		// load the user session key to be used for all the queries
 		$accountInfo = $this->clientData;
-		$cSubscribe = json_decode( $accountInfo->subscription, true );
+		$cSubscribe = json_decode( $accountInfo->setup_info, true );
 
-		// confirm that the user has not reached the subscription ratio
-		if($cSubscribe['users_created'] >= $cSubscribe['users']) {
-			return "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['users']} users";
-		}
-
-		// confirm a valid contact number
-		if(!empty($params->phone) && !preg_match("/^[0-9+]+$/", $params->phone)) {
-			// return error message
-			return "Sorry! Enter a valid contact number.";
-		}
-
-		// contact number should be at most 15 characters long
-		if(strlen($params->phone) > 15) {
-			// return error message
-			return "Sorry! The contact number must be at most 15 characters long.";
-		}
-
-		// confirm that the username is already existing
-		if(empty($params->email) || !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
-			// return error message
-			return "Sorry! Enter a valid email address.";
-		}
-
-		// confirm that the email address does not belong to this client already
-		if($this->check_existing("users", "email", $params->email, "AND clientId='{$params->clientId}' AND deleted='0'")) {
-			return "Sorry! This email address have already been linked to this Account.";
-		}
-
-		// get the username only from the email address
-		$params->username = explode("@", $params->email)[0];
-
-		// confirm username is not already taken
-		if($this->check_existing("users", "login", $params->username, "AND clientId='{$params->clientId}' AND deleted='0' AND user_type='user'")) {
-			return "Sorry! The username already exist.";
-		}
-
-		// confirm valid access levels list
-		if(empty($params->access_level) || !is_array($params->access_level)) {
-			return "An invalid Access Level Permissions were parsed";
-		}
-
-		// confirm valid access levels list
-		if(empty($params->access_level_id) || !preg_match("/^[0-9]+$/", $params->access_level_id)) {
-			return "An invalid Access Level Permission ID was parsed";
-		}
-
-		// confirm brand ids list
-		if(empty($params->brand_ids) || !is_array($params->brand_ids)) {
-			return "Sorry! Please check the selected brands to continue (Select at least one)";
-		}
-
-		// get the list of brand ids of this current account
-		$activeBrands = $this->clientBrandIds($params->clientId);
-
-		// confirm that all the brands are in the users session
-		foreach(array_keys($params->brand_ids) as $eachBrand) {
-			if(!in_array($eachBrand, $activeBrands)) {
-				return "An invalid brand id was parsed. Please confirm and try again.";
-				break;
-			}
-		}
-
-		// initialiate
-		$accessLevel = [];
-
-		// clean the access permissions well
-		foreach($params->access_level as $eachKey => $eachValue) {
-			foreach($eachValue as $key => $value) {
-				foreach($value as $i => $e) {
-					$accessLevel[$eachKey][$key] = ($e == "on") ? 1 : 0;
-				}
-			}
-		}
-		$permissions["permissions"] = $accessLevel;
-
-		// lets move ahead and create some more variables
-		$params->userId = $this->generate_user_id();
-		$params->verifyToken = $this->generate_verification_code();
-		$params->created_by = $params->curUserId;
+		// sanitize the user email address
+		$userData->email = (!empty($userData->email)) ? filter_var($userData->email, FILTER_SANITIZE_EMAIL) : null;
 		
+		// confirm valid contact number
+		if(!preg_match("/^[0-9+]+$/", $userData->phone)) {
+			return "invalid-phone";
+		}
+
+		// confirm valid email address
+		if(!filter_var($userData->email, FILTER_VALIDATE_EMAIL)) {
+			return "invalid-email";
+		}
+
 		try {
 
 			// begin transaction
-			$this->db->beginTransaction();
+			$this->booking->beginTransaction();
 
-			// create a new object
-			$instancesClass = load_class("instances", "controllers");
+			// Check Email Exists
+			$checkData = $this->getAllRows("users", "COUNT(*) AS proceed", "email='{$userData->email}' && status = '1'");
 
-			$instance = (object)[];
-			$instanceIds = [];
-			$instance->userId = $params->userId;
-			$instance->created_by = $params->created_by;
+			if ($checkData != false && $checkData[0]->proceed == '0') {
 
-			// foreach brand create a new instance for this user
-			foreach(array_keys($params->brand_ids) as $eachBrand) {
-				// instance parameters
-				$instance->instanceId = $this->generate_instance_id();
-				$instance->brandId = $eachBrand;
-				$instanceIds[] = $instance->instanceId;
+				// Add Record To Database
+				$getUserId   = random_string('alnum', mt_rand(20, 30));
+				$getPassword = random_string('alnum', mt_rand(8, 10));
+				$hashPassword= password_hash($getPassword, PASSWORD_DEFAULT);
+				$username = explode("@", $userData->email)[0];
 
-				// add the brand instances
-				$instancesClass->add_brand_instance($instance);
-			}
+				$userData->verifyToken = random_string('alnum', mt_rand(50, 80));
 
-			// insert the user account the user profile information
-			$stmt = $this->db->prepare("
-				INSERT INTO `users` SET
-				name = ?, gender = ?, email = ?, phone_number = ?, clientId=?, created_on = now(), 
-				created_by = ?, verification_email_code = ?, instance_ids = ?, login = ?".
-				(empty($params->city) ? '' : ", city = '{$params->city}'").
-				(empty($params->country) ? '' : ", country = '{$params->country}'").
-				(empty($params->image) ? '' : ", image = '{$params->image}'").
-				(empty($params->brand_ids) ? '' : ", brand_ids = '".implode("|", array_keys($params->brand_ids))."'").
-				(empty($params->access_level_id) ? '' : ", access_level = '{$params->access_level_id}'").
-				", user_id = ?, user_type = ?, password = ?
-			");
-			$stmt->execute([
-				$params->fullname, $params->gender, $params->email, $params->phone, $params->clientId,
-				$params->curUserId, $params->verifyToken, implode("|", $instanceIds), $params->username, 
-				$params->userId, "user", password_hash(random_string('alnum', 12), PASSWORD_DEFAULT)
-			]);
+				$query = $this->addData(
+					"users" ,
+					"clientId='{$userData->clientId}', user_id='{$getUserId}', name='{$userData->fullname}', 
+					gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', 
+					verify_token='{$userData->verifyToken}', status='0', access_level='{$userData->access_level}', 
+					branchId='{$userData->branch_id}', password='{$hashPassword}', login='{$username}'"
+				);
 
-			// insert the user access levels
-			$stmt = $this->db->prepare("INSERT INTO users_roles SET permissions = ?, clientId=?, last_updated = now(), user_id = ?");
-			$stmt->execute([json_encode($permissions), $params->clientId, $params->userId]);
-			
-			// insert the current brand id of the user
-			$stmt = $this->db->prepare("INSERT INTO users_brand_settings SET clientId = ?, brand_id = ?, user_id = ?");
-			$stmt->execute([$params->clientId, array_keys($params->brand_ids)[0], $params->userId]);
+				if ($query == true) {
 
-			// insert the user activity
-			$this->userLogs("profile", $params->userId, "Added a new the Profile Account of {$params->fullname}.", $params->curUserId, $params->clientId);
+					// Record user activity
+					$this->userLogs('users', $getUserId, 'Added a new user.');
+					
+					// Assign Roles To User
+					$accessObject->assignUserRole($getUserId, $userData->access_level);
+					
+					// form the email message
+					$emailSubject = "Account Setup \[".config_item('site_name')."\]<br>";
+					$emailMessage = "Hello {$userData->fullname},<br>";
+					$emailMessage .= "You have been added as a user on <strong>{$accountInfo->client_name}</strong> to help manage the Account.<br><br>";
+					$emailMessage .= "Username: <strong>{$userData->email}</strong><br>";
+					$emailMessage .= "Password: <strong>{$getPassword}</strong><br>";
+					
+					// create the verification link
+					$emailMessage .= "Please <a href='".$this->config->base_url('verify/account?token='.$userData->verifyToken)."'><strong>Click Here</strong></a> to verify your Email Address.\n\n";
 
-			// form the email message
-			$emailSubject = "Account Setup \[".config_item('site_name')."\]\n";
-			$emailMessage = "Hello {$params->fullname},\n";
-			$emailMessage .= "You have been added as a user on <strong>{$accountInfo->name}</strong> to help manage the Account.\n\n";
-			$emailMessage .= "Your username to be used for login is <strong>{$params->username}</strong>\n";
-			
-			// They can use their old password to login into the system if they already have an active account
-			if($this->userAccountsCount($params->email) > 0) {
-				$emailMessage .= "You can use your previous password to continue to login.\n";
+					// set the email address
+					$userEmail = [
+						"recipients_list" => [
+							[
+								"fullname" => $userData->fullname,
+								"email" => $userData->email,
+								"customer_id" => $userData->userId
+							]
+						]
+					];
+					
+					// increment the number of brands created for the account subscription
+					$cSubscribe['users_created'] = (!isset($cSubscribe['users_created'])) ? 1 : ($cSubscribe['users_created']+1);
+
+					// update the client brands subscription count
+					$this->booking->query("UPDATE settings SET setup_info='".json_encode($cSubscribe)."' WHERE clientId='{$userData->clientId}'");
+
+					// set the new value for the subscription stored in session
+					$this->session->accountPackage = $cSubscribe;
+
+					// record the email sending to be processed by the cron job
+					$sms = $this->booking->prepare("
+						INSERT INTO email_list SET clientId = ?, template_type = ?, itemId = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
+					");
+					$sms->execute([
+						$userData->clientId, 'general', $userData->userId, json_encode($userEmail), $userData->curUserId, $emailMessage, $emailSubject
+					]);
+
+					$this->booking->commit();
+
+					return "account-created";
+				
+				} else {
+					return "Sorry! User Records Failed To Save.";
+				}
 			} else {
-				// check if the user already has an account if not then they will get the prompt to set a new password
-				$emailMessage .= "The Password would be set once you verify your email address.\n";
-			}		
-
-			// create the verification link
-			$emailMessage .= "Please <a href='".$this->config->base_url('verify/account?token='.$params->verifyToken)."'><strong>Click Here</strong></a> to verify your Email Address.\n\n";
-
-			// set the email address
-			$userEmail = [
-				"recipients_list" => [
-					[
-						"fullname" => $params->fullname,
-						"email" => $params->email,
-						"customer_id" => $params->userId
-					]
-				]
-			];
-			
-			// increment the number of brands created for the account subscription
-			$cSubscribe['users_created'] = (!isset($cSubscribe['users_created'])) ? 1 : ($cSubscribe['users_created']+1);
-
-			// update the client brands subscription count
-			$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE clientId='{$params->clientId}'");
-
-			// set the new value for the subscription stored in session
-			$this->session->accountPackage = $cSubscribe;
-
-			// record the email sending to be processed by the cron job
-			$sms = $this->db->prepare("
-				INSERT INTO email_list SET clientId = ?, template_type = ?, itemId = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
-			");
-			$sms->execute([
-				$params->clientId, 'general', $params->userId, json_encode($userEmail), $params->curUserId, $emailMessage, $emailSubject
-			]);
-			
-			$this->db->commit();
-
-			return "account-created";
-			
+				return "Sorry! Email Already Belongs To Another User.";
+			}
 		} catch(PDOException $e) {
-			$this->db->rollBack();
-			return "An unexpected error occured.";
+			$this->booking->rollBack();
+			return $e->getMessage();
 		}
-		
+
 	}
 
 	/**
@@ -564,171 +563,185 @@ class Users extends Booking {
 	 * This method is only accessing on the Web Platform only.
 	 * Hence a session is used to save the user id to update the information
 	 * 
-	 * @param stdClass $user		This contains all the variables for updating the user information
+	 * @param stdClass $userData		This contains all the variables for updating the user information
 	 * 
 	 * @return String
 	 */
-	public function updateUserProfile(stdClass $user){
-
-		// global variable
+	public function updateUserProfile(stdClass $userData){
+		
+		// global variables
 		global $accessObject;
 
-		// confirm that the user id has been parsed
-		if(empty($this->session->currentUserId)) {
-			return;
-		}
-
-		// set the user to update the profile from the session variable
-		$userId = $this->session->currentUserId;
-
 		// sanitize the user email address
-		$user->email = (!empty($user->email)) ? filter_var($user->email, FILTER_SANITIZE_EMAIL) : null;
-		
-		// confirm valid email address
-		if(!filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
-			return "invalid-email";
-		}
+		$userData->email = (!empty($userData->email)) ? filter_var($userData->email, FILTER_SANITIZE_EMAIL) : null;
 
 		// confirm valid contact number
-		if(!preg_match("/^[0-9+]+$/", $user->phone)) {
+		if(!preg_match("/^[0-9+]+$/", $userData->phone)) {
 			return "invalid-phone";
 		}
 
-		// confirm valid access levels list
-		if(!empty($user->access_level) && !is_array($user->access_level)) {
-			return "invalid-access_levels";
+		// confirm valid email address
+		if(!filter_var($userData->email, FILTER_VALIDATE_EMAIL)) {
+			return "invalid-email";
 		}
 
-		// confirm brand ids list
-		if(!empty($user->brand_ids) && !is_array($user->brand_ids)) {
-			return "invalid-brand_ids";
-		}
+		// CHeck If User ID Exists
+		$checkData = $this->getAllRows("users", "COUNT(*) AS userTotal, access_level", "user_id='{$userData->user_id}'");
 
-		// get the list of brand ids of this current account
-		$activeBrands = $this->clientBrandIds($this->clientId);
+		if ($checkData != false && $checkData[0]->userTotal == '1') {
 
-		// run this section if the brand ids are not empty
-		if(!empty($user->brand_ids)) {
-			// confirm that all the brands are in the users session
-			foreach(array_keys($user->brand_ids) as $eachBrand) {
-				if(!in_array($eachBrand, $activeBrands)) {
-					return "invalid-brand_ids";
-				break;
-				}
-			}
-		}
+			// update user data
+			$query = $this->updateData(
+				"users",
+				"name='{$userData->fullname}', gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', access_level='{$userData->access_level}', branchId='{$userData->branch_id}'",
+				"user_id='{$userData->user_id}' && clientId='{$userData->clientId}'"
+			);
 
-		// run this section if the access level permissions were parsed
-		if(!empty($user->access_level)) {
-			// initialiate
-			$accessLevel = [];
-			// clean the access permissions well
-			foreach($user->access_level as $eachKey => $eachValue) {
-				foreach($eachValue as $key => $value) {
-					foreach($value as $i => $e) {
-						$accessLevel[$eachKey][$key] = ($e == "on") ? 1 : 0;
-					}
-				}
-			}
-			$permissions["permissions"] = $accessLevel;
-		}
-		
-		// set the parameters to push
-		$params = [
-			$user->fullname,
-			$user->gender,
-			$user->email,
-			$user->phone
-		];
+			if ($query == true) {
 
-		array_push($params, $userId);
+				// Record user activity
+				$this->userLogs('users', $userData->user_id, 'Update the user details.');
 
-		try {
-			
-			$this->db->beginTransaction();
+				// check if the user has the right permissions to perform this action
+				if($accessObject->hasAccess('accesslevel', 'users')) {
 
-			// update the user profile information
-			$stmt = $this->db->prepare("
-				UPDATE `users` SET
-				name = ?, gender = ?, email = ?, phone_number = ?".
-				(empty($user->city) ? '' : ", city = '{$user->city}'").
-				(empty($user->country) ? '' : ", country = '{$user->country}'").
-				(empty($user->image) ? '' : ", image = '{$user->image}'").
-				(empty($user->brand_ids) ? '' : ", brand_ids = '".implode("|", array_keys($user->brand_ids))."'").
-				(empty($user->access_level_id) ? '' : ", access_level = '{$user->access_level_id}'").
-				" WHERE user_id = ? LIMIT 1
-			");
-			$stmt->execute($params);
-			
-			// if the user access level was parsed
-			if(isset($permissions) && !empty($permissions)) {
-				// update the user access levels
-				$stmt = $this->db->prepare("UPDATE users_roles SET permissions = ?, last_updated = now() WHERE user_id = ? AND clientId= ?");
-				$stmt->execute([json_encode($permissions), $userId, $user->clientId]);
-			}
+					// Check If User ID Exists
+					$userRole = $this->getAllRows("users_roles", "COUNT(*) AS userTotal, permissions", "user_id='{$userData->user_id}'");
 
-			// update the brand ids in the session list
-			if(!empty($user->brand_ids)) {
-				// unset the brands list data session
-				$this->session->brandsListData = null;
-				
-				// set the new list of brand ids to show on the user panel
-				$brandsIds = implode("|", array_keys($user->brand_ids));
-				$this->session->brandIds = $brandsIds;
-
-				// if the brands is just one then set this as the current brand for the account
-				if(count(array_keys($user->brand_ids)) == 1) {
-					// set this in session
-					$this->session->currentBrandId = array_keys($user->brand_ids)[0];
-					
-					// update the current brand id of the user
-					$stmt = $this->db->prepare("UPDATE users_brand_settings SET brand_id = ? WHERE user_id = ?");
-					$stmt->execute([array_keys($user->brand_ids)[0], $userId]);
-				}
-				// what if the user select more than 1 brand however the current brand is not in the list of the selected brands
-				// get the list of of all brands parsed and check that against that of what the user is permitted to do
-				else {
-					// get some more items
-					$userPermittedBrands = $this->userBrandIds($userId);
-					$nowPermittedList = array_keys($user->brand_ids);
-					
-					// get the default brand id of the user
-					$currentDefaultId = $this->defaultBrandSetting($userId);
-
-					// find the difference between the keys
-					$arrayDiff = array_diff($userPermittedBrands, $nowPermittedList);
-
-					// if the current brand id is found in the now exempted brand ids
-					if(!in_array($currentDefaultId->brand_id, $arrayDiff)) {
-
-						// set this in session
-						$this->session->currentBrandId = $nowPermittedList[0];
-
-						// update the current brand id of the user using the very first id within the brands ids list
-						$stmt = $this->db->prepare("UPDATE users_brand_settings SET brand_id = ? WHERE user_id = ?");
-						$stmt->execute([$nowPermittedList[0], $userId]);
+					// confirm if the user has no credentials
+					if($userRole[0]->userTotal == 0) {
+						// insert the permissions to this user
+						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->default_permissions;
+						// assign these permissions to the user
+						$accessObject->assignUserRole($userData->user_id, $userData->access_level);
 					}
 
-				}
-			}
+					// Check Access Level
+					if ($userData->access_level != $checkData[0]->access_level) {
 
-			// insert a new user activity log
-			if($userId != $this->session->userId) {
-				$this->userLogs("profile", $userId, "Update the Profile Details of {$user->fullname}.", $this->session->userId, $user->clientId);
+						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->default_permissions;
+
+						$accessObject->assignUserRole($userData->user_id, $userData->access_level, $getPermissions);
+					}
+				}
+
+				return "User Details Have Been Successfully Updated.";
 			} else {
-				$this->userLogs("profile", $userId, "You updated your profile details.", $this->session->userId, $user->clientId);
+				return "Sorry! User Records Failed To Update.";
+			}
+		} else {
+			return "invalid";
+		}
+	}
+
+	/**
+	 * Load the user permissions
+	 * 
+	 * @return Array
+	 */
+	public function loadPermissions(stdClass $params) {
+		// global variable
+		global $accessObject;
+
+		// load the user permission and parse back the array data
+		$access_level = (isset($params->access_level)) ? xss_clean($params->access_level) : null;
+		$access_user  = (isset($params->user_id)) ? xss_clean($params->user_id) : null;
+
+		// Check If User Is Selected
+		if (!empty($access_user) && $access_user != "null") {
+
+			// Get User Permissions
+			$query = $this->getAllRows("users_roles", "permissions", "user_id='{$access_user}'");
+
+			
+
+			if ($query != false) {
+				$message = json_decode($query[0]->permissions);
+			} else {
+				$message = "no-user";
+			}
+		} else {
+
+			$query = $accessObject->getPermissions($access_level);
+			if ($query != false) {
+				$message = json_decode($query[0]->access_level_permissions);
+			} else {
+				$message = "no-permission";
+			}
+		}
+
+		return $message;
+	}
+
+	/**
+	 * Save the user access level permissions
+	 * 
+	 * @param stdClass $params
+	 * 
+	 * @return Array|String
+	 */
+	public function savePermissions(stdClass $params) {
+		
+		// global variables
+		global $accessObject;
+
+		if(!is_array($params->access_permissions)) {
+			return "Sorry! The permissions must be an array";
+		}
+
+		// Prepare Settings
+		$aclPermissions = [];
+
+		foreach($params->access_permissions as $eachItem) {
+			$expl = explode(",", $eachItem);
+
+			$aclPermissions[$expl[0]][$expl[1]] =  xss_clean($expl[2]);
+
+		}
+
+		// push the permissions into an array set
+		$permissions = json_encode(["permissions" => $aclPermissions]);
+
+		// if the user id is not empty
+		if ($params->user_id != "" && $params->user_id != "null") {
+
+			// Update Settings For User
+			$checkData = $this->getAllRows("users", "COUNT(*) AS userTotal", "user_id='{$params->user_id}' && status = '1'");
+
+			if ($checkData != false && $checkData[0]->userTotal == '1') {
+
+				$query = $accessObject->assignUserRole($params->user_id, $params->access_level, $permissions);
+
+				if ($query == true) {
+					return "Access Level Updated Successfully!";
+				} else {
+					return "error";
+				}
+
+			} else {
+				return "error";
 			}
 
-			// commit the transactions
-			$this->db->commit();
+		} else {
+			// Update Settings For Access Level Group
+			$checkData = $this->getAllRows("access_levels", "COUNT(*) AS aclTotal", "id='{$params->access_level}'");
 
-			// return true if all went well
-			return true;
+			if ($checkData != false && $checkData[0]->aclTotal == '1') {
 
-		} catch(PDOException $e) {
-			$this->db->rollBack();
-			return "unknown-error";
-		} 
+				$stmt = $this->booking->prepare(
+					"UPDATE access_levels SET access_level_permissions = '{$permissions}' WHERE id = '{$params->access_level}'"
+				);
+
+				if ($stmt->execute()) {
+					return "Access Level Updated Successfully";
+				} else {
+					return "error";
+				}
+
+			} else {
+				return "no-permission";
+			}
+		}
 
 	}
 
@@ -780,52 +793,6 @@ class Users extends Booking {
 	}
 
 	/**
-	 * Select and Save the User Account Id in a session
-	 *
-	 * @param $accountId This is the Account Id to be saved in a session
-	 *
-	 * @return bool
-	 **/
-	public function selectAccount(array $data) {
-		
-		// confirm that the theme variable was parsed
-		if( isset($data['accountId']) ) {
-
-			// save this client id into the session
-			$this->session->clientId = $data['accountId'];
-
-			// load the user session key to be used for all the queries
-			$clientData = $this->clientData($data['accountId']);
-
-			// get the user id attached to this email address and the supplied client account id
-			$userInfo = $this->userIdSearch($this->session->get("tempEmailAddress"), $data['accountId']);
-
-			// set the session for what has already been set
-			$this->session->userId = $userInfo->user_id;
-			$this->session->brandIds = $userInfo->brand_ids;
-			$this->session->instanceIds = $userInfo->instance_ids;
-			$this->session->currentBrandId = $userInfo->current_brand_id;
-
-			// remove the list of all brand ids
-			$this->session->remove("brandsListData");
-
-			// unset the temporal email address
-			$this->session->remove("tempEmailAddress");
-
-			// convert the keys column to an array
-			$accessToken = json_decode( $clientData->client_key, true );
-			$subscription = json_decode( $clientData->subscription, true );
-
-			$this->session->clientKey = $accessToken['key'];
-
-			$this->session->accountPackage =  $subscription;
-
-			return true;
-		}
-
-	}
-
-	/**
 	 * Return the list of access level permissions for this id
 	 * 
 	 * @param Int $level_id 	This is the access level id
@@ -869,16 +836,6 @@ class Users extends Booking {
 		
 	}
 
-	// public function update_user_channels($userId, array $channels){
-
-	// 	$channelsString = implode("|", $channels);
-	// 	$sql = $this->db->prepare("
-	// 		UPDATE `brand` SET channel_codes = ?
-	// 		WHERE user_id = ? LIMIT 1
-	// 	");
-	// 	return $sql->execute([$channelsString, $userId]);
-
-	// }
 
 	public function remove_user($user_id){
 		$stmt = $this->db->prepare("
@@ -938,32 +895,6 @@ class Users extends Booking {
 		} catch (PDOException $e) {
 			return false;
 		}
-	}
-
-	public function fetch_user_channels($brandId) {
-
-		$stmt = $this->db->prepare("
-			SELECT 
-				GROUP_CONCAT(DISTINCT channel_code SEPARATOR '|') AS user_channels
-			FROM 
-				brand_channels WHERE brand_id = ? AND status = ? 
-		");
-		$stmt->execute([$brandId, 1]);
-
-		return $stmt->fetch(PDO::FETCH_OBJ);
-	}
-
-	public function fetch_user_brand_settings($userId) {
-
-		$stmt = $this->db->prepare("
-			SELECT 
-				user_id, brand_id, facebook, twitter, instagram, youtube, linkedin, pinterest
-			FROM 
-				users_brand_settings WHERE user_id = ?
-		");
-		$stmt->execute([$userId]);
-
-		return $stmt->fetch(PDO::FETCH_OBJ);
 	}
 
 	public function accountActivation() {

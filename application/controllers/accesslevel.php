@@ -11,9 +11,9 @@ class Accesslevel {
     private $_message = '';
 
     public function __construct(){
-        global $followin, $session;
+        global $booking, $session;
         
-        $this->db = $followin;
+        $this->db = $booking;
         $this->session = $session;
     }
 
@@ -44,7 +44,7 @@ class Accesslevel {
     /**
      * A method to fetch access level details from DB
      *
-     * @param String $accessLevel Pass level user_id to fetch details
+     * @param String $accessLevel Pass level user_guid to fetch details
      *
      * @return Object $this->_message
      */
@@ -52,7 +52,7 @@ class Accesslevel {
     {
         $this->_message = false;
 
-        $stmt = $this->db->prepare("SELECT * FROM users_roles WHERE user_id = '{$this->userId}' AND clientId = '{$this->session->clientId}'");
+        $stmt = $this->db->prepare("SELECT * FROM users_roles WHERE user_guid = '{$this->userId}' AND client_guid = '{$this->session->clientId}'");
 
         if ($stmt->execute()) {
             $this->_message = $stmt->fetchAll(PDO::FETCH_OBJ);
@@ -77,10 +77,10 @@ class Accesslevel {
 
             // Get Default Permissions
             $permissions = ($this->getPermissions($accessLevel) != false) ? 
-                $this->getPermissions($accessLevel)[0]->default_permissions : null;
+                $this->getPermissions($accessLevel)[0]->access_level_permissions : null;
 
             $stmt = $this->db->prepare("
-                INSERT INTO users_roles SET clientId='{$this->session->clientId}', user_id = '{$userID}', permissions = '{$permissions}'
+                INSERT INTO users_roles SET clientId='{$this->session->clientId}', user_guid = '{$userID}', permissions = '{$permissions}'
             ");
 
             if ($stmt->execute()) {
@@ -90,7 +90,7 @@ class Accesslevel {
 
             $stmt = $this->db->prepare("
                 UPDATE users_roles 
-                SET permissions = '".(is_array($permissions) ? json_encode($permissions) : $permissions)."' WHERE user_id = '{$userID}' AND clientId='{$this->session->clientId}
+                SET permissions = '".(is_array($permissions) ? json_encode($permissions) : $permissions)."' WHERE user_guid = '{$userID}' AND client_guid='{$this->session->clientId}'
             ");
 
             if ($stmt->execute()) {

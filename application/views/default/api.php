@@ -21,10 +21,11 @@ $requestUri = $_SERVER["REQUEST_URI"];
 $inner_url = ( isset($SITEURL[1]) ) ? $SITEURL[1] : null;  // smp
 $outer_url = ( isset($SITEURL[2]) ) ? $SITEURL[2] : null; // facebook
 
+$session->clientId = 244444;
+
 // initiate an empty array of the parameters parsed
 $userId = $session->userId;
 $clientId = $session->clientId;
-$brandId = $session->currentBrandId;
 
 // set the global variables
 $bookingClass->user_guid = $userId;
@@ -74,6 +75,7 @@ if( !empty($incomingData) ) {
                                 $params[$key][$nkey][$hhKey] = array_map('xss_clean', $hhValue);
                             }
                         }
+
                     }
                     
                 }
@@ -86,7 +88,7 @@ if( !empty($incomingData) ) {
 
 }
 
-else if( in_array($inner_url, ["halls", "events", "tickets", "reports"]) && ($requestMethod == "GET") ) {
+else if( in_array($inner_url, ["halls", "events", "tickets", "reports", "reservations"]) && ($requestMethod == "GET") ) {
     // empty the parameters list
     $params = [];
 
@@ -104,10 +106,10 @@ else if( in_array($inner_url, ["halls", "events", "tickets", "reports"]) && ($re
 }
 
 else if(
-    (($inner_url == "halls") && ($outer_url == "create") && ($requestMethod == "POST")) ||
     (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST")) ||
     (($inner_url == "events") && ($outer_url == "add") && ($requestMethod == "POST")) || 
-    (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) 
+    (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) ||
+    (($inner_url == "reservations") && ($outer_url == "reserve") && ($requestMethod == "POST")) 
 ) {
     // empty the parameters list
     $params = [];
@@ -119,15 +121,18 @@ else if(
             // only parse if the value is not empty
             if(!empty($value)) {
                 // append the parameters
-                $params[$key] = (is_array($value)) ? $value : xss_clean($value);
+                $params[$key] = is_array($value) ? $value : xss_clean($value);
             }
         }
-        // append files to the parameters
-        foreach($_FILES as $key => $value) {
-            // only parse if the value is not empty
-            if(!empty($value)) {
-                // append the parameters
-                $params[$key] = (is_array($value)) ? $value : $value;
+        // if the files is not empty
+        if(!empty($_FILES)) {
+            // append files to the parameters
+            foreach($_FILES as $key => $value) {
+                // only parse if the value is not empty
+                if(!empty($value)) {
+                    // append the parameters
+                    $params[$key] = is_array($value) ? $value : xss_clean($value);
+                }
             }
         }
     }
@@ -135,7 +140,7 @@ else if(
 
 /* Usage of the Api Class */
 $Api = load_class('api', 'controllers', 
-    ["userId" => $userId, "brandId" => $brandId, "clientId" => $clientId]
+    ["userId" => $userId, "clientId" => $clientId]
 );
 
 /**

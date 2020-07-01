@@ -52,8 +52,8 @@ $hallFound = true;
                                 </div>
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <label for="initial">Initials</label>
-                                        <input type="text" placeholder="Initials for Ticket Generation" name="initial" id="initial" class="form-control">
+                                        <label for="initials">Initials</label>
+                                        <input type="text" placeholder="Initials for Ticket Generation" name="initials" id="initials" class="form-control">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
