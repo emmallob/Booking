@@ -332,7 +332,7 @@ class Api {
                 // return all tests parsed
                 return $this->output(100);
             } elseif( count($params) > count($accepted['params'])) {
-                return $this->output(405);
+                return $this->output(405, ['accepted' => ["parameters" => $accepted['params'] ]]);
             } else {
                 // get the keys of all the acceptable parameters
                 $endpointKeys = array_keys($accepted['params']);
