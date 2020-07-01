@@ -20,11 +20,36 @@ class Events extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) : array {
+    public function listItems(stdClass $params) {
         
         try {
 
-            return $this->output;
+            $stmt = $this->db->prepare("
+                SELECT a.*,
+                FROM events a
+                WHERE a.client_guid = ? AND a.deleted = ?
+            ");
+            $stmt->execute([$params->clientId, 0]);
+
+            /** Begin an empty array of the result */
+            $data = [];
+
+            /** Count the number of rows found */
+            if($stmt->rowCount() > 0) {
+                
+                /** Loop through the results */
+                while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+
+                    // unset the id from the result set
+                    unset($result->id);
+
+                    $data[] = $result;
+
+                }
+            }
+
+            return $data;
+
 
         } catch(\Exception $e) {
             return [];

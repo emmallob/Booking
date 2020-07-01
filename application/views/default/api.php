@@ -22,6 +22,7 @@ $inner_url = ( isset($SITEURL[1]) ) ? $SITEURL[1] : null;  // smp
 $outer_url = ( isset($SITEURL[2]) ) ? $SITEURL[2] : null; // facebook
 
 $session->clientId = 244444;
+$session->userId = 11111;
 
 // initiate an empty array of the parameters parsed
 $userId = $session->userId;

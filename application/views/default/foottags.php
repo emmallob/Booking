@@ -22,9 +22,8 @@
     <script src="<?= $rootDir ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
     <script>var baseUrl = "<?= $rootDir ?>";</script>
+    <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
-    <!-- <script src="<?= $rootDir ?>assets/demo/chart-area-demo.js"></script> -->
-    <!-- <script src="<?= $rootDir ?>assets/demo/chart-bar-demo.js"></script> -->
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
     <sb-customizer project="sb-admin-pro"></sb-customizer>
     <script>

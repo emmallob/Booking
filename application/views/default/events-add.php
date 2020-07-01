@@ -31,7 +31,7 @@ require "headtags.php";
             </div>
             <div class="card-body">
 
-                <form action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm">
+                <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm">
                     <div class="row">
                         <div class="col-lg-8 col-md-8">
                             <div class="form-group">

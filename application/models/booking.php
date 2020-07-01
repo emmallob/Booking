@@ -21,6 +21,7 @@ class Booking {
 	/* This is the global value for the browser and platform to use by all methods */
 	public $browser;
 	public $platform;
+	public $baseUrl;
 	public $client_guid;
 	public $user_guid;
 	public $clientData;
@@ -31,6 +32,7 @@ class Booking {
 		$this->db = $booking;
 		$this->booking = $booking;
 		$this->config = $config;
+		$this->baseUrl = $config->base_url();
 		$this->session = $session;
 		$this->client_guid = $this->session->client_guid;
 		$this->ip_address = ip_address();
@@ -175,12 +177,13 @@ class Booking {
 	/**
 	 * @method pushQuery($columns, $table, $whereClause)
 	 * @desc Receives user query and returns the full data array
-	 * @return array
+	 * 
+	 * @return Object
 	 **/
 	public function pushQuery($columns = "*", $tableName, $whereClause = null) {
 
 		try {
-
+			
 			$stmt = $this->db->prepare("SELECT {$columns} FROM {$tableName} WHERE $whereClause");
 			$stmt->execute();
 

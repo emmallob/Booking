@@ -34,7 +34,7 @@ $hallFound = true;
                 </div>
             </div>
             <div class="card-body">
-                <form action="<?= $baseUrl ?>api/tickets/generate" method="POST" class="appForm">
+                <form autocomplete="Off" action="<?= $baseUrl ?>api/tickets/generate" method="POST" class="appForm">
                     <div class="row">
                         <div class="col-lg-8 col-md-8">
                             <div class="row">

@@ -60,6 +60,7 @@
                         
                         // draw the items
                         for($i = 1; $i < $rows + 1; $i++) {
+                            
                             print "<tr>\n";
                             for($ii = 1; $ii < $columns + 1; $ii++) {
                                 // label

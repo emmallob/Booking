@@ -20,7 +20,7 @@ class Reservations extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) : array {
+    public function listItems(stdClass $params) {
         
         try {
 

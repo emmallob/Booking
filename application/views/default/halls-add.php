@@ -30,9 +30,9 @@ require "headtags.php";
                 </div>
             </div>
             <div class="card-body">
-
-                <form action="<?= $baseUrl ?>api/halls/add" method="POST" class="appForm">
+                <form autocomplete="Off" action="<?= $baseUrl ?>api/halls/add" method="POST" class="appForm">
                     <div class="row">
+                        <?= form_loader() ?>
                         <div class="col-lg-8">
                             <div class="row">
                                 <div class="col-lg-12 col-md-12">

@@ -149,9 +149,27 @@ class Api {
                     "add" => [
                         "params" => [
                             "hall_name" => "required - The name of the hall",
-                            "hall_rows" => "The the number of rows",
-                            "hall_columns" => "The number of columns",
+                            "hall_rows" => "required - The the number of rows",
+                            "hall_columns" => "required - The number of columns",
                             "description" => "Sample description / facilities of this hall",
+                        ]
+                    ],
+                    "activate" => [
+                        "params" => [
+                            "hall_guid" => "required - This is the unique guid of the hall to activate."
+                        ]
+                    ],
+                    "reset" => [
+                        "params" => [
+                            "hall_guid" => "required - This is the unique guid of the hall to reset."
+                        ]
+                    ],
+                    "configure" => [
+                        "params" => [
+                            "available_seats" => "required - An array of the available seats. (Check documentation for the format)",
+                            "blocked_seats" => "An array of the blocked seats. (Check documentation for the format)",
+                            "removed_seats" => "An array of the removed seats. (Check documentation for the format)",
+                            "hall_guid" => "required - The unique id of the hall."
                         ]
                     ]
                 ],
@@ -159,8 +177,8 @@ class Api {
                     "update" => [
                         "params" => [
                             "hall_name" => "required - The name of the hall",
-                            "hall_rows" => "The the number of rows",
-                            "hall_columns" => "The number of columns",
+                            "hall_rows" => "required - The the number of rows",
+                            "hall_columns" => "required - The number of columns",
                             "description" => "Sample description / facilities of this hall",
                             "hall_guid"=> "required - The unique guid of the hall",
                         ]
@@ -653,6 +671,7 @@ class Api {
             
             // or you can do that straight forward from here
             if( $this->outer_url == "list" ) {
+                
                 // limit parameter
                 $params->limit = !empty($params->limit) ? $params->limit : 500;
 
@@ -666,7 +685,7 @@ class Api {
                 }
             }
 
-            // or you can do that straight forward from here
+            // generate a tickets using the predefined parameters
             elseif( ($this->inner_url == "tickets") && ($this->outer_url == "generate") ) {
                 // limit parameter
                 $params->limit = !empty($params->limit) ? $params->limit : 500;
@@ -681,7 +700,7 @@ class Api {
                 }
             }
 
-            // or you can do that straight forward from here
+            // reserve a seat
             elseif( ($this->inner_url == "reservations") && ($this->outer_url == "reserve") ) {
                 // limit parameter
                 $params->limit = !empty($params->limit) ? $params->limit : 500;
@@ -692,6 +711,56 @@ class Api {
                 // if the request was successful
                 if($request) {
                     $result['result'] = $request;
+                    $code = 200;
+                }
+            }
+
+            // activate a hall
+            elseif( ($this->inner_url == "halls") && ($this->outer_url == "configure") ) {
+               
+                // update the user theme color
+                $request = $objectClass->configureHall($params);
+
+                // confirm the request processing
+                if(is_array($request)) {
+                    
+                    // if the response is not successful
+                    if($request['state'] != 200) {
+                        $result['result'] = $request['msg'];
+                    } else {
+                        $result['result'] = $request['msg'];
+                        $result['remote_request']['reload'] = true;
+                        $result['remote_request']['clear'] = true;
+                        $result['remote_request']['href'] = $this->config->base_url("halls-configuration/{$params->hall_guid}");
+                        $code = 200;
+                    }
+                    
+                } else {
+                    $result['result'] = $request;
+                }
+            }
+
+            // hall configuration
+            elseif(($this->inner_url == "halls") && ($this->outer_url == "activate")) {
+                // update the user theme color
+                $request = $objectClass->activateHall($params);
+
+                // if the request was successful
+                if($request) {
+                    $result['result'] = "The hall was successfully activated";
+                    $code = 200;
+                }
+            }
+
+            // hall configuration
+            elseif(($this->inner_url == "halls") && ($this->outer_url == "reset")) {
+
+                // update the user theme color
+                $request = $objectClass->resetHall($params);
+                
+                // if the request was successful
+                if($request) {
+                    $result['result'] = "The hall was successfully resetted";
                     $code = 200;
                 }
             }
@@ -730,7 +799,8 @@ class Api {
                 $params->curUserId = $this->userId;
 
                 // if the user does not have access level access but tried to push it
-                if(!$this->accessCheck->hasAccess("add", $this->outer_url)) {
+                // TODO:: Access Permissions Checker
+                if($this->accessCheck->hasAccess("add", $this->outer_url)) {
                     // permission denied message
                     $result['result'] = self::PERMISSION_DENIED;
                 } else {
@@ -741,16 +811,19 @@ class Api {
                     if(is_array($request)) {
                         
                         // if the response is not successful
-                        if($request['status'] != 200) {
-                            $result['result'] = $request['message'];
+                        if($request['state'] != 200) {
+                            $result['result'] = $request['msg'];
                         } else {
-                            $result['result'] = $request['message'];
-                            $result['remote_request']['function'] = "{$this->outer_url}Lists()";
-                            $result['remote_request']['clear'] = "clear()";
+                            $result['result'] = $request['msg'];
+                            $result['remote_request']['reload'] = true;
+                            $result['remote_request']['clear'] = true;
+                            $result['remote_request']['href'] = $this->config->base_url($this->inner_url);
                             $code = 200;
                         }
                         
-                    } 
+                    } else {
+                        $result['result'] = $request;
+                    }
                 }                
             }
 

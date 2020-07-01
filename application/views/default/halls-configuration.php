@@ -3,23 +3,38 @@ $page_title = "Configure Hall Seats";
 
 require "headtags.php";
 
-$hallId = null;
+$hallId = (confirm_url_id(1)) ? xss_clean($SITEURL[1]) : null;
 
-$hallFound = true;
+$hallFound = false;
+$removedSeats = [];
+$blockedSeats = [];
+
+$counter = 1;
 
 // if the hall was found
-if($hallFound) {
-    // assign variables
-    $hall_rows = 8;
-    $hall_columns = 13;
+if($hallId) {
 
-    // counter for numbering
-    $counter = 1;
+    // load the hall data
+    $hallData = $bookingClass->pushQuery("*", "halls", "hall_guid='{$hallId}' && client_guid='{$session->clientId}'");
+    
+    // confirm that data was found
+    if(!empty($hallData)) {
+        // set the found state
+        $hallFound = true;
 
-    // removed seats
-    $removed = ["2_1", "3_3", "5_4", "2_7", "5_8"];
+        // set the variables
+        $hallData = $hallData[0];
 
-    // blocked seats
+        // reset the data
+        $hallConf = !empty($hallData->configuration) ? json_decode($hallData->configuration, true) : [];
+        
+        // set some additional variables
+        if(!empty($hallConf)) {
+            $removedSeats = $hallConf['removed'];
+            $blockedSeats = $hallConf['blocked'];
+            $seatLabels = $hallConf['labels'];
+        }
+    }
 
 }
 ?>
@@ -52,32 +67,38 @@ if($hallFound) {
             </div>
             <div class="card-body">
 
+                <?php if(!$hallFound && !$accessObject->hasAccess("configure", "halls")) { ?>
+                    <?= pageNotFound($baseUrl) ?>
+                <?php } else { ?>
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="justify-content-around">
-                            <div class="col-lg-8 p-0 m-0 col-md-8">
+                            <div class="col-lg-5 p-0 m-0 col-md-8">
                                 <div class="form-group">
                                     <label for="hall_name">Hall Name <span class="required">*</span></label>
-                                    <input type="text" name="hall_name" disabled id="hall_name" class="form-control">
+                                    <input type="text" value="<?= $hallData->hall_name ?>" name="hall_name" disabled id="hall_name" class="form-control">
                                 </div>
                             </div>
                             <div>
                                 <div class="seats-table slim-scroll">
+                                    <?= form_loader() ?>
                                     <table class="p-0 m-0">
                                     <?php
                                     // draw the items
-                                    for($i = 1; $i < $hall_rows + 1; $i++) {
+                                    for($i = 1; $i < $hallData->rows + 1; $i++) {
                                         print "<tr>\n";
-                                        for($ii = 1; $ii < $hall_columns + 1; $ii++) {
+                                        for($ii = 1; $ii < $hallData->columns + 1; $ii++) {
                                             // label
                                             $label = "{$i}_{$ii}";
+
                                             // print header
                                             print "<td data-label=\"{$label}\" class=\"width\">";
+
                                             // confirm that it has not been removed
-                                            if(!in_array($label, $removed)) {
-                                                print "<div data-label=\"{$label}\" id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border\">
+                                            if(!in_array($label, $removedSeats)) {
+                                                print "<div data-label=\"{$label}\" id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border ".(in_array($label, $blockedSeats) ? "blocked" : null)."\">
                                                     {$counter}
-                                                    <input class=\"form-control p-0\" data-label=\"{$label}\">
+                                                    <input value='".(isset($seatLabels[$label]) ? $seatLabels[$label] : null)."' class=\"form-control p-0\" data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "disabled='disabled'" : null).">
                                                 </div>";
                                             }
                                             print "</td>\n";
@@ -90,16 +111,17 @@ if($hallFound) {
                                     </table>
                                 </div>
                                 <div class="text-center">
-                                    <input type="hidden" name="hall_id" valu="<?= $hallId ?>">
-                                    <div class="row mt-3 p-0 text-center justify-content-around">
+                                    <input type="hidden" name="hall_guid" value="<?= $hallId ?>">
+                                    <div class="row mt-3 p-0 text-center jusstify-content-around">
                                         <div class="mt-2">
-                                            <button type="remove" class="btn btn-sm btn-outline-warning">Remove</button>
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Save</button>
-                                            <button type="block" class="btn btn-sm btn-outline-danger">Block</button>
+                                            <button data-toggle="tooltip" type="submit" class="btn btn-outline-success" title="Save the current settings"><i class="fa fa-save"></i> &nbsp; Save</button>
+                                            <button data-toggle="tooltip" type="remove" class="btn btn-outline-warning" title="Remove all selected Seats">Remove Seats</button>
+                                            <button data-toggle="tooltip" type="block" class="btn btn-outline-danger" title="Block selected Seats">Block Seats</button>
+                                            <button data-toggle="tooltip" type="reset" data-item-id="<?= $hallId ?>" class="btn btn-outline-default reset-hall border" title="Reset hall">Reset Hall</button>
                                         </div>
-                                        <div style="width:300px;" class="mt-2">
-                                            <button type="unblock" class="btn hidden btn-sm btn-outline-secondary">Unblock</button>
-                                            <button type="restore" class="btn hidden btn-sm btn-outline-primary">Restore</button>
+                                        <div style="width:300px;" class="text-right mt-2">
+                                            <button type="unblock" class="btn hidden btn-outline-secondary">Unblock</button>
+                                            <button type="restore" class="btn hidden btn-outline-primary">Restore</button>
                                         </div>
                                     </div>
                                 </div>  
@@ -109,6 +131,7 @@ if($hallFound) {
                         
                     </div>
                 </div>
+                <?php } ?>                
 
             </div>
         </div>

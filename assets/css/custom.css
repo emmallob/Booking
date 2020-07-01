@@ -28,13 +28,14 @@
     -webkit-box-direction: normal;
     flex-direction: column;
     min-width: 45px!important;
+    font-size: 12px;
     word-wrap: break-word;
     background-color: #fff;
     background-clip: border-box;
     border: 1px solid rgba(31, 45, 65, 0.125);
     border-radius: 0.35rem;
     cursor: pointer;
-    /* width: 50px; */
+    font-weight: bolder;
     text-align: center;
 }
 
@@ -58,7 +59,9 @@
 
 .seats-table input {
     width: 45px;
-    height: 30px
+    height: 30px;
+    text-align: center;
+    font-size: 12px;
 }
 
 .seats-table td.width {
@@ -92,4 +95,28 @@
 
 .hidden {
     display: none;
+}
+
+.form-content-loader {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    left: 0;
+}
+
+.form-content-loader .offline-content {
+    width: 100%;
+    font-size: 17px;
+    font-weight: bolder;
+}
+
+.form-content-loader i.fa {
+    display: block !important;
+    margin: auto !important;
+    ;
 }

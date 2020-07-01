@@ -32,15 +32,15 @@ require "headtags.php";
             </div>
             <div class="card-body">
                 <div class="datatable table-responsive">
-                    <table class="table nowrap table-hover" data-toggle="datatable">
+                    <table class="table  table-hover listHalls" data-toggle="datatable">
                         <thead>
                             <th width="6%">&#8470;</th>
-                            <th>Hall Name</th>
-                            <th>Rows</th>
-                            <th>Columns</th>
-                            <th>Available Seats</th>
+                            <th width="25%">Hall Name</th>
+                            <th width="10%">Rows</th>
+                            <th width="10%">Columns</th>
+                            <th width="10%">Seats</th>
                             <th>Description</th>
-                            <th></th>
+                            <th width="18%"></th>
                         </thead>
                         <tbody></tbody>
                     </table>

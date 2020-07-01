@@ -898,26 +898,16 @@ function form_loader() {
     </div>';
 }
 
-function addBrand($rootDir) {
+function pageNotFound($baseUrl) {
 	return '<div class="row justify-content-center">
-		<div class="col-lg-6 col-md-8 col-sm-10">
-			<div class="card card-body text-center">
-				<p>Thank you for signing up with <strong>'.config_item("site_name").'</strong>. You will be able to take full control of your Account after adding a Brand.</p>
-				<hr>Please take a moment to add a new Brand to Manage at the <strong><a href="'.$rootDir.'brands/brands-add">Add Brands Section</a></strong>
+			<div class="col-lg-12">
+				<div class="text-center mt-4">
+					<img class="mb-4 img-error" src="'.$baseUrl.'assets/img/drawkit/color/drawkit-error-404.svg" />
+					<p class="lead">This requested URL was not found on this server.</p>
+					<a class="text-arrow-icon" href="'.$baseUrl.'dashboard"><i class="ml-0 mr-1" data-feather="arrow-left"></i>Return to Dashboard</a>
+				</div>
 			</div>
-		</div>
-	</div>';
-}
-
-function connectPage($pageName, $brandName, $brandId, $rootDir, $content = null) {
-	return '<div class="row justify-content-center">
-		<div class="col-lg-4 col-md-12 col-sm-12">
-			<div class="card card-body text-center">
-				<p>You have not linked any <strong>'.$pageName.' Account</strong> to the <strong>'.$brandName.'</strong> Brand. <hr>
-				'.(!empty($content) ? $content : '<div>Please visit the <strong><a href="'.$rootDir.'channels/'.$brandId.'">Channels Section</a></strong> to do that.</div>').'
-			</div>
-		</div>
-	</div>';
+		</div>';
 }
 
 function no_data_to_display($title = "No data to Show at the Moment", $button = '<div>Please come back later as we fetch data that recorrespond to this metric.</div>') {
