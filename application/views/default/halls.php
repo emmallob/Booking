@@ -2,6 +2,7 @@
 $page_title = "Halls";
 
 require "headtags.php";
+
 ?>
 <main>
     <div class="page-header pb-10 page-header-dark bg-gradient-primary-to-secondary">

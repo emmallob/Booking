@@ -31,7 +31,7 @@ class Users extends Booking {
 	 * @return bool
 	 */
 	public function logged_InControlled() {
-		return ($this->session->evcrmLoggedIn && $this->session->userId) ? true : false;
+		return ($this->session->bokLoggedIn && $this->session->userId) ? true : false;
 	}
 
 	/**
@@ -39,9 +39,9 @@ class Users extends Booking {
 	 * By removing all sessions that are currently in force
 	 */
 	public function logout_user() {
-		$this->session->remove("userLoggedIn");
+		$this->session->remove("bokLoggedIn");
 		$this->session->remove("userId");
-		$this->session->remove("userName");
+		$this->session->remove("clientId");
 		$this->session->destroy();
 	}
 
@@ -151,7 +151,7 @@ class Users extends Booking {
 		$this->found = false;
 
 		if(is_null($field)){
-			$field = (preg_match("/^[0-9]+$/", $value)) ? "id" : "user_id";
+			$field = (preg_match("/^[0-9]+$/", $value)) ? "id" : "user_guid";
 		}
 
 		try {

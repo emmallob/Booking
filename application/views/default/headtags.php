@@ -5,8 +5,8 @@ global $page_title, $DB, $offices;
 
 #REDIRECT THE USER IF NOT LOGGED IN
 if(!$usersClass->logged_InControlled()) {
-	// require "login.php";
-	// exit(-1);
+	require "login.php";
+	exit(-1);
 }
 
 // set the default variables
@@ -15,13 +15,14 @@ $userId = $session->userId;
 $brandId = null;
 
 // load the user data
-$userData = $usersClass->item_by_id("users", $userId);
+$userData = (Object) $usersClass->item_by_id("users", $userId);
+$clientData = $bookingClass->clientData($session->clientId);
 
 /* Make Database Query Here */
 if(empty($session->userPreferedTheme)) {
 
 	// get the user preferred theme color
-	$userPreferedTheme = ($userData["theme"] == 1) ? "light-theme" : "dark-theme";
+	$userPreferedTheme = ($userData->theme == 1) ? "light-theme" : "dark-theme";
 
 	/* Set the user prefered theme in a session */
 	$session->userPreferedTheme = $userPreferedTheme;
@@ -44,7 +45,7 @@ $accessObject->userId = $userId;
 	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 	<meta name="theme-color" content="#ffffff">
 	<meta content="" name="description" />
-	<title><?= $page_title; ?> | Booking</title>
+	<title><?= $page_title; ?> | <?= config_item('site_name') ?></title>
 	<link rel="icon" type="image/png" sizes="16x16" href='<?= "{$baseUrl}assets/img/favicon.png" ?>'>
 	<link rel="mask-icon" href='<?= "{$baseUrl}assets/img/favicon.png" ?>' color="#da532c">
 	<link rel="shortcut icon" href='<?= "{$baseUrl}assets/img/favicon/favicon.ico" ?>'>
@@ -127,8 +128,8 @@ $accessObject->userId = $userId;
 					<h6 class="dropdown-header d-flex align-items-center">
 						<img class="dropdown-user-img" src="<?= $baseUrl ?>assets/img/avatar.png" />
 						<div class="dropdown-user-details">
-							<div class="dropdown-user-details-name"><?= $session->fullname ?></div>
-							<div class="dropdown-user-details-email"><?= $session->email ?></div>
+							<div class="dropdown-user-details-name"><?= $userData->name ?></div>
+							<div class="dropdown-user-details-email"><?= $userData->email ?></div>
 						</div>
 					</h6>
 					<div class="dropdown-divider"></div>
@@ -220,7 +221,7 @@ $accessObject->userId = $userId;
 				<div class="sidenav-footer">
 					<div class="sidenav-footer-content">
 						<div class="sidenav-footer-subtitle">Logged in as:</div>
-						<div class="sidenav-footer-title"><?= $session->fullname ?></div>
+						<div class="sidenav-footer-title"><?= $userData->name ?></div>
 					</div>
 				</div>
 			</nav>

@@ -35,15 +35,15 @@ var hideNotice = (noticeName) => {
 }
 
 $(`a[class~="data-logout"]`).on("click", function() {
-    $.post(`${baseUrl}api/users/logout`, function(response) {
-        if (response.code == 200) {
+    $.post(`${baseUrl}auth/logout`, function(response) {
+        if (response.status == 203) {
             Cookies.set(`dashboard_notice`, 'false');
             Toast.fire({
                 title: "You have successfully been logged out",
                 type: "success"
             });
             setTimeout(() => {
-                window.location.href = `${baseUrl}logout`;
+                window.location.href = `${baseUrl}login`;
             }, 1000);
         }
     }, 'json');

@@ -1,6 +1,6 @@
 <?php
 
-class Authenticate extends Followin {
+class Authenticate extends Booking {
 
     public $status = false;
     public $redirect_url;
@@ -9,23 +9,19 @@ class Authenticate extends Followin {
 
     public function processLogin($username, $password, $href = null) {
 
-        global $followin, $session, $config;
+        global $booking, $session, $config;
 
         try {
 
-            $stmt = $followin->prepare("
+            $stmt = $booking->prepare("
                 SELECT 
-                    u.id, u.password, u.user_id, u.access_level, u.brand_ids, 
-                    u.clientId, u.instance_ids, u.status AS activated, u.email,
-                    (SELECT COUNT(DISTINCT a.clientId) FROM users a WHERE a.login = u.login AND status='1') AS clients_count,
-                    (SELECT GROUP_CONCAT(a.clientId, ',') FROM users a WHERE a.login = u.login AND status='1') AS clients_ids, a.subscription
+                    u.id, u.password, u.user_guid, u.client_guid, u.access_level
                 FROM users u
-                LEFT JOIN users_accounts a ON a.clientId = u.clientId
                 WHERE 
-                    u.login='$username' AND u.deleted='0'
+                    (u.email=? OR u.username=?) AND u.status=? AND u.deleted=?
                 LIMIT 1
             ");
-            $stmt->execute();
+            $stmt->execute([$username, $username, 1, 0]);
 
             // count the number of rows found
             if($stmt->rowCount() == 1) {
@@ -40,25 +36,10 @@ class Authenticate extends Followin {
                         $this->status = true;
 
                         // set the user sessions for the person to continue
-                        $session->set("userLoggedIn", random_string('alnum', 50));
-                        $session->set("userId", $results->user_id);
-                        $session->set("userName", $username);
+                        $session->set("bokLoggedIn", random_string('alnum', 50));
+                        $session->set("userId", $results->user_guid);
                         $session->set("userRole", $results->access_level);
-
-                        // set the default client id if the clients_count is equal to 1
-                        if(($results->clients_count == 1)) {
-                            $session->set("clientId", $results->clientId);
-                            $session->set("accountPackage", json_decode($results->subscription, true));
-                        } else {
-                            // save the user email in session temporarily
-                            $session->set("tempEmailAddress", $results->email);
-                        }
-                        
-                        $session->set("brandIds", $results->brand_ids);
-                        $session->set("instanceIds", $results->instance_ids);
-                        $session->set("clients_count", $results->clients_count);
-                        $session->set("clients_ids", $this->stringToArray($results->clients_ids));
-                        $session->set("activated", $results->activated);
+                        $session->set("clientId", $results->client_guid);
                         
                         // unset session locked
                         $session->userSessionLocked = null;
@@ -70,10 +51,10 @@ class Authenticate extends Followin {
                         $ip = ip_address();
                         $br = $user_agent->browser."|".$user_agent->platform;
 
-                        $stmt = $followin->prepare("UPDATE users SET last_login=now(), online='1' where id='{$results->id}'");
+                        $stmt = $booking->prepare("UPDATE users SET last_login=now() WHERE id='{$results->id}'");
                         $stmt->execute();
 
-                        $stmt = $followin->prepare("INSERT INTO users_login_history SET clientId='{$results->clientId}', username='$username', log_ipaddress='$ip', log_browser='$br', user_id='".$session->userId."', log_platform='".$user_agent->agent."'");
+                        $stmt = $booking->prepare("INSERT INTO users_login_history SET client_guid='{$results->client_guid}', username='$username', log_ipaddress='$ip', log_browser='$br', user_guid='".$session->user_guid."', log_platform='".$user_agent->agent."'");
                         $stmt->execute();
 
                         // redirect the user
@@ -96,7 +77,7 @@ class Authenticate extends Followin {
 
     public function sendPasswordResetToken($email_address) {
 
-        global $followin, $config;
+        global $booking, $config;
 
         $user_agent = load_class('user_agent', 'libraries');
 
@@ -121,10 +102,10 @@ class Authenticate extends Followin {
                 while($results = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
                     #assign variable
-                    $user_id = $results["user_id"];
+                    $user_id = $results["user_guid"];
                     $fullname = $results["name"];
-                    $username = $results["login"];
-                    $clientId = $results["clientId"];
+                    $username = $results["username"];
+                    $clientId = $results["client_guid"];
 
                     #create the reset password token
                     $request_token = random_string('alnum', mt_rand(60, 75));
@@ -137,15 +118,15 @@ class Authenticate extends Followin {
                     $br = $user_agent->browser()." ".$user_agent->platform();
 
                     #deactivate all reset tokens
-                    $stmt = $this->db->prepare("UPDATE users_reset_request SET token_status='ANNULED' WHERE username='{$username}' AND user_id='{$user_id}' AND token_status='PENDING'");
+                    $stmt = $this->db->prepare("UPDATE users_reset_request SET token_status='ANNULED' WHERE username='{$username}' AND user_guid='{$user_id}' AND token_status='PENDING'");
                     $stmt->execute();
 
                     #remove the item from the mailing list
-                    $stmt = $this->db->prepare("UPDATE email_list SET deleted='1' WHERE itemId='{$user_id}' AND template_type='recovery'");
+                    $stmt = $this->db->prepare("UPDATE users_email_list SET deleted='1' WHERE item_guid='{$user_id}' AND template_type='recovery'");
                     $stmt->execute();
                     
                     #process the form
-                    $stmt = $this->db->prepare("INSERT INTO users_reset_request SET username='{$username}', user_id='{$user_id}', request_token='$request_token', user_agent='$br|$ip', expiry_time='$expiry_time'");
+                    $stmt = $this->db->prepare("INSERT INTO users_reset_request SET username='{$username}', user_guid='{$user_id}', request_token='$request_token', user_agent='$br|$ip', expiry_time='$expiry_time'");
                     $stmt->execute();
                     
                     #FORM THE MESSAGE TO BE SENT TO THE USER
@@ -167,8 +148,8 @@ class Authenticate extends Followin {
 
                     // insert the email content to be processed by the cron job
                     $stmt = $this->db->prepare("
-                        INSERT INTO email_list 
-                        SET clientId = ?, template_type = ?, itemId = ?, recipients_list = ?,
+                        INSERT INTO users_email_list 
+                        SET client_guid = ?, template_type = ?, item_guid   = ?, recipients_list = ?,
                             request_performed_by = ?, subject = ?, message = ?
                     ");
                     $stmt->execute([
@@ -210,12 +191,12 @@ class Authenticate extends Followin {
 
             // query the database for the record
             $stmt = $this->db->prepare("
-                SELECT users.user_id as user_id, users.clientId, users.status, 
-                users.login as username, reset.request_token as request_token, reset.user_id, 
+                SELECT users.user_guid, users.client_guid, users.status, 
+                users.username, reset.request_token as request_token, reset.user_guid, 
                 users.email as email, users.name as name 
-                FROM users users, users_reset_request reset 
-                WHERE users.user_id=? AND users.status='1' 
-                AND reset.request_token=? AND reset.user_id=?
+                FROM users, users_reset_request reset 
+                WHERE users.user_guid=? AND users.status='1' 
+                AND reset.request_token=? AND reset.user_guid=?
             ");
             $stmt->execute([$user_id, $reset_token, $user_id]);
 
@@ -227,11 +208,11 @@ class Authenticate extends Followin {
                 while($results = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
                     #assign variable
-                    $user_id = $results["user_id"];
+                    $user_id = $results["user_guid"];
                     $fullname = $results["name"];
                     $email = $results["email"];
                     $username = $results["username"];
-                    $clientId = $results["clientId"];                  
+                    $clientId = $results["client_guid"];                  
 
                     #update the table
                     $ip = ip_address();
@@ -272,9 +253,8 @@ class Authenticate extends Followin {
 
                     // add to the email list to be sent by a cron job
                     $stmt = $this->db->prepare("
-                        INSERT INTO email_list 
-                        SET clientId = ?, template_type = ?, itemId = ?, recipients_list = ?,
-                            request_performed_by = ?, subject = ?, message = ?
+                        INSERT INTO users_email_list 
+                        SET client_guid = ?, template_type = ?, item_guid  = ?, recipients_list = ?, request_performed_by = ?, subject = ?, message = ?
                     ");
                     $stmt->execute([
                         $clientId, 'recovery', $user_id, json_encode($reciepient),
@@ -305,13 +285,13 @@ class Authenticate extends Followin {
 
 
     public function compare_password($password) {
-        global $followin;
+        global $booking;
                 #run the user set password against a list of known passwords
                 #to see if there is any match
                 #return true if the password was not found in the database table
         try {
                     #run the search query
-            $stmt = $followin->prepare("SELECT * FROM users_passwords_log WHERE password='$password'");
+            $stmt = $booking->prepare("SELECT * FROM users_passwords_log WHERE password='$password'");
             $stmt->execute();
                     #count the number of rows found
             if($stmt->rowCount() > 0) {
