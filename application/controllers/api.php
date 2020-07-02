@@ -717,26 +717,32 @@ class Api {
 
             // activate a hall
             elseif( ($this->inner_url == "halls") && ($this->outer_url == "configure") ) {
-               
-                // update the user theme color
-                $request = $objectClass->configureHall($params);
-
-                // confirm the request processing
-                if(is_array($request)) {
-                    
-                    // if the response is not successful
-                    if($request['state'] != 200) {
-                        $result['result'] = $request['msg'];
-                    } else {
-                        $result['result'] = $request['msg'];
-                        $result['remote_request']['reload'] = true;
-                        $result['remote_request']['clear'] = true;
-                        $result['remote_request']['href'] = $this->config->base_url("halls-configuration/{$params->hall_guid}");
-                        $code = 200;
-                    }
-                    
+                
+                // if the user does not have access level access but tried to push it
+                if(!$this->accessCheck->hasAccess("configure", $this->inner_url)) {
+                    // permission denied message
+                    $result['result'] = self::PERMISSION_DENIED;
                 } else {
-                    $result['result'] = $request;
+                    // update the user theme color
+                    $request = $objectClass->configureHall($params);
+
+                    // confirm the request processing
+                    if(is_array($request)) {
+                        
+                        // if the response is not successful
+                        if($request['state'] != 200) {
+                            $result['result'] = $request['msg'];
+                        } else {
+                            $result['result'] = $request['msg'];
+                            $result['remote_request']['reload'] = true;
+                            $result['remote_request']['clear'] = true;
+                            $result['remote_request']['href'] = $this->config->base_url("halls-configuration/{$params->hall_guid}");
+                            $code = 200;
+                        }
+                        
+                    } else {
+                        $result['result'] = $request;
+                    }
                 }
             }
 
@@ -771,7 +777,7 @@ class Api {
                 $params->curUserId = $this->userId;
 
                 // if the user does not have access level access but tried to push it
-                if(!$this->accessCheck->hasAccess("update", $this->outer_url)) {
+                if(!$this->accessCheck->hasAccess("update", $this->inner_url)) {
                     // permission denied message
                     $result['result'] = self::PERMISSION_DENIED;
                 } else {
@@ -800,7 +806,7 @@ class Api {
 
                 // if the user does not have access level access but tried to push it
                 // TODO:: Access Permissions Checker
-                if($this->accessCheck->hasAccess("add", $this->outer_url)) {
+                if(!$this->accessCheck->hasAccess("add", $this->inner_url)) {
                     // permission denied message
                     $result['result'] = self::PERMISSION_DENIED;
                 } else {

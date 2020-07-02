@@ -54,7 +54,7 @@ class Authenticate extends Booking {
                         $stmt = $booking->prepare("UPDATE users SET last_login=now() WHERE id='{$results->id}'");
                         $stmt->execute();
 
-                        $stmt = $booking->prepare("INSERT INTO users_login_history SET client_guid='{$results->client_guid}', username='$username', log_ipaddress='$ip', log_browser='$br', user_guid='".$session->user_guid."', log_platform='".$user_agent->agent."'");
+                        $stmt = $booking->prepare("INSERT INTO users_login_history SET client_guid='{$results->client_guid}', username='$username', log_ipaddress='$ip', log_browser='$br', user_guid='".$results->user_guid."', log_platform='".$user_agent->agent."'");
                         $stmt->execute();
 
                         // redirect the user

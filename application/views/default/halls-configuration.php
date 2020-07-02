@@ -67,10 +67,10 @@ if($hallId) {
             </div>
             <div class="card-body">
 
-                <?php if(!$hallFound && !$accessObject->hasAccess("configure", "halls")) { ?>
+                <?php if(!$hallFound || !$accessObject->hasAccess("configure", "halls")) { ?>
                     <?= pageNotFound($baseUrl) ?>
                 <?php } else { ?>
-                <div class="row">
+                <div class="row hall-configuration">
                     <div class="col-lg-12">
                         <div class="justify-content-around">
                             <div class="col-lg-5 p-0 m-0 col-md-8">

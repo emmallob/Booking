@@ -730,18 +730,81 @@ class Booking {
 	 */
 	public function removeRecord(stdClass $params) {
 		/** Process the request */
-		if(empty($params->item) || empty($params->item_id) || empty($params->client_guid)) {
+		if(empty($params->item) || empty($params->item_id) || empty($params->clientId)) {
 			return "denied";
 		}
 
+		/** Get the client data */
+		$clientData = $this->clientData($params->clientId);
+
 		try {
+			/** Begin the transaction */
+			$this->db->beginTransaction();
 			
-			
+			/** remove a hall */
+			if($params->item == "hall") {
+				
+				/** Confirm that user is not already deleted */
+				$userActive = $this->db->prepare("SELECT id FROM halls WHERE hall_guid = ? AND deleted=? AND client_guid = ?");
+				$userActive->execute([$params->item_id, 0, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					/** Remove the user from the list of users by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE halls SET deleted=? WHERE hall_guid = ? AND client_guid = ?");
+					$stmt->execute([1, $params->item_id, $params->clientId]);
+
+					/** Reduce the number of brands created for this account */
+					$cSubscribe = json_decode( $clientData->subscription, true );
+					$cSubscribe['halls_created'] = isset($cSubscribe['halls_created']) ? ($cSubscribe['halls_created'] - 1) : 2;
+
+					/** update the client brands setup_info count */
+					$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE client_guid='{$params->clientId}'");
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Deleted a hall.", $params->clientId, $params->userId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
+			}
 
 		} catch(PDOException $e) {
 			$this->db->rollBack();
-			return false;
+			return $e->getMessage();
 		}
+	}
+
+	/**
+	 * Quick mode to add data to the database
+	 * 
+	 * @param String $table				This is the name of the table
+	 * @param String $columnValues		This is a composite of the column names and their respective values
+	 * 
+	 * @return Bool
+	 */
+	public function addData($table, $columnValues) {
+		$stmt = $this->evelyn->prepare("INSERT INTO {$table} SET {$columnValues}");
+		return $stmt->execute();
+	}
+
+	/**
+	 * Quick mode to update data to the database
+	 * 
+	 * @param String $table				This is the name of the table
+	 * @param String $columnValues		This is a composite of the column names and their respective values
+	 * 
+	 * @return Bool
+	 */
+	public function updateData($table, $columnValues, $where_clause) {
+		$stmt = $this->evelyn->prepare("UPDATE {$table} SET {$columnValues} WHERE {$where_clause}");
+		return $stmt->execute();
 	}
 
 }

@@ -11,6 +11,20 @@
         </div>
     </footer>
     </div>
+    <div class="modal fade" id="deleteModal" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="p-b-5"><span class="semi-bold">Delete Item</span></h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">Are you sure you want to proceed with this request? You cannot reverse this action once it has been confirmed.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Confirm</button>
+                </div>
+            </div>
+        </div>
     </div>
     <?php global $rootDir, $SITEURL; ?>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>
@@ -25,7 +39,6 @@
     <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
-    <sb-customizer project="sb-admin-pro"></sb-customizer>
     <script>
         confirmNotice("dashboard");
     </script>

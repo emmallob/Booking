@@ -32,6 +32,7 @@ require "headtags.php";
                 </div>
             </div>
             <div class="card-body">
+                <?= form_loader() ?>
                 <div class="datatable table-responsive">
                     <table class="table  table-hover listHalls" data-toggle="datatable">
                         <thead>

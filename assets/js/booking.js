@@ -1,3 +1,5 @@
+var current_url = $("#current_url").attr('value');
+
 const Toast = Swal.mixin({
     toast: true,
     position: 'top',
@@ -102,7 +104,7 @@ function remove(array) {
     return array;
 }
 
-$(`button[type="submit"]`).on('click', function(i, e) {
+$(`div[class~="hall-configuration"] button[type="submit"]`).on('click', function(i, e) {
 
     let availableSeats = {};
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
@@ -142,7 +144,7 @@ $(`button[type="submit"]`).on('click', function(i, e) {
 
 });
 
-$(`button[type="restore"]`).on('click', function(i, e) {
+$(`div[class~="hall-configuration"] button[type="restore"]`).on('click', function(i, e) {
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
         if ($.inArray($(this).data("label"), hiddenItems) !== -1) {
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] div`).removeClass('selected hidden');
@@ -152,7 +154,7 @@ $(`button[type="restore"]`).on('click', function(i, e) {
     showButton("restore");
 });
 
-$(`button[type="unblock"]`).on('click', function(i, e) {
+$(`div[class~="hall-configuration"] button[type="unblock"]`).on('click', function(i, e) {
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
         if ($.inArray($(this).data("label"), blockedItems) !== -1) {
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] div`)
@@ -176,7 +178,7 @@ function showButton(btnName) {
 
 }
 
-$(`button[type="remove"]`).on('click', function(i, e) {
+$(`div[class~="hall-configuration"] button[type="remove"]`).on('click', function(i, e) {
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
         if ($(this).hasClass("selected")) {
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] div`).removeClass('selected').addClass(`hidden`);
@@ -186,7 +188,7 @@ $(`button[type="remove"]`).on('click', function(i, e) {
     showButton("restore");
 });
 
-$(`button[type="block"]`).on('click', function(i, e) {
+$(`div[class~="hall-configuration"] button[type="block"]`).on('click', function(i, e) {
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
         if ($(this).hasClass("selected")) {
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] div`)
@@ -219,55 +221,47 @@ $(`div[id="layoutSidenav_content"]`).on("click", `button[class~="reset-hall"]`, 
     }
 });
 
-function deleteItem() {
-    $(`div[id="layoutSidenav_content"]`).on('click', `button[class~="delete-item"], a[class~="delete-item"]`, function(e) {
-        let itemId = $(this).attr('data-item-id');
-        let itemToDelete = $(this).attr('data-item');
-        let itemUrl = $(this).attr('data-url');
-        let itemMsg = $(this).attr('data-msg');
-        $(`div[id="deleteData"] h5[class~="modal-title"]`).html('Delete Item');
+function confirmDelete() {
+    $(`div[id="deleteModal"] button[type="submit"]`).on("click", function() {
+        var payload = '{"item":"' + $(this).attr('data-item') + '","item_id":"' + $(this).attr('data-item-id') + '"}';
+        $.ajax({
+            type: "DELETE",
+            url: `${baseUrl}api/remove/confirm`,
+            data: payload,
+            dataType: "json",
+            success: function(response) {
+                Toast.fire({
+                    title: response.data.result,
+                    type: responseCode(response.code)
+                });
 
-        $(`div[id="deleteData"] input[name="item_id"]`).val(itemId);
-        $(`div[id="deleteData"] div[class~="details-pane"]`).html(itemMsg);
-        $(`div[id="deleteData"] input[name="item"]`).val(itemToDelete);
-        $(`div[id="deleteData"] span[class="details-pane"]`).html(itemToDelete);
-
-        $(`div[class~="delete-modal"]`).modal('show');
+                if (response.code == 200) {
+                    setTimeout((res) => {
+                        window.location.href = current_url;
+                    }, 1000);
+                }
+            },
+            complete: function() {
+                $(`div[id="deleteModal"]`).modal("hide");
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            },
+            error: function() {
+                $(`div[id="deleteModal"]`).modal("hide");
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
+        });
     });
 }
 
-$(`div[class~="delete-modal"] form[class~="deleteItemModal"]`).on('submit', function(evt) {
-    evt.preventDefault();
-    $(`div[class="form-content-loader"]`).css("display", "flex");
-
-    payload = JSON.stringify($(this).formToJson());
-
-    $.ajax({
-        type: "DELETE",
-        url: `${baseUrl}api/remove/confirm`,
-        data: payload,
-        dataType: "json",
-        success: function(response) {
-            Toast.fire({
-                title: response.data.result,
-                type: responseCode(response.code)
-            });
-            if (response.code == 200) {
-                setTimeout((res) => {
-                    window.location.href = current_url;
-                }, 1000);
-            }
-        },
-        complete: function() {
-            $(`div[id="deleteModal"]`).modal("hide");
-            $(`div[class="form-content-loader"]`).css("display", "none");
-        },
-        error: function() {
-            $(`div[id="deleteModal"]`).modal("hide");
-            $(`div[class="form-content-loader"]`).css("display", "none");
-        }
+function deleteItem() {
+    $(`div[id="layoutSidenav_content"]`).on('click', `a[class~="delete-item"]`, function(evt) {
+        var item = $(this).attr('data-item');
+        var itemId = $(this).attr('data-item-id');
+        $(`div[id="deleteModal"]`).modal("show");
+        $(`div[id="deleteModal"] button[type="submit"]`).attr({ "data-item": item, "data-item-id": itemId });
     });
-});
+}
+confirmDelete();
 
 function clear() {
     $(`form[class~='appForm'] input, form[class~='appForm'] textarea`).val('');
@@ -369,6 +363,7 @@ var populateHallsList = (data) => {
     activateHall();
 }
 async function listHalls() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
     $.ajax({
         url: `${baseUrl}api/halls/list`,
         type: "GET",

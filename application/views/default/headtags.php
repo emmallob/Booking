@@ -58,6 +58,7 @@ $accessObject->userId = $userId;
 	<script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
 </head>
 <body class="nav-fixed dashboard <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
+	<div id="current_url" value="<?= $session->current_url; ?>"></div>
 	<nav class="topnav navbar navbar-expand shadow navbar-light bg-white" id="sidenavAccordion">
 		<a class="navbar-brand d-none d-sm-block" href="<?= $baseUrl ?>"><?= config_item("site_name") ?></a><button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle" href="#"><i data-feather="menu"></i></button>
 		<form autocomplete="Off" class="form-inline mr-auto d-none d-lg-block" method="GET" action="<?= $baseUrl ?>search">

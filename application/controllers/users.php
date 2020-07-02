@@ -453,7 +453,7 @@ class Users extends Booking {
 		global $accessObject;
 
 		// load the user session key to be used for all the queries
-		$accountInfo = $this->clientData;
+		$accountInfo = $this->clientData($userData->clientId);
 		$cSubscribe = json_decode( $accountInfo->setup_info, true );
 
 		// sanitize the user email address
@@ -475,7 +475,7 @@ class Users extends Booking {
 			$this->booking->beginTransaction();
 
 			// Check Email Exists
-			$checkData = $this->getAllRows("users", "COUNT(*) AS proceed", "email='{$userData->email}' && status = '1'");
+			$checkData = $this->pushQuery("COUNT(*) AS proceed", "users", "email='{$userData->email}' && status = '1'");
 
 			if ($checkData != false && $checkData[0]->proceed == '0') {
 
@@ -489,10 +489,10 @@ class Users extends Booking {
 
 				$query = $this->addData(
 					"users" ,
-					"clientId='{$userData->clientId}', user_id='{$getUserId}', name='{$userData->fullname}', 
+					"client_guid='{$userData->clientId}', user_guid='{$getUserId}', name='{$userData->fullname}', 
 					gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', 
 					verify_token='{$userData->verifyToken}', status='0', access_level='{$userData->access_level}', 
-					branchId='{$userData->branch_id}', password='{$hashPassword}', login='{$username}'"
+					password='{$hashPassword}', username='{$username}'"
 				);
 
 				if ($query == true) {
@@ -528,14 +528,14 @@ class Users extends Booking {
 					$cSubscribe['users_created'] = (!isset($cSubscribe['users_created'])) ? 1 : ($cSubscribe['users_created']+1);
 
 					// update the client brands subscription count
-					$this->booking->query("UPDATE settings SET setup_info='".json_encode($cSubscribe)."' WHERE clientId='{$userData->clientId}'");
+					$this->booking->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE client_guid='{$userData->clientId}'");
 
 					// set the new value for the subscription stored in session
 					$this->session->accountPackage = $cSubscribe;
 
 					// record the email sending to be processed by the cron job
 					$sms = $this->booking->prepare("
-						INSERT INTO email_list SET clientId = ?, template_type = ?, itemId = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
+						INSERT INTO email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
 					");
 					$sms->execute([
 						$userData->clientId, 'general', $userData->userId, json_encode($userEmail), $userData->curUserId, $emailMessage, $emailSubject
@@ -586,40 +586,40 @@ class Users extends Booking {
 		}
 
 		// CHeck If User ID Exists
-		$checkData = $this->getAllRows("users", "COUNT(*) AS userTotal, access_level", "user_id='{$userData->user_id}'");
+		$checkData = $this->pushQuery("COUNT(*) AS userTotal, access_level", "users", "user_guid='{$userData->user_guid}'");
 
 		if ($checkData != false && $checkData[0]->userTotal == '1') {
 
 			// update user data
 			$query = $this->updateData(
 				"users",
-				"name='{$userData->fullname}', gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', access_level='{$userData->access_level}', branchId='{$userData->branch_id}'",
-				"user_id='{$userData->user_id}' && clientId='{$userData->clientId}'"
+				"name='{$userData->fullname}', gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', access_level='{$userData->access_level}'",
+				"user_guid='{$userData->user_guid}' && client_guid='{$userData->clientId}'"
 			);
 
 			if ($query == true) {
 
 				// Record user activity
-				$this->userLogs('users', $userData->user_id, 'Update the user details.');
+				$this->userLogs('users', $userData->user_guid, 'Update the user details.');
 
 				// check if the user has the right permissions to perform this action
 				if($accessObject->hasAccess('accesslevel', 'users')) {
 
 					// Check If User ID Exists
-					$userRole = $this->getAllRows("users_roles", "COUNT(*) AS userTotal, permissions", "user_id='{$userData->user_id}'");
+					$userRole = $this->pushQuery("COUNT(*) AS userTotal, permissions", "users_roles", "user_guid='{$userData->user_guid}'");
 
 					// confirm if the user has no credentials
 					if($userRole[0]->userTotal == 0) {
 						// insert the permissions to this user
-						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->default_permissions;
+						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
 						// assign these permissions to the user
-						$accessObject->assignUserRole($userData->user_id, $userData->access_level);
+						$accessObject->assignUserRole($userData->user_guid, $userData->access_level);
 					}
 
 					// Check Access Level
 					if ($userData->access_level != $checkData[0]->access_level) {
 
-						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->default_permissions;
+						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
 
 						$accessObject->assignUserRole($userData->user_id, $userData->access_level, $getPermissions);
 					}
@@ -645,15 +645,13 @@ class Users extends Booking {
 
 		// load the user permission and parse back the array data
 		$access_level = (isset($params->access_level)) ? xss_clean($params->access_level) : null;
-		$access_user  = (isset($params->user_id)) ? xss_clean($params->user_id) : null;
+		$access_user  = (isset($params->user_guid)) ? xss_clean($params->user_guid) : null;
 
 		// Check If User Is Selected
 		if (!empty($access_user) && $access_user != "null") {
 
 			// Get User Permissions
-			$query = $this->getAllRows("users_roles", "permissions", "user_id='{$access_user}'");
-
-			
+			$query = $this->pushQuery("permissions", "users_roles", "user_guid='{$access_user}'");		
 
 			if ($query != false) {
 				$message = json_decode($query[0]->permissions);
@@ -703,14 +701,14 @@ class Users extends Booking {
 		$permissions = json_encode(["permissions" => $aclPermissions]);
 
 		// if the user id is not empty
-		if ($params->user_id != "" && $params->user_id != "null") {
+		if ($params->user_guid != "" && $params->user_guid != "null") {
 
 			// Update Settings For User
-			$checkData = $this->getAllRows("users", "COUNT(*) AS userTotal", "user_id='{$params->user_id}' && status = '1'");
+			$checkData = $this->pushQuery("COUNT(*) AS userTotal", "users", "user_guid='{$params->user_guid}' && status = '1'");
 
 			if ($checkData != false && $checkData[0]->userTotal == '1') {
 
-				$query = $accessObject->assignUserRole($params->user_id, $params->access_level, $permissions);
+				$query = $accessObject->assignUserRole($params->user_guid, $params->access_level, $permissions);
 
 				if ($query == true) {
 					return "Access Level Updated Successfully!";
@@ -724,7 +722,7 @@ class Users extends Booking {
 
 		} else {
 			// Update Settings For Access Level Group
-			$checkData = $this->getAllRows("access_levels", "COUNT(*) AS aclTotal", "id='{$params->access_level}'");
+			$checkData = $this->pushQuery("COUNT(*) AS aclTotal", "access_levels", "id='{$params->access_level}'");
 
 			if ($checkData != false && $checkData[0]->aclTotal == '1') {
 
