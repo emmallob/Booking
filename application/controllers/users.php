@@ -57,7 +57,7 @@ class Users extends Booking {
 		$condition = "";
 		$result = [];
 
-		$condition = !empty($params->user_guid) ? "AND user_guid='{$params->user_guid}'" : null;
+		$condition = !empty($params->user_guid) ? "AND a.user_guid='{$params->user_guid}'" : null;
 
 		$query = $this->booking->prepare("
 			SELECT a.*, b.access_level_name

@@ -180,7 +180,8 @@ $accessObject->userId = $userId;
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseUtilities" aria-expanded="false" aria-controls="collapseUtilities">
 							<div class="nav-link-icon"><i data-feather="tool"></i></div>
 							Tickets
-							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div></a>
+							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+						</a>
 						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>tickets">Tickets</a>
@@ -192,6 +193,17 @@ $accessObject->userId = $userId;
 							Reservation
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
+						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseDepartments" aria-expanded="false" aria-controls="collapseDepartments">
+							<div class="nav-link-icon"><i data-feather="book"></i></div>
+							Departments
+							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+						</a>
+						<div class="collapse <?= in_array($SITEURL[0], ["departments", "departments-add", "departments-edit"]) ? "show" : null ?>" id="collapseDepartments" data-parent="#accordionSidenav">
+							<nav class="sidenav-menu-nested nav">
+								<a class="nav-link" href="<?= $baseUrl ?>departments">Departments</a>
+								<a class="nav-link" href="<?= $baseUrl ?>departments-add">Add Department</a>
+							</nav>
+						</div>
 						<div class="collapse <?= in_array($SITEURL[0], ["reservation"]) ? "show" : null ?>" id="collapseFlows" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav"><a class="nav-link" href="<?= $baseUrl ?>reservation">Reserve Seat</a></nav>
 						</div>

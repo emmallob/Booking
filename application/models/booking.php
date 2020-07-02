@@ -775,6 +775,34 @@ class Booking {
 				
 			}
 
+			/** remove a department */
+			elseif($params->item == "department") {
+				
+				/** Confirm that user is not already deleted */
+				$userActive = $this->db->prepare("SELECT id FROM departments WHERE department_guid = ? AND `status`=? AND client_guid = ?");
+				$userActive->execute([$params->item_id, 1, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					
+					/** Remove the user from the list of users by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE departments SET `status`=? WHERE department_guid = ? AND client_guid = ?");
+					$stmt->execute([0, $params->item_id, $params->clientId]);
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Deleted a department.", $params->clientId, $params->userId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
+			}
+
 		} catch(PDOException $e) {
 			$this->db->rollBack();
 			return $e->getMessage();

@@ -378,3 +378,38 @@ async function listHalls() {
 if ($(`table[class~="listHalls"]`).length) {
     listHalls();
 }
+
+var populateDepartmentsList = (data) => {
+    $(`table[class~="departmentsList"]`).dataTable().fnDestroy();
+    $(`table[class~="departmentsList"]`).dataTable({
+        "aaData": data,
+        "iDisplayLength": 10,
+        "columns": [
+            { "data": 'row_id' },
+            { "data": 'department_name' },
+            { "data": 'description' },
+            { "data": 'pending_events' },
+            { "data": 'no_of_events' },
+            { "data": 'action' }
+        ]
+    });
+    $(`table th:last`).removeClass('sorting');
+    $(`div[class="form-content-loader"]`).css("display", "none");
+    deleteItem();
+}
+async function departmentsList() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $.ajax({
+        url: `${baseUrl}api/departments/list`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            populateDepartmentsList(response.data.result);
+        },
+        error: function() {},
+        complete: function() {}
+    });
+}
+if ($(`table[class~="departmentsList"]`).length) {
+    departmentsList();
+}

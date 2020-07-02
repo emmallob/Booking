@@ -21,8 +21,12 @@ class Halls extends Booking {
      * @return Array
      */
     public function listItems(stdClass $params) {
-        
+
+        global $accessObject;
+
         try {
+            
+            $condition = !empty($params->hall_guid) ? "AND a.hall_guid='{$params->hall_guid}'" : null;
 
             $stmt = $this->db->prepare("
                 SELECT 
@@ -30,7 +34,7 @@ class Halls extends Booking {
                     a.hall_name, a.facilities AS description, a.seats, 
                     a.created_on, a.status, a.configuration
                 FROM halls a
-                WHERE a.client_guid = ? AND a.deleted = ? ORDER BY id DESC
+                WHERE a.client_guid = ? AND a.deleted = ? {$condition} ORDER BY id DESC
             ");
             $stmt->execute([$params->clientId, 0]);
 
@@ -51,17 +55,25 @@ class Halls extends Booking {
                     /** Generate the action button */
                     $action = "";
 
-                    $action .= "<a href='{$this->baseUrl}halls-edit/{$result->hall_guid}' title='Edit the details of this hall' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
-                    $action .= "&nbsp; <a href='{$this->baseUrl}halls-configuration/{$result->hall_guid}' title='Click to Configure Hall Setup' class='btn btn-outline-secondary btn-sm'><i class='fa fa-sitemap'></i></a>";
+                    // update the hall
+                    if($accessObject->hasAccess('update', 'halls')) {
+                        $action .= "<a href='{$this->baseUrl}halls-edit/{$result->hall_guid}' title='Edit the details of this hall' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
+                    }
+
+                    // configure the seats
+                    if($accessObject->hasAccess('configure', 'halls')) {
+                        $action .= "&nbsp; <a href='{$this->baseUrl}halls-configuration/{$result->hall_guid}' title='Click to Configure Hall Setup' class='btn btn-outline-secondary btn-sm'><i class='fa fa-sitemap'></i></a>";
+                    }
                     
                     // check the status
                     if(!$result->status) {
                         $action .= "&nbsp; <a href='javascript:void(0)' data-item-id='{$result->hall_guid}' title='Click to Activate this Hall' class='btn btn-outline-primary btn-sm activate-hall'><i class='fa fa-check'></i></a>";
                     }
 
-                    // if($accessObject->hasAccess('delete', 'halls')) {
-                    $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this hall.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this hall?\" data-item=\"hall\" data-item-id=\"{$result->hall_guid}\"><i class='fa fa-trash'></i></a> ";
-                    //}
+                    // delete the hall
+                    if($accessObject->hasAccess('delete', 'halls')) {
+                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this hall.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this hall?\" data-item=\"hall\" data-item-id=\"{$result->hall_guid}\"><i class='fa fa-trash'></i></a> ";
+                    }
 
 
                     $result->action = $action;

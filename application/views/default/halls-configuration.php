@@ -5,7 +5,7 @@ require "headtags.php";
 
 $hallId = (confirm_url_id(1)) ? xss_clean($SITEURL[1]) : null;
 
-$hallFound = false;
+$itemFound = false;
 $removedSeats = [];
 $blockedSeats = [];
 
@@ -20,7 +20,7 @@ if($hallId) {
     // confirm that data was found
     if(!empty($hallData)) {
         // set the found state
-        $hallFound = true;
+        $itemFound = true;
 
         // set the variables
         $hallData = $hallData[0];
@@ -67,7 +67,7 @@ if($hallId) {
             </div>
             <div class="card-body">
 
-                <?php if(!$hallFound || !$accessObject->hasAccess("configure", "halls")) { ?>
+                <?php if(!$itemFound || !$accessObject->hasAccess("configure", "halls")) { ?>
                     <?= pageNotFound($baseUrl) ?>
                 <?php } else { ?>
                 <div class="row hall-configuration">
