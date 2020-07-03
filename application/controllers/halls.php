@@ -67,7 +67,7 @@ class Halls extends Booking {
                     
                     // check the status
                     if(!$result->status) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' data-item-id='{$result->hall_guid}' title='Click to Activate this Hall' class='btn btn-outline-primary btn-sm activate-hall'><i class='fa fa-check'></i></a>";
+                        $action .= "&nbsp; <a href='javascript:void(0)' data-url='api/halls/activate' data-redirect='halls' data-item='hall_guid' data-guid='{$result->hall_guid}' title='Click to Activate this Hall' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
                     }
 
                     // delete the hall

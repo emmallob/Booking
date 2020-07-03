@@ -36,29 +36,30 @@ $hallFound = true;
             <div class="card-body">
                 <form autocomplete="Off" action="<?= $baseUrl ?>api/tickets/generate" method="POST" class="appForm">
                     <div class="row">
+                        <?= form_loader() ?>
                         <div class="col-lg-8 col-md-8">
                             <div class="row">
                                 <div class="col-lg-12 col-md-12">
                                     <div class="form-group">
-                                        <label for="ticket_title">Ticket Title</label>
+                                        <label for="ticket_title">Ticket Title <span class="required">*</span></label>
                                         <input type="text" name="ticket_title" id="ticket_title" placeholder="Enter the title for this ticket (eg. Dinner on 25th September Tickets)" class="form-control">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
                                         <label for="quantity">Quantity to Generate</label>
-                                        <input placeholder="Quantity of tickets" type="number" name="quantity" id="quantity" min="1" class="form-control">
+                                        <input placeholder="Default is 100" type="number" name="quantity" id="quantity" min="1" class="form-control">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <label for="initials">Initials</label>
-                                        <input type="text" placeholder="Initials for Ticket Generation" name="initials" id="initials" class="form-control">
+                                        <label for="initials">Initials to Start With</label>
+                                        <input type="text" style="text-transform:uppercase" maxlength="3" placeholder="Initials (eg DZ001)" name="initials" id="initials" class="form-control">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <label for="length">Length of Characters</label>
+                                        <label for="length">Length of Characters <span class="required">*</span></label>
                                         <input type="number" min="6" value="6" max="20" placeholder="Length of each ticket serial" name="length" id="length" class="form-control">
                                     </div>
                                 </div>
@@ -74,7 +75,7 @@ $hallFound = true;
                                 <div class="col-lg-4 cards hidden col-md-6">
                                     <div class="form-group">
                                         <label for="length">Ticket Amount</label>
-                                        <input type="number" min="6" max="20" placeholder="Amount for Ticket" name="ticket_amount" id="ticket_amount" class="form-control">
+                                        <input type="number" min="6" max="10000" placeholder="Amount for Ticket" name="ticket_amount" id="ticket_amount" class="form-control">
                                     </div>
                                 </div>
                             </div>
@@ -86,11 +87,11 @@ $hallFound = true;
                             </div>
                         </div>
                         <div class="col-lg-4 col-md-4">
-                            <div class="row">
-                                <h4>Sample Tickets</h4>
+                            <div class="text-center">
+                                <h4 class="text-center">Note</h4>
                             </div>
-                            <div class="row sample-tickets text-center">
-                                <em>Sample tickets to be generated appears here</em>
+                            <div class="row sample-data text-center">
+                                <em>Please remember to activate this ticket on the <a href="<?= $baseUrl ?>tickets">Tickets Page</a> after generating.</em>
                             </div>
                         </div>
                     </div>

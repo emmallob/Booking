@@ -31,17 +31,19 @@ require "headtags.php";
                 </div>
             </div>
             <div class="card-body">
+                <?= form_loader() ?>
                 <div class="datatable table-responsive">
-                    <table class="table nowrap table-hover" data-toggle="datatable">
+                    <table class="table table-hover ticketsList" data-toggle="datatable">
                         <thead>
                             <th width="6%">&#8470;</th>
                             <th>Ticket Title</th>
-                            <th>Event Title</th>
-                            <th>&#8470; Generated</th>
-                            <th>&#8470; Sold</th>
-                            <th>&#8470; Left</th>
-                            <th>Total Sales</th>
-                            <th></th>
+                            <!-- <th>Event Title</th> -->
+                            <th width="15%">&#8470; Generated</th>
+                            <th width="10%">&#8470; Sold</th>
+                            <th width="10%">&#8470; Left</th>
+                            <th width="10%">&#8470; Used</th>
+                            <!-- <th>Total Sales</th> -->
+                            <th width="12%"></th>
                         </thead>
                         <tbody></tbody>
                     </table>

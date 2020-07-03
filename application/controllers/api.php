@@ -234,23 +234,21 @@ class Api {
                         "params" => [
                             "ticket_guid" => "The Id of the ticket to load the data"
                         ]
-                    ],
-                    "generate" => [
-                        "params" => [
-                            "quantity" => "The number of Tickets to be generated (default is 100)",
-                            "initials" => "Any initials for be appended to this ticket",
-                            "length" => "What is the expected length of the serial number"
-                        ]
                     ]
                 ],
                 "POST" => [
-                    "add" => [
+                    "activate" => [
+                        "params" => [
+                            "ticket_guid" => "required - The id for the generated tickets to be activated"
+                        ]
+                    ],
+                    "generate" => [
                         "params" => [
                             "ticket_title" => "required - The title for this ticket",
                             "quantity" => "The number of Tickets to be generated (default is 100)",
                             "initials" => "Any initials for be appended to this ticket",
-                            "length" => "What is the expected length of the serial number",
-                            "ticket_is_payable" => "Is this ticket paid for?",
+                            "length" => "required - What is the expected length of the serial number?",
+                            "ticket_is_payable" => "Is this ticket paid for? (0 or 1)",
                             "ticket_amount" => "If paid, what is the amount to be paid for this ticket?"
                         ]
                     ]
@@ -721,7 +719,27 @@ class Api {
 
                 // if the request was successful
                 if($request) {
-                    $result['result'] = $request;
+                    // confirm that an array was parsed as the response
+                    if(!is_array($request)) {
+                        $result['result'] = $request;
+                    } else {
+                        $result['result'] = $request['msg'];
+                        $result['remote_request']['reload'] = true;
+                        $result['remote_request']['clear'] = true;
+                        $result['remote_request']['href'] = $this->config->base_url($this->inner_url);
+                        $code = 200;
+                    }
+                }
+            }
+
+            // ticket configuration
+            elseif(($this->inner_url == "tickets") && ($this->outer_url == "activate")) {
+                // update the user theme color
+                $request = $objectClass->activateTicket($params);
+
+                // if the request was successful
+                if($request) {
+                    $result['result'] = "The Ticket was successfully activated and can now be used.";
                     $code = 200;
                 }
             }

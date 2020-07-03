@@ -269,6 +269,28 @@ function clear() {
     $(`div[id="newModalWindow"]`).modal('hide');
 }
 
+var activateItem = () => {
+    $(`div[id="layoutSidenav_content"]`).on("click", `a[class~="activate-item"]`, function() {
+        let url = $(this).attr("data-url"),
+            guid = $(this).attr("data-guid"),
+            redirect = $(this).attr("data-redirect"),
+            item = $(this).attr("data-item");
+
+        var payload = `{"${item}":"${guid}"}`;
+        $.post(`${baseUrl}${url}`, payload, function(response) {
+            if (response.code == 200) {
+                Toast.fire({
+                    title: response.data.result,
+                    type: "success"
+                });
+                setTimeout(() => {
+                    window.location.href = `${baseUrl}${redirect}`;
+                }, 1000);
+            }
+        }, 'json');
+    });
+}
+
 $("form[class~='appForm']").on("submit", function(e) {
     e.preventDefault();
 
@@ -307,6 +329,21 @@ $("form[class~='appForm']").on("submit", function(e) {
                     }, 2000);
                 }
             }
+
+            if (response.data.additional) {
+                let count = 0,
+                    table = "<table class='table'>";
+                $.each(response.data.additional.list, function(i, e) {
+                    count++;
+                    table += `<tr><td>${count}</td><td>${e}</td></tr>`;
+                });
+                table += `</table>`;
+                table += `<div class="text-center"><a data-url="${response.data.additional.url}" data-redirect="${response.data.additional.redirect}" data-item="${response.data.additional.item}" data-guid="${response.data.additional.guid}" href='javascript:void(0)' class="btn btn-outline-success activate-item">Activate</a></div>`;
+
+                $(`div[class~="sample-data"]`).html(table);
+
+                $(`form[class~="appForm"] button[type="submit"]`).remove();
+            }
         },
         error: function(err) {
             $(`div[class="form-content-loader"]`).css("display", "none");
@@ -317,6 +354,7 @@ $("form[class~='appForm']").on("submit", function(e) {
             });
         },
         complete: function(data) {
+            activateItem();
             $(`div[class="form-content-loader"]`).css("display", "none");
             $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
         }
@@ -324,23 +362,6 @@ $("form[class~='appForm']").on("submit", function(e) {
         $(`div[class="form-content-loader"]`).css("display", "none");
     });
 });
-
-var activateHall = () => {
-    $(`div[id="layoutSidenav_content"]`).on("click", `a[class~="activate-hall"]`, function() {
-        var payload = '{"hall_guid":"' + $(this).attr('data-item-id') + '"}';
-        $.post(`${baseUrl}api/halls/activate`, payload, function(response) {
-            if (response.code == 200) {
-                Toast.fire({
-                    title: response.data.result,
-                    type: "success"
-                });
-                setTimeout(() => {
-                    window.location.href = `${baseUrl}halls`;
-                }, 1000);
-            }
-        }, 'json');
-    });
-}
 
 var populateHallsList = (data) => {
     $(`table[class~="listHalls"]`).dataTable().fnDestroy();
@@ -360,7 +381,7 @@ var populateHallsList = (data) => {
     $(`table th:last`).removeClass('sorting');
     $(`div[class="form-content-loader"]`).css("display", "none");
     deleteItem();
-    activateHall();
+    activateItem();
 }
 async function listHalls() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
@@ -412,4 +433,41 @@ async function departmentsList() {
 }
 if ($(`table[class~="departmentsList"]`).length) {
     departmentsList();
+}
+
+var populateTicketsList = (data) => {
+    $(`table[class~="ticketsList"]`).dataTable().fnDestroy();
+    $(`table[class~="ticketsList"]`).dataTable({
+        "aaData": data,
+        "iDisplayLength": 10,
+        "columns": [
+            { "data": 'row_id' },
+            { "data": 'ticket_title' },
+            { "data": 'number_generated' },
+            { "data": 'number_sold' },
+            { "data": 'number_left' },
+            { "data": 'number_used' },
+            { "data": 'action' }
+        ]
+    });
+    $(`table th:last`).removeClass('sorting');
+    $(`div[class="form-content-loader"]`).css("display", "none");
+    deleteItem();
+    activateItem();
+}
+async function ticketsList() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $.ajax({
+        url: `${baseUrl}api/tickets/list`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            populateTicketsList(response.data.result);
+        },
+        error: function() {},
+        complete: function() {}
+    });
+}
+if ($(`table[class~="ticketsList"]`).length) {
+    ticketsList();
 }

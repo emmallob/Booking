@@ -835,5 +835,16 @@ class Booking {
 		return $stmt->execute();
 	}
 
+	/**
+	 * Order Id format by adding zeros to the begining
+	 * 
+	 * @param String $requestId		This is the id to format
+	 * 
+	 * @return String
+	 */
+	public function serialIdFormat($requestId, $number = 6) {
+		$preOrder = str_pad($requestId, $number, '0', STR_PAD_LEFT);
+		return $preOrder;
+	}
 }
 ?>

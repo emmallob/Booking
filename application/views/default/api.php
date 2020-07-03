@@ -83,7 +83,6 @@ if( !empty($incomingData) ) {
         }
         
     }
-
 }
 
 else if( in_array($inner_url, ["halls", "events", "tickets", "reports", "reservations"]) && ($requestMethod == "GET") ) {
