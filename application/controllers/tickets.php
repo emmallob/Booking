@@ -27,7 +27,7 @@ class Tickets extends Booking {
             $condition = !empty($params->ticket_guid) ? "AND a.ticket_guid='{$params->ticket_guid}'" : null;
 
             $stmt = $this->db->prepare("
-                SELECT a.*,
+                SELECT a.*, a.ticket_guid AS guid,  a.ticket_title AS title,
                     (
                         SELECT COUNT(*) FROM tickets_listing b WHERE b.ticket_guid = a.ticket_guid
                         AND b.status = 'used'
@@ -56,12 +56,12 @@ class Tickets extends Booking {
 
                     // check the status
                     if(!$result->activated) {
-                        $action = "&nbsp; <a href='javascript:void(0)' data-redirect='tickets' data-item='ticket_guid' data-guid='{$result->ticket_guid}' data-url='api/tickets/activate' title='Click to Activate this Ticket' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
+                        $action = "&nbsp; <a href='javascript:void(0)' data-redirect='tickets' data-item='ticket_guid' data-guid='{$result->guid}' data-url='api/tickets/activate' title='Click to Activate this Ticket' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
                     }
 
                     // do not show the delete button once at least one person has used the ticket
                     if(!$result->number_used) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this Ticket.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this ticket?\" data-item=\"ticket\" data-item-id=\"{$result->ticket_guid}\"><i class='fa fa-trash'></i></a> ";   
+                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this Ticket.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this ticket?\" data-item=\"ticket\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";   
                     }
 
                     $result->action = $action;

@@ -753,15 +753,33 @@ class Booking {
 					return "denied";
 				} else {
 					/** Remove the user from the list of users by setting it as been deleted */
-					$stmt = $this->db->prepare("UPDATE halls SET deleted=? WHERE hall_guid = ? AND client_guid = ?");
+					$stmt = $this->db->prepare("UPDATE `halls` SET `deleted`=? WHERE `hall_guid` = ? AND `client_guid` = ?");
 					$stmt->execute([1, $params->item_id, $params->clientId]);
+
+					/** Remove the hall id from the list of all events */
+					$events = $this->db->prepare("SELECT `id`, `halls_guid` FROM `events` WHERE `client_guid` = ? AND `state` = ? AND `deleted`=?");
+					$events->execute([$params->clientId, "pending", 0]);
+					
+					// loop through the list of events
+					while($event = $events->fetch(PDO::FETCH_OBJ)) {
+						
+						/** Remove the hall id from the list of halls for this event */
+						$halls = $this->removeArrayValue($event->halls_guid, $params->item_id, ",");
+						$hallIds = implode(",", $halls);
+						
+						/** Update the event ids */
+						$this->db->query("UPDATE `events` SET `halls_guid`='{$hallIds}' WHERE id='{$event->id}'");
+					}
+
+					/** Remove the hall from the list of all events that is currently not in use */
+					$this->db->query("DELETE FROM `events_halls_configuration` WHERE hall_guid = '{$params->item_id}' AND `commenced` = '0'");
 
 					/** Reduce the number of brands created for this account */
 					$cSubscribe = json_decode( $clientData->subscription, true );
 					$cSubscribe['halls_created'] = isset($cSubscribe['halls_created']) ? ($cSubscribe['halls_created'] - 1) : 2;
 
 					/** update the client brands setup_info count */
-					$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE client_guid='{$params->clientId}'");
+					$this->db->query("UPDATE `users_accounts` SET `subscription`='".json_encode($cSubscribe)."' WHERE `client_guid`='{$params->clientId}'");
 
 					/** Log the user activity */
 					$this->userLogs("remove", $params->item_id, "Deleted a hall.", $params->clientId, $params->userId);
@@ -779,7 +797,7 @@ class Booking {
 			elseif($params->item == "department") {
 				
 				/** Confirm that department is not already deleted */
-				$userActive = $this->db->prepare("SELECT id FROM departments WHERE department_guid = ? AND `status`=? AND client_guid = ?");
+				$userActive = $this->db->prepare("SELECT `id` FROM `departments` WHERE `department_guid` = ? AND `status`=? AND client_guid = ?");
 				$userActive->execute([$params->item_id, 1, $params->clientId]);
 
 				/** Count the number of rows */
@@ -788,7 +806,7 @@ class Booking {
 				} else {
 					
 					/** Remove the department from the list of departments by setting it as been deleted */
-					$stmt = $this->db->prepare("UPDATE departments SET `status`=? WHERE department_guid = ? AND client_guid = ?");
+					$stmt = $this->db->prepare("UPDATE `departments` SET `status`=? WHERE `department_guid` = ? AND client_guid = ?");
 					$stmt->execute([0, $params->item_id, $params->clientId]);
 
 					/** Log the user activity */
@@ -807,7 +825,7 @@ class Booking {
 			elseif($params->item == "ticket") {
 
 				/** Confirm that user is not already deleted */
-				$userActive = $this->db->prepare("SELECT id FROM tickets WHERE ticket_guid = ? AND `status`=? AND client_guid = ? AND number_sold = ?");
+				$userActive = $this->db->prepare("SELECT id FROM `tickets` WHERE `ticket_guid` = ? AND `status`=? AND `client_guid` = ? AND `number_sold` = ?");
 				$userActive->execute([$params->item_id, 1, $params->clientId, 0]);
 
 				/** Count the number of rows */
@@ -816,11 +834,11 @@ class Booking {
 				} else {
 					
 					/** Remove the ticket from the list of tickets by setting it as been deleted */
-					$stmt = $this->db->prepare("UPDATE tickets SET `status`=? WHERE ticket_guid = ? AND client_guid = ?");
+					$stmt = $this->db->prepare("UPDATE `tickets` SET `status`=? WHERE ticket_guid = ? AND `client_guid` = ?");
 					$stmt->execute([0, $params->item_id, $params->clientId]);
 
 					/** Delete the tickets list as well */
-					$this->db->query("DELETE FROM tickets_listing WHERE ticket_guid = '{$params->item_id}'");
+					$this->db->query("DELETE FROM `tickets_listing` WHERE `ticket_guid` = '{$params->item_id}'");
 
 					/** Log the user activity */
 					$this->userLogs("remove", $params->item_id, "Deleted a Ticket that was generated.", $params->clientId, $params->userId);

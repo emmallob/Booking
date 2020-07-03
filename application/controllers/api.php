@@ -171,9 +171,7 @@ class Api {
                             "removed_seats" => "An array of the removed seats. (Check documentation for the format)",
                             "hall_guid" => "required - The unique id of the hall."
                         ]
-                    ]
-                ],
-                "PUT" => [
+                    ],
                     "update" => [
                         "params" => [
                             "hall_name" => "required - The name of the hall",
@@ -277,14 +275,15 @@ class Api {
                     "add" => [
                         "params" => [
                             "event_title" => "required - The name of the hall",
-                            "department_id" => "The guid of the department to attach this event",
-                            "event_date" => "The date for which this event will be held",
-                            "start_time" => "The starting time for the event",
-                            "end_time" => "The end time for the event",
-                            "booking_starttime" => "The date and time begin booking",
-                            "booking_endtime" => "The date and time to end booking",
+                            "department_guid" => "The guid of the department to attach this event",
+                            "event_date" => "required - The date for which this event will be held",
+                            "start_time" => "required - The starting time for the event",
+                            "end_time" => "required - The end time for the event",
+                            "halls_guid" => "required - The halls that will be used for this event",
+                            "booking_starttime" => "required - The date and time begin booking",
+                            "booking_endtime" => "required - The date and time to end booking",
                             "event_is_payable" => "Is the event payable (0 or 1)",
-                            "event_ticket" => "If payable, what then is the tickets for this event.",
+                            "ticket_guid" => "If payable, what then is the tickets for this event.",
                             "multiple_booking" => "Can a user make several bookings with the same contact number? (0 or 1)",
                             "maximum_booking" => "Whats the maximum number of bookings that a user can make.",
                             "attachment" => "Attach multiple images or videos to this event.",
@@ -296,14 +295,15 @@ class Api {
                     "update" => [
                         "params" => [
                             "event_title" => "required - The name of the hall",
-                            "department_id" => "The guid of the department to attach this event",
-                            "event_date" => "The date for which this event will be held",
-                            "start_time" => "The starting time for the event",
-                            "end_time" => "The end time for the event",
-                            "booking_starttime" => "The date and time begin booking",
-                            "booking_endtime" => "The date and time to end booking",
+                            "department_guid" => "The guid of the department to attach this event",
+                            "event_date" => "required - The date for which this event will be held",
+                            "start_time" => "required - The starting time for the event",
+                            "end_time" => "required - The end time for the event",
+                            "halls_guid" => "required - The halls that will be used for this event",
+                            "booking_starttime" => "required - The date and time begin booking",
+                            "booking_endtime" => "required - The date and time to end booking",
                             "event_is_payable" => "Is the event payable (0 or 1)",
-                            "event_ticket" => "If payable, what then is the tickets for this event.",
+                            "ticket_guid" => "If payable, what then is the tickets for this event.",
                             "multiple_booking" => "Can a user make several bookings with the same contact number? (0 or 1)",
                             "maximum_booking" => "Whats the maximum number of bookings that a user can make.",
                             "attachment" => "Attach multiple images or videos to this event.",
@@ -838,6 +838,8 @@ class Api {
                             $result['result'] = $request['msg'];
                             $code = 200;
                         }
+                    } else {
+                        $result['result'] = $request;
                     }
                 }
             }

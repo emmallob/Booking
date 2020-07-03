@@ -98,7 +98,7 @@ if($hallId) {
                                             if(!in_array($label, $removedSeats)) {
                                                 print "<div data-label=\"{$label}\" id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border ".(in_array($label, $blockedSeats) ? "blocked" : null)."\">
                                                     {$counter}
-                                                    <input value='".(isset($seatLabels[$label]) ? $seatLabels[$label] : null)."' class=\"form-control p-0\" data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "disabled='disabled'" : null).">
+                                                    <input value='".(isset($seatLabels[$label]) ? $seatLabels[$label] : $counter)."' class=\"form-control p-0\" data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "disabled='disabled'" : null).">
                                                 </div>";
                                             }
                                             print "</td>\n";

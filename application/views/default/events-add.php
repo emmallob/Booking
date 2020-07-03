@@ -19,7 +19,7 @@ require "headtags.php";
             </div>
         </div>
     </div>
-    <div class="container-fluid mt-n10">
+    <div class="container-fluid mt-n10" id="eventsManager">
         <div class="card">
             <div class="card-header">
                 <div class="row" style="width:100%">
@@ -33,7 +33,7 @@ require "headtags.php";
             <?php if(!$accessObject->hasAccess("add", "events")) { ?>
                 <?= pageNotFound($baseUrl) ?>
             <?php } else { ?>
-                <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm">
+                <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm" enctype="multipart/form-data">
                     <div class="row">
                         <div class="col-lg-8 col-md-8">
                             <div class="form-group">
@@ -43,8 +43,8 @@ require "headtags.php";
                         </div>
                         <div class="col-lg-4 col-md-4">
                             <div class="form-group">
-                                <label for="department_id">Department / Organization</label>
-                                <select name="department_id" id="department_id" class="form-control selectpicker">
+                                <label for="department_guid">Department / Organization</label>
+                                <select name="department_guid" id="department_guid" class="form-control selectpicker">
                                     <option value="null">Select Department or Group or Organization</option>
                                 </select>
                             </div>
@@ -79,6 +79,14 @@ require "headtags.php";
                                 <input type="datetime-local" name="booking_endtime" id="booking_endtime" class="form-control">
                             </div>
                         </div>
+                        <div class="col-lg-9 col-md-8">
+                            <div class="form-group">
+                                <label for="halls_guid">Available Halls</label>
+                                <select name="halls_guid" id="halls_guid" multiple class="form-control selectpicker">
+                                    <option value="null">Select Halls for this Event</option>                                    
+                                </select>
+                            </div>
+                        </div>
                         <div class="col-lg-12">
                             <hr>
                         </div>
@@ -96,8 +104,8 @@ require "headtags.php";
                                     </div>
                                     <div class="cards hidden">
                                         <div class="form-group">
-                                            <label for="event_ticket">Event Ticket <i title="Select tickets that will be sold for this event" data-toggle="tooltip" class="fa fa-info"></i></label>
-                                            <select name="event_ticket" id="event_ticket" class="form-control selectpicker2 event_ticket">
+                                            <label for="ticket_guid">Event Ticket <i title="Select tickets that will be sold for this event" data-toggle="tooltip" class="fa fa-info"></i></label>
+                                            <select name="ticket_guid" id="ticket_guid" class="form-control selectpicker2 ticket_guid">
                                                 <option value="null">Select Event Ticket</option>
                                                 <option data-item="add_ticket" value="add-new">Add Ticket</option>
                                             </select>
@@ -129,7 +137,7 @@ require "headtags.php";
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="description">Event Description</label>
-                                            <textarea name="description" id="description" class="form-control" cols="30" rows="10"></textarea>
+                                            <textarea name="description" id="description" class="form-control" cols="30" rows="7"></textarea>
                                         </div>
                                     </div>
                                 </div>

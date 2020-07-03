@@ -30,8 +30,8 @@ class Halls extends Booking {
 
             $stmt = $this->db->prepare("
                 SELECT 
-                    a.client_guid, a.hall_guid, a.rows, a.columns, 
-                    a.hall_name, a.facilities AS description, a.seats, 
+                    a.client_guid, a.hall_guid AS guid, a.rows, a.columns, 
+                    a.hall_name, a.hall_name AS title, a.facilities AS description, a.seats, 
                     a.created_on, a.status, a.configuration
                 FROM halls a
                 WHERE a.client_guid = ? AND a.deleted = ? {$condition} ORDER BY id DESC
@@ -57,22 +57,22 @@ class Halls extends Booking {
 
                     // update the hall
                     if($accessObject->hasAccess('update', 'halls')) {
-                        $action .= "<a href='{$this->baseUrl}halls-edit/{$result->hall_guid}' title='Edit the details of this hall' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
+                        $action .= "<a href='{$this->baseUrl}halls-edit/{$result->guid}' title='Edit the details of this hall' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
                     }
 
                     // configure the seats
                     if($accessObject->hasAccess('configure', 'halls')) {
-                        $action .= "&nbsp; <a href='{$this->baseUrl}halls-configuration/{$result->hall_guid}' title='Click to Configure Hall Setup' class='btn btn-outline-secondary btn-sm'><i class='fa fa-sitemap'></i></a>";
+                        $action .= "&nbsp; <a href='{$this->baseUrl}halls-configuration/{$result->guid}' title='Click to Configure Hall Setup' class='btn btn-outline-secondary btn-sm'><i class='fa fa-sitemap'></i></a>";
                     }
                     
                     // check the status
                     if(!$result->status) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' data-url='api/halls/activate' data-redirect='halls' data-item='hall_guid' data-guid='{$result->hall_guid}' title='Click to Activate this Hall' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
+                        $action .= "&nbsp; <a href='javascript:void(0)' data-url='api/halls/activate' data-redirect='halls' data-item='hall_guid' data-guid='{$result->guid}' title='Click to Activate this Hall' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
                     }
 
                     // delete the hall
                     if($accessObject->hasAccess('delete', 'halls')) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this hall.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this hall?\" data-item=\"hall\" data-item-id=\"{$result->hall_guid}\"><i class='fa fa-trash'></i></a> ";
+                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this hall.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this hall?\" data-item=\"hall\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";
                     }
 
 
@@ -181,8 +181,8 @@ class Halls extends Booking {
             /** Execute the statement */
             $stmt = $this->db->prepare("
                 INSERT INTO halls 
-                SET client_guid = ?, hall_guid = ?, `rows` = ?, columns = ?, seats = ?,
-                hall_name = ?, created_by = ?, facilities = ?, configuration = ?
+                SET `client_guid` = ?, `hall_guid` = ?, `rows` = ?, `columns` = ?, `seats` = ?,
+                `hall_name` = ?, `created_by` = ?, `facilities` = ?, `configuration` = ?
             ");
             
             /** Execute */
@@ -260,7 +260,7 @@ class Halls extends Booking {
         $params->blocked_seats = !empty($params->blocked_seats) ? $params->blocked_seats : [];
         $params->removed_seats = !empty($params->removed_seats) ? $params->removed_seats : [];
 
-        // set some additional variables
+        // merge the existing configuration with the new incoming data
         $removedSeats = array_merge($hallConf['removed'], $params->removed_seats);
         $blockedSeats = array_merge($hallConf['blocked'], $params->blocked_seats);
         
@@ -288,14 +288,14 @@ class Halls extends Booking {
         try {
 
             /** Prepare the statement */
-            $stmt = $this->db->prepare("
-                UPDATE halls SET configuration = ?, status = ?, seats = ? WHERE client_guid = ? AND hall_guid = ?
-            ");
+            $stmt = $this->db->prepare("UPDATE halls SET `configuration` = ?, `status` = ?, `seats` = ? WHERE `client_guid` = ? AND hall_guid = ?");
+            
             /** Execute the statement */
-            if($stmt->execute([json_encode($configuration), 0, 
-                $available, $params->clientId, $params->hall_guid
-            ])) {
-                
+            if($stmt->execute([json_encode($configuration), 0, $available, $params->clientId, $params->hall_guid])) {
+
+                /** Update any existing event that will use this hall and has not commenced yet (no user has yet booked a seat) */
+                $this->db->query("UPDATE events_halls_configuration SET `configuration` = '".json_encode($configuration)."' WHERE hall_guid = '{$params->hall_guid}' AND commenced = '0'");
+
                 /** Log the user activity */
                 $this->userLogs('halls', $params->hall_guid, 'Updated the hall configuration data.');
                 
@@ -348,14 +348,122 @@ class Halls extends Booking {
         try {
 
             /** Prepare the statement */
-            $stmt = $this->db->prepare("
-                UPDATE halls SET status = ?, configuration = ? WHERE client_guid = ? AND hall_guid = ?
-            ");
-            return $stmt->execute([0, json_encode($configuration), $params->clientId, $params->hall_guid]);
+            $stmt = $this->db->prepare("UPDATE halls SET `status` = ?, `configuration` = ? WHERE `client_guid` = ? AND `hall_guid` = ?");
+            $stmt->execute([0, json_encode($configuration), $params->clientId, $params->hall_guid]);
+
+            /** Reset the hall configuration in the events configuration table as well */
+            return $this->db->query("UPDATE events_halls_configuration SET `configuration` = '".json_encode($configuration)."' WHERE hall_guid = '{$params->hall_guid}' AND commenced = '0'");
 
         } catch(\Exception $e) {
             return false;
         }
+
+    }
+
+    /**
+     * Update an existing hall details
+     * 
+     * Increment the number of halls created once the processing goes through
+     * 
+     * @param stdClass      $params         This contains the data to create a new hall with
+     *                      $params->hall_name
+     *                      $params->hall_rows
+     *                      $params->hall_columns
+     *                      $params->description
+     *                      $params->hall_guid
+     * 
+     * @return Array
+     */
+    public function updateItem(stdClass $params) {
+
+        // load the hall information
+        $hallQuery = $this->pushQuery("`configuration`, `hall_name`, `id`, `rows`, `columns`", "`halls`", "`hall_guid`='{$params->hall_guid}' AND client_guid='{$params->clientId}' AND deleted='0'");
+
+        // return error
+        if(empty($hallQuery)) {
+            return "Sorry! An invalid hall guid was parsed.";
+        }
+        
+        // continue processing
+        $params->hall_rows = (int) $params->hall_rows;
+        $params->hall_columns = (int) $params->hall_columns;
+        $params->description = !empty($params->description) ? $params->description : null;
+
+        if($params->hall_rows > 100) {
+            return "Maximum hall rows must be 100";
+        }
+
+        if($params->hall_columns > 70) {
+            return "Maximum hall columns must be 70";
+        }
+
+        // configure default hall information
+        $hallConf = !empty($hallQuery[0]->configuration) ? json_decode($hallQuery[0]->configuration, true) : [];
+        
+        // // set more variables
+        $removedSeats = $hallConf['removed'];
+        $blockedSeats = $hallConf['blocked'];
+        $available = $hallConf["labels"];
+
+        // go on to run more processing and checks
+        $counter = 1;
+
+        /** Generate the labels for the seats configuration */
+        $labels = [];
+        for($i = 1; $i < $params->hall_rows + 1; $i++) {
+            for($ii = 1; $ii < $params->hall_columns + 1; $ii++) {
+                $labels["{$i}_{$ii}"] = $counter;
+                $counter++;
+            }
+        }
+        $configuration["labels"] = $labels;
+
+        /** Count the available seats */
+        $available = count($labels) - count($removedSeats) - count($blockedSeats);
+        
+        // ensure that new lines are replaced with breaks
+        $params->description = nl2br($params->description);
+
+        try {
+
+            /** Execute the statement */
+            $stmt = $this->db->prepare("
+                UPDATE halls 
+                SET `rows` = ?, columns = ?, seats = ?,
+                    hall_name = ?, created_by = ?, facilities = ?
+                WHERE client_guid = ? AND hall_guid = ?
+            ");
+            
+            /** Execute */
+            if($stmt->execute([
+                $params->hall_rows, $params->hall_columns, $available, $params->hall_name, 
+                $params->userId, $params->description, $params->clientId, $params->hall_guid
+            ])) {
+                
+                /** Update the hall name for all events that have not commenced it */
+                $this->db->query("
+                    UPDATE 
+                        events_halls_configuration 
+                    SET 
+                        `hall_name` = '{$params->hall_name}' 
+                    WHERE 
+                        hall_guid = '{$params->hall_guid}' AND commenced = '0'
+                ");
+
+                /** Log the user activity */
+                $this->userLogs('halls', $params->hall_guid, 'Updated hall details.');
+                
+                /** Format the response to parse */
+                return [
+                    "state" => 200,
+                    "msg" => "Hall details was successfully updated"
+                ];
+            }
+
+        } catch(PDOException $e) {
+            return $e->getMessage();
+        }
+        
 
     }
 }

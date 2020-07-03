@@ -30,8 +30,8 @@ class Departments extends Booking {
 
             $stmt = $this->db->prepare("
                 SELECT 
-                    a.department_guid, a.color, 
-                    a.department_name, a.description, a.color,
+                    a.department_guid AS guid, a.color, 
+                    a.department_name, a.department_name AS title, a.description, a.color,
                     (
                         SELECT COUNT(*) FROM events b 
                         WHERE b.department_guid = a.department_guid AND b.deleted=? 
@@ -65,11 +65,11 @@ class Departments extends Booking {
                     $action = "";
                     
                     if($accessObject->hasAccess('update', 'departments')) {
-                        $action .= "<a href='{$this->baseUrl}departments-edit/{$result->department_guid}' title='Edit the details of this department' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
+                        $action .= "<a href='{$this->baseUrl}departments-edit/{$result->guid}' title='Edit the details of this department' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
                     }
 
                     if($accessObject->hasAccess('delete', 'departments')) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this department.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this department?\" data-item=\"department\" data-item-id=\"{$result->department_guid}\"><i class='fa fa-trash'></i></a> ";
+                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this department.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this department?\" data-item=\"department\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";
                     }
 
                     $result->action = $action;

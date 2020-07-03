@@ -205,6 +205,10 @@ $accessObject->userId = $userId;
 							Reservation
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
+						<div class="collapse <?= in_array($SITEURL[0], ["reservation"]) ? "show" : null ?>" id="collapseFlows" data-parent="#accordionSidenav">
+							<nav class="sidenav-menu-nested nav"><a class="nav-link" href="<?= $baseUrl ?>reservation">Reserve Seat</a></nav>
+						</div>
+						<?php if($accessObject->hasAccess("list", "departments")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseDepartments" aria-expanded="false" aria-controls="collapseDepartments">
 							<div class="nav-link-icon"><i data-feather="book"></i></div>
 							Departments
@@ -213,12 +217,12 @@ $accessObject->userId = $userId;
 						<div class="collapse <?= in_array($SITEURL[0], ["departments", "departments-add", "departments-edit"]) ? "show" : null ?>" id="collapseDepartments" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>departments">Departments</a>
+								<?php if($accessObject->hasAccess("add", "departments")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>departments-add">Add Department</a>
+								<?php } ?>
 							</nav>
 						</div>
-						<div class="collapse <?= in_array($SITEURL[0], ["reservation"]) ? "show" : null ?>" id="collapseFlows" data-parent="#accordionSidenav">
-							<nav class="sidenav-menu-nested nav"><a class="nav-link" href="<?= $baseUrl ?>reservation">Reserve Seat</a></nav>
-						</div>
+						<?php } ?>
 						<div class="sidenav-menu-heading">Addons</div>
 						<a class="nav-link" href="<?= $baseUrl ?>reports">
 							<div class="nav-link-icon"><i data-feather="bar-chart"></i></div>

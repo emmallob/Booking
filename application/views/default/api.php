@@ -70,7 +70,7 @@ if( !empty($incomingData) ) {
                            
                             // only add to list if the value is not empty
                             if(!empty($hhValue)) {
-                                $params[$key][$nkey][$hhKey] = array_map('xss_clean', $hhValue);
+                                $params[$key][$nkey][$hhKey] = is_array($hhValue) ? array_map('xss_clean', $hhValue) : $hhValue;
                             }
                         }
 
@@ -121,15 +121,16 @@ else if(
                 $params[$key] = is_array($value) ? $value : xss_clean($value);
             }
         }
-        // if the files is not empty
-        if(!empty($_FILES)) {
-            // append files to the parameters
-            foreach($_FILES as $key => $value) {
-                // only parse if the value is not empty
-                if(!empty($value)) {
-                    // append the parameters
-                    $params[$key] = is_array($value) ? $value : xss_clean($value);
-                }
+    }
+    
+    // if the files is not empty
+    if(!empty($_FILES)) {
+        // append files to the parameters
+        foreach($_FILES as $key => $value) {
+            // only parse if the value is not empty
+            if(!empty($value)) {
+                // append the parameters
+                $params[$key] = is_array($value) ? $value : xss_clean($value);
             }
         }
     }
