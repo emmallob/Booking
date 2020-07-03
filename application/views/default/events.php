@@ -25,26 +25,32 @@ require "headtags.php";
                     <div class="col-lg-8 col-md-8">
                         List of Upcoming and Past Events that have ensued
                     </div>
+                    <?php if(!$accessObject->hasAccess("add", "events")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>events-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
                     </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="card-body">
-                <div class="datatable table-responsive">
-                    <table class="table nowrap table-hover" data-toggle="datatable">
-                        <thead>
-                            <th width="6%">&#8470;</th>
-                            <th>Event Title</th>
-                            <th>Event Date</th>
-                            <th>Event Details</th>
-                            <th>&#8470; Booked</th>
-                            <th>Status</th>
-                            <th></th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <?php if(!$accessObject->hasAccess("list", "events")) { ?>
+                    <?= pageNotFound($baseUrl) ?>
+                <?php } else { ?>
+                    <div class="datatable table-responsive">
+                        <table class="table nowrap table-hover" data-toggle="datatable">
+                            <thead>
+                                <th width="6%">&#8470;</th>
+                                <th>Event Title</th>
+                                <th>Event Date</th>
+                                <th>Event Details</th>
+                                <th>&#8470; Booked</th>
+                                <th>Status</th>
+                                <th></th>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                <?php } ?>
             </div>
         </div>
     </div>

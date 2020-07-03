@@ -155,6 +155,7 @@ $accessObject->userId = $userId;
 							Dashboard
 						</a>
 						<div class="sidenav-menu-heading">Interface</div>
+						<?php if($accessObject->hasAccess("list", "halls")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseHalls" aria-expanded="false" aria-controls="collapseHalls">
 							<div class="nav-link-icon"><i data-feather="package"></i></div>
 							Halls
@@ -163,9 +164,13 @@ $accessObject->userId = $userId;
 						<div class="collapse <?= in_array($SITEURL[0], ["halls", "halls-add", "halls-edit", "halls-configuration"]) ? "show" : null ?>" id="collapseHalls" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav accordion" id="accordionSidenavLayout">
 								<a class="nav-link" href="<?= $baseUrl ?>halls">List Halls</a>
+								<?php if($accessObject->hasAccess("list", "halls")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>halls-add">Add Hall</a>
+								<?php } ?>
 							</nav>
 						</div>
+						<?php } ?>
+						<?php if($accessObject->hasAccess("list", "events")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
 							<div class="nav-link-icon"><i data-feather="layout"></i></div>
 							Events
@@ -174,9 +179,13 @@ $accessObject->userId = $userId;
 						<div class="collapse <?= in_array($SITEURL[0], ["events", "events-add", "events-edit"]) ? "show" : null ?>" id="collapseLayouts" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav accordion" id="accordionSidenavLayout">
 								<a class="nav-link" href="<?= $baseUrl ?>events">List Events</a>
+								<?php if($accessObject->hasAccess("add", "events")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>events-add">Add Event</a>
+								<?php } ?>
 							</nav>
-						</div>						
+						</div>
+						<?php } ?>
+						<?php if($accessObject->hasAccess("list", "tickets")) { ?>						
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseUtilities" aria-expanded="false" aria-controls="collapseUtilities">
 							<div class="nav-link-icon"><i data-feather="tool"></i></div>
 							Tickets
@@ -185,9 +194,12 @@ $accessObject->userId = $userId;
 						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>tickets">Tickets</a>
+								<?php if($accessObject->hasAccess("generate", "tickets")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-generate">Generate</a>
+								<?php } ?>
 							</nav>
 						</div>
+						<?php } ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseFlows" aria-expanded="false" aria-controls="collapseFlows">
 							<div class="nav-link-icon"><i data-feather="repeat"></i></div>
 							Reservation

@@ -30,7 +30,9 @@ require "headtags.php";
                 </div>
             </div>
             <div class="card-body">
-
+            <?php if(!$accessObject->hasAccess("add", "events")) { ?>
+                <?= pageNotFound($baseUrl) ?>
+            <?php } else { ?>
                 <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm">
                     <div class="row">
                         <div class="col-lg-8 col-md-8">
@@ -139,7 +141,7 @@ require "headtags.php";
                         </div>
                     </div>
                 </form>
-
+            <?php } ?>
             </div>
         </div>
     </div>

@@ -778,7 +778,7 @@ class Booking {
 			/** remove a department */
 			elseif($params->item == "department") {
 				
-				/** Confirm that user is not already deleted */
+				/** Confirm that department is not already deleted */
 				$userActive = $this->db->prepare("SELECT id FROM departments WHERE department_guid = ? AND `status`=? AND client_guid = ?");
 				$userActive->execute([$params->item_id, 1, $params->clientId]);
 
@@ -787,7 +787,7 @@ class Booking {
 					return "denied";
 				} else {
 					
-					/** Remove the user from the list of users by setting it as been deleted */
+					/** Remove the department from the list of departments by setting it as been deleted */
 					$stmt = $this->db->prepare("UPDATE departments SET `status`=? WHERE department_guid = ? AND client_guid = ?");
 					$stmt->execute([0, $params->item_id, $params->clientId]);
 
@@ -801,6 +801,36 @@ class Booking {
 					return "great";
 				}
 				
+			}
+
+			/** remove ticket  */
+			elseif($params->item == "ticket") {
+
+				/** Confirm that user is not already deleted */
+				$userActive = $this->db->prepare("SELECT id FROM tickets WHERE ticket_guid = ? AND `status`=? AND client_guid = ? AND number_sold = ?");
+				$userActive->execute([$params->item_id, 1, $params->clientId, 0]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					
+					/** Remove the ticket from the list of tickets by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE tickets SET `status`=? WHERE ticket_guid = ? AND client_guid = ?");
+					$stmt->execute([0, $params->item_id, $params->clientId]);
+
+					/** Delete the tickets list as well */
+					$this->db->query("DELETE FROM tickets_listing WHERE ticket_guid = '{$params->item_id}'");
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Deleted a Ticket that was generated.", $params->clientId, $params->userId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
 			}
 
 		} catch(PDOException $e) {

@@ -25,12 +25,18 @@ require "headtags.php";
                     <div class="col-lg-8 col-md-8">
                         List of Departments/Organizations within the institution.
                     </div>
+                    <?php if($accessObject->hasAccess("add", "departments")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>departments-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
                     </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="card-body">
+                <?php if(!$accessObject->hasAccess("list", "departments")) { ?>
+                    <?= pageNotFound($baseUrl) ?>
+                <?php } else { ?>
+                <?= form_loader() ?>
                 <div class="datatable table-responsive">
                     <table class="table table-hover departmentsList" data-toggle="datatable">
                         <thead>
@@ -44,6 +50,7 @@ require "headtags.php";
                         <tbody></tbody>
                     </table>
                 </div>
+                <?php } ?>
             </div>
         </div>
     </div>

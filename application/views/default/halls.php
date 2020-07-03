@@ -26,27 +26,33 @@ require "headtags.php";
                     <div class="col-lg-8 col-md-8">
                         List of Available Halls to host Events
                     </div>
+                    <?php if($accessObject->hasAccess("add", "halls")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>halls-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
                     </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="card-body">
-                <?= form_loader() ?>
-                <div class="datatable table-responsive">
-                    <table class="table table-hover listHalls" data-toggle="datatable">
-                        <thead>
-                            <th width="6%">&#8470;</th>
-                            <th width="25%">Hall Name</th>
-                            <th width="10%">Rows</th>
-                            <th width="10%">Columns</th>
-                            <th width="10%">Seats</th>
-                            <th>Description</th>
-                            <th width="18%"></th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <?php if(!$accessObject->hasAccess("list", "halls")) { ?>
+                    <?= pageNotFound($baseUrl) ?>
+                <?php } else { ?>
+                    <?= form_loader() ?>
+                    <div class="datatable table-responsive">
+                        <table class="table table-hover listHalls" data-toggle="datatable">
+                            <thead>
+                                <th width="6%">&#8470;</th>
+                                <th width="25%">Hall Name</th>
+                                <th width="10%">Rows</th>
+                                <th width="10%">Columns</th>
+                                <th width="10%">Seats</th>
+                                <th>Description</th>
+                                <th width="18%"></th>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                <?php } ?>
             </div>
         </div>
     </div>

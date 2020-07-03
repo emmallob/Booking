@@ -33,7 +33,7 @@ class Tickets extends Booking {
                         AND b.status = 'used'
                     ) AS number_used
                 FROM tickets a
-                WHERE a.client_guid = ? AND a.state = ? {$condition}
+                WHERE a.client_guid = ? AND a.status = ? {$condition}
             ");
             $stmt->execute([$params->clientId, 1]);
 

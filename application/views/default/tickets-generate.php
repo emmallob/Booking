@@ -34,6 +34,9 @@ $hallFound = true;
                 </div>
             </div>
             <div class="card-body">
+            <?php if(!$accessObject->hasAccess("generate", "tickets")) { ?>
+                <?= pageNotFound($baseUrl) ?>
+            <?php } else { ?>
                 <form autocomplete="Off" action="<?= $baseUrl ?>api/tickets/generate" method="POST" class="appForm">
                     <div class="row">
                         <?= form_loader() ?>
@@ -96,7 +99,7 @@ $hallFound = true;
                         </div>
                     </div>
                 </form>
-
+            <?php } ?>
             </div>
         </div>
     </div>

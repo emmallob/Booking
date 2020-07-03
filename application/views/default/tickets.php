@@ -25,12 +25,17 @@ require "headtags.php";
                     <div class="col-lg-8 col-md-8">
                         Tickets that have generated for Events
                     </div>
+                    <?php if($accessObject->hasAccess("generate", "tickets")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>tickets-generate" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Generate</a>
                     </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="card-body">
+            <?php if(!$accessObject->hasAccess("list", "tickets")) { ?>
+                <?= pageNotFound($baseUrl) ?>
+            <?php } else { ?>
                 <?= form_loader() ?>
                 <div class="datatable table-responsive">
                     <table class="table table-hover ticketsList" data-toggle="datatable">
@@ -48,6 +53,7 @@ require "headtags.php";
                         <tbody></tbody>
                     </table>
                 </div>
+            <?php } ?>
             </div>
         </div>
     </div>
