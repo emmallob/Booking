@@ -5,13 +5,13 @@ require "headtags.php";
 
 $itemFound = false;
 
-$departmentId = (confirm_url_id(1)) ? xss_clean($SITEURL[1]) : null;
+$hallId = (confirm_url_id(1)) ? xss_clean($SITEURL[1]) : null;
 
 // if the department was found
-if($departmentId) {
+if($hallId) {
 
     // load the hall data
-    $hallData = $bookingClass->pushQuery("*", "halls", "hall_guid='{$departmentId}' && client_guid='{$session->clientId}'");
+    $hallData = $bookingClass->pushQuery("*", "halls", "hall_guid='{$hallId}' && client_guid='{$session->clientId}' AND deleted='0'");
     
     // confirm that data was found
     if(!empty($hallData)) {
@@ -95,9 +95,10 @@ if($departmentId) {
                                 </div>
                             </div>
                             <div class="col-lg-12"><hr></div>
-                            <div class="col-lg-12 text-right">
+                            <div class="col-lg-12">
                                 <input type="hidden" name="hall_guid" value="<?= $hallData->hall_guid; ?>">
-                                <button class="btn btn-sm btn-outline-success"><i class="fa fa-save"></i>&nbsp; Save Record</button>
+                                <a href="<?= $baseUrl ?>halls-configuration/<?= $hallId ?>" class="btn btn-sm btn-outline-primary"><i class="fa fa-sitemap"></i> &nbsp; Configure Hall Seats</a>
+                                <button class="btn float-right btn-sm btn-outline-success"><i class="fa fa-save"></i>&nbsp; Save Record</button>
                             </div>
                         </div>
                         

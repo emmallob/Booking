@@ -100,12 +100,17 @@ $(`input[name="hall_columns"], input[name="hall_rows"]`).on('input', function() 
     $(`input[id="temp_seats"]`).val(`${total} Seats`);
 });
 
-var hiddenItems = [];
-var blockedItems = [];
-
 $(`div[class~="seats-table"] table tr td div`).on("click", function() {
-    $(this).toggleClass("selected");
-    $(`input[data-label="${$(this).data("label")}"]`).focus();
+    let item = $(this);
+    item.toggleClass("selected");
+    $(`input[data-label="${item.data("label")}"]`).focus();
+
+    if (item.hasClass("blocked")) {
+        item.addClass("blocked-border");
+        curBlockedItems.push(item.data("label"));
+        blockedItems.push(item.data("label"));
+        $(`button[type="unblock"]`).removeClass("hidden");
+    }
 });
 
 function remove(array) {
@@ -149,8 +154,6 @@ $(`div[class~="hall-configuration"] button[type="submit"]`).on('click', function
             type: responseCode(response.code)
         });
         if (response.code == 200) {
-            hiddenItems = [];
-            blockedItems = [];
             $(`button[type="restore"]`).addClass("hidden");
             $(`button[type="unblock"]`).addClass("hidden");
         }
@@ -173,16 +176,17 @@ $(`div[class~="hall-configuration"] button[type="restore"]`).on('click', functio
 
 $(`div[class~="hall-configuration"] button[type="unblock"]`).on('click', function(i, e) {
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
-        if ($.inArray($(this).data("label"), blockedItems) !== -1) {
+        if ($.inArray($(this).data("label"), curBlockedItems) !== -1) {
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] div`)
-                .removeClass('selected hidden blocked')
+                .removeClass('selected hidden blocked blocked-border')
                 .prop({ "title": "" });
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] input[data-label="${$(this).data("label")}"]`)
                 .prop({ "disabled": false });
+            remove(curBlockedItems, $(this).data("label"));
             remove(blockedItems, $(this).data("label"));
         }
     });
-    showButton("unblock");
+    $(`button[type="unblock"]`).addClass("hidden");
 });
 
 function showButton(btnName) {
@@ -192,7 +196,6 @@ function showButton(btnName) {
     } else {
         $(`button[type="${btnName}"]`).addClass("hidden");
     }
-
 }
 
 $(`div[class~="hall-configuration"] button[type="remove"]`).on('click', function(i, e) {
@@ -209,7 +212,7 @@ $(`div[class~="hall-configuration"] button[type="block"]`).on('click', function(
     $.each($(`div[class~="seats-table"] table tr td div`), function(i, e) {
         if ($(this).hasClass("selected")) {
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] div`)
-                .removeClass('selected')
+                .removeClass('selected blocked-border')
                 .addClass(`blocked`)
                 .prop({ "title": "Blocked Seat" });
             $(`div[class~="seats-table"] table tr td[data-label="${$(this).data("label")}"] input[data-label="${$(this).data("label")}"]`)
@@ -217,7 +220,6 @@ $(`div[class~="hall-configuration"] button[type="block"]`).on('click', function(
             blockedItems.push($(this).data("label"));
         }
     });
-    showButton("unblock");
 });
 
 $(`div[id="layoutSidenav_content"]`).on("click", `button[class~="reset-hall"]`, function() {
@@ -512,4 +514,45 @@ async function ticketsList() {
 }
 if ($(`table[class~="ticketsList"], div[id="eventsManager"] select[name="ticket_guid"]`).length) {
     ticketsList();
+}
+
+var populateEventsList = (data) => {
+    if ($(`table[class~="eventsList"]`).length) {
+        $(`table[class~="eventsList"]`).dataTable().fnDestroy();
+        $(`table[class~="eventsList"]`).dataTable({
+            "aaData": data,
+            "iDisplayLength": 10,
+            "columns": [
+                { "data": 'row_id' },
+                { "data": 'event_title' },
+                { "data": 'event_date' },
+                { "data": 'event_details' },
+                { "data": 'booked_count' },
+                { "data": 'seats' },
+                { "data": 'status' },
+                { "data": 'action' }
+            ]
+        });
+        $(`table th:last`).removeClass('sorting');
+        $(`div[class="form-content-loader"]`).css("display", "none");
+        deleteItem();
+        activateItem();
+    }
+
+}
+async function eventsList() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $.ajax({
+        url: `${baseUrl}api/events/list`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            populateEventsList(response.data.result);
+        },
+        error: function() {},
+        complete: function() {}
+    });
+}
+if ($(`table[class~="eventsList"]`).length) {
+    eventsList();
 }

@@ -41,6 +41,11 @@
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
     <script>
         confirmNotice("dashboard");
+        <?php if(confirm_url_id(0, "events-edit") && isset($eventData)) { ?>
+        <?php if(!in_array($eventData->state, ["pending"])) { ?>
+        $(`form[class~="appForm"] *`).prop("disabled", true);
+        <?php } ?>
+        <?php } ?>
     </script>
 </body>
 </html>

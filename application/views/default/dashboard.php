@@ -104,18 +104,18 @@ require "headtags.php";
             <div class="col-lg-12 mb-4">
                 
                 <div class="card">
-                    <div class="card-header">Recent Events</div>
+                    <div class="card-header">Upcoming Events</div>
                     <div class="card-body">
                         <div class="datatable table-responsive">
-                            <table class="table table-hover" data-toggle="datatable">
+                            <table class="table table-hover eventsList" data-toggle="datatable">
                                 <thead>
                                     <th width="6%">&#8470;</th>
                                     <th>Event Title</th>
-                                    <th>Event Date</th>
-                                    <th>Event Details</th>
-                                    <th>&#8470; Booked</th>
-                                    <th>Status</th>
-                                    <th></th>
+                                    <th width="12%">Event Date</th>
+                                    <th>Summary Details</th>
+                                    <th width="12%">&#8470; Booked</th>
+                                    <th width="10%">Status</th>
+                                    <th width="13%"></th>
                                 </thead>
                                 <tbody></tbody>
                             </table>

@@ -289,9 +289,7 @@ class Api {
                             "attachment" => "Attach multiple images or videos to this event.",
                             "description" => "Sample description or information about this event.",
                         ]
-                    ]
-                ],
-                "PUT" => [
+                    ],
                     "update" => [
                         "params" => [
                             "event_title" => "required - The name of the hall",
@@ -884,7 +882,12 @@ class Api {
         elseif( $this->inner_url == "remove" ) {
             
             // confirm that the user has the permission to perform the action
-            if(!$this->accessCheck->hasAccess("delete", "{$params->item}s")) {
+            if(($params->item != "cancel-event") && !$this->accessCheck->hasAccess("delete", "{$params->item}s")) {
+                // permission denied message
+                $result['result'] = self::PERMISSION_DENIED;
+            }
+            // if the events is to canceled
+            elseif(($params->item == "cancel-event") && !$this->accessCheck->hasAccess("delete", "events")) {
                 // permission denied message
                 $result['result'] = self::PERMISSION_DENIED;
             } else {
@@ -897,7 +900,11 @@ class Api {
                     $result['result'] = self::PERMISSION_DENIED;
                 } elseif($request === "great") {
                     $code = 200;
-                    $result['result'] = "The ".ucfirst($params->item)." was successfully deleted";
+                    if($params->item == "cancel-event") {
+                        $result['result'] = "The event was successfully cancelled.";
+                    } else {
+                        $result['result'] = "The ".ucfirst($params->item)." was successfully deleted";
+                    }
                 } else {
                     $result['result'] = "Sorry! Your request could not be processed. Please try again later.";
                 }

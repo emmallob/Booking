@@ -237,7 +237,7 @@ class Booking {
 	/**
 	 * @method dataMonitoring
 	 * @param string $data_type	This is the data that the user is updating (employee, leave)
-	 * @param string $unique_id	This is the unique id that defines a recordset
+	 * @param string $item_guid	This is the unique id that defines a recordset
 	 * @param json $data_set 	This is a json encoded data of the initial record before update
 	 * @return bool
 	 **/
@@ -251,12 +251,11 @@ class Booking {
 				INSERT INTO 
 					users_data_monitoring 
 				SET 
-					data_type = ?, unique_id = ?, data_set = ?, 
+					data_type = ?, item_guid = ?, data_set = ?, 
 					user_guid = ?, user_agent = ?, client_guid = ?
 			");
 			return $stmt->execute([
-				$data_type, $uniqueId, $data_set, 
-				$this->user_guid, $ur_agent, $this->client_guid
+				$data_type, $uniqueId, $data_set, $this->user_guid, $ur_agent, $this->client_guid
 			]);
 
 		} catch(PDOException $e) {
@@ -811,6 +810,62 @@ class Booking {
 
 					/** Log the user activity */
 					$this->userLogs("remove", $params->item_id, "Deleted a department.", $params->clientId, $params->userId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
+			}
+
+			/** remove an event */
+			elseif($params->item == "event") {
+				
+				/** Confirm that events is not already deleted */
+				$userActive = $this->db->prepare("SELECT `id` FROM `events` WHERE `event_guid` = ? AND `deleted`=? AND client_guid = ?");
+				$userActive->execute([$params->item_id, 0, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					
+					/** Remove the item from the list of events by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE `events` SET `deleted`=? WHERE `event_guid` = ? AND client_guid = ?");
+					$stmt->execute([1, $params->item_id, $params->clientId]);
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Deleted an Event from the System.", $params->clientId, $params->userId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
+			}
+
+			/** remove a department */
+			elseif($params->item == "cancel-event") {
+				
+				/** Confirm that events is not already deleted */
+				$userActive = $this->db->prepare("SELECT `id` FROM `events` WHERE `event_guid` = ? AND `deleted`=? AND `state` !='cancelled' AND client_guid = ?");
+				$userActive->execute([$params->item_id, 0, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					
+					/** Remove the item from the list of events by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE `events` SET `state`=? WHERE `event_guid` = ? AND client_guid = ?");
+					$stmt->execute(["cancelled", $params->item_id, $params->clientId]);
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Cancelled an Event that is yet to be held.", $params->clientId, $params->userId);
 
 					/** Commit the transactions */
 					$this->db->commit();

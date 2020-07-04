@@ -23,9 +23,9 @@ require "headtags.php";
             <div class="card-header">
                 <div class="row" style="width:100%">
                     <div class="col-lg-8 col-md-8">
-                        List of Upcoming and Past Events that have ensued
+                        List of all Events
                     </div>
-                    <?php if(!$accessObject->hasAccess("add", "events")) { ?>
+                    <?php if($accessObject->hasAccess("add", "events")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>events-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
                     </div>
@@ -36,16 +36,18 @@ require "headtags.php";
                 <?php if(!$accessObject->hasAccess("list", "events")) { ?>
                     <?= pageNotFound($baseUrl) ?>
                 <?php } else { ?>
+                    <?= form_loader() ?>
                     <div class="datatable table-responsive">
-                        <table class="table nowrap table-hover" data-toggle="datatable">
+                        <table width="100%" class="table eventsList table-hover" data-toggle="datatable">
                             <thead>
                                 <th width="6%">&#8470;</th>
                                 <th>Event Title</th>
-                                <th>Event Date</th>
-                                <th>Event Details</th>
-                                <th>&#8470; Booked</th>
-                                <th>Status</th>
-                                <th></th>
+                                <th width="12%">Event Date</th>
+                                <th>Summary Details</th>
+                                <th width="12%">&#8470; Booked</th>
+                                <th width="12%">&#8470; of Seats</th>
+                                <th width="10%">Status</th>
+                                <th width="15%"></th>
                             </thead>
                             <tbody></tbody>
                         </table>

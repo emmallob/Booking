@@ -96,7 +96,7 @@ if($hallId) {
 
                                             // confirm that it has not been removed
                                             if(!in_array($label, $removedSeats)) {
-                                                print "<div data-label=\"{$label}\" id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border ".(in_array($label, $blockedSeats) ? "blocked" : null)."\">
+                                                print "<div data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "title='This is a Blocked Seat'" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border ".(in_array($label, $blockedSeats) ? "blocked" : null)."\">
                                                     {$counter}
                                                     <input value='".(isset($seatLabels[$label]) ? $seatLabels[$label] : $counter)."' class=\"form-control p-0\" data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "disabled='disabled'" : null).">
                                                 </div>";
@@ -112,7 +112,7 @@ if($hallId) {
                                 </div>
                                 <div class="text-center">
                                     <input type="hidden" name="hall_guid" value="<?= $hallId ?>">
-                                    <div class="row mt-3 p-0 text-center jusstify-content-around">
+                                    <div class="row mt-3 p-0 text-center justify-content-around">
                                         <div class="mt-2">
                                             <button data-toggle="tooltip" type="submit" class="btn btn-outline-success" title="Save the current settings"><i class="fa fa-save"></i> &nbsp; Save</button>
                                             <button data-toggle="tooltip" type="remove" class="btn btn-outline-warning" title="Remove all selected Seats">Remove Seats</button>
@@ -138,4 +138,9 @@ if($hallId) {
     </div>
 
 </main>
+<script>
+    var hiddenItems = [];
+    var curBlockedItems = [];
+    var blockedItems = <?= json_encode($blockedSeats) ?>;
+</script>
 <?php require "foottags.php"; ?>

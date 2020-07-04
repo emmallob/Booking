@@ -20,7 +20,7 @@ class Halls extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) {
+    public function listItems(stdClass $params, $item = false) {
 
         global $accessObject;
 
@@ -84,7 +84,7 @@ class Halls extends Booking {
                 }
             }
 
-            return $data;
+            return ($item) ? $data[0] : $data;
 
         } catch(\Exception $e) {
             return $e->getMessage();
@@ -262,7 +262,7 @@ class Halls extends Booking {
 
         // merge the existing configuration with the new incoming data
         $removedSeats = array_merge($hallConf['removed'], $params->removed_seats);
-        $blockedSeats = array_merge($hallConf['blocked'], $params->blocked_seats);
+        $blockedSeats = $params->blocked_seats;
         
         // remove all the duplicates
         $removedSeats = array_unique($removedSeats);

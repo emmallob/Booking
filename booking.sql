@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 03, 2020 at 02:05 AM
+-- Generation Time: Jul 04, 2020 at 01:05 AM
 -- Server version: 10.4.8-MariaDB
 -- PHP Version: 7.3.18
 
@@ -326,7 +326,8 @@ CREATE TABLE `departments` (
 INSERT INTO `departments` (`id`, `client_guid`, `department_guid`, `department_name`, `description`, `color`, `status`) VALUES
 (1, '244444', 'JGbv0gaiEU1nMmcsfHBhlrtk54RWT9XV', 'This is the first department', 'i am adding a new department into the database. I am confident first test will work out.', '#000000', '1'),
 (2, '244444', 'Ujs3IObGKPlEua59nexZ1LXtmqv2B7dy', 'Methodist Youth Fellowship', 'This is the youth fellowship', '#eecd2b', '1'),
-(3, '244444', 'sX9Yrq8CQ7gnwaKBThEfmRFM4b3AcJLN', 'Tes Delete', 'This is a test delete', '#000000', '0');
+(3, '244444', 'sX9Yrq8CQ7gnwaKBThEfmRFM4b3AcJLN', 'Tes Delete', 'This is a test delete', '#000000', '0'),
+(4, '244444', 'Mez6F1RuHKA32ZvLWnNYPJ4qr7waIcCj', 'New Department Addition - Edited', 'Test new department adding', '#d20f0f', '1');
 
 -- --------------------------------------------------------
 
@@ -352,12 +353,18 @@ CREATE TABLE `events` (
   `attachment` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `ticket_guid` varchar(32) DEFAULT NULL,
-  `activated` enum('0','1') NOT NULL DEFAULT '0',
   `state` enum('pending','in-progress','cancelled','past') DEFAULT 'pending',
   `created_on` datetime NOT NULL DEFAULT current_timestamp(),
   `created_by` varchar(32) DEFAULT NULL,
   `deleted` enum('0','1') NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `events`
+--
+
+INSERT INTO `events` (`id`, `client_guid`, `event_guid`, `event_title`, `halls_guid`, `event_date`, `start_time`, `end_time`, `booking_start_time`, `booking_end_time`, `is_payable`, `department_guid`, `allow_multiple_booking`, `maximum_multiple_booking`, `attachment`, `description`, `ticket_guid`, `state`, `created_on`, `created_by`, `deleted`) VALUES
+(3, '244444', 'SiItVavogkBM9EOAz862YwQL0jZ3pmHF', 'tleajlk fakl djlkafj daf', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X,1OV9ytXor7Qdu4lZc0Cqxhgk5WLTMesB,Nc9P0FguL7fobH2pV16r4ykSQijKlY8M,kZyXxACRUgbdaVu2tH9qro01EfhY6LSm', '2020-07-24', '22:32', '16:34', '2020-07-19 22:33', '2020-07-23 22:30', '1', 'JGbv0gaiEU1nMmcsfHBhlrtk54RWT9XV', '1', 3, NULL, 'lk fajlka flkjalkfjdlka jlkfda jfkak fjdka flkd alkjad afd ad afda af lkajflkljakfjkd ajkfdjk ajkdj akfdkaj kda lfkdaf daf lkaflkjda lkfdlka fda lkfjdakfa lkfakf jafdj afjda fjda fjdajf afida fdlkjafjda fljda jfalkjf alkfd jafd kjafdja fjdaf ljaf lj', '4oWil7hATQP2MzCSv5g3ncpENmf9euka', 'pending', '2020-07-03 22:53:09', 'KidkkL949', '0');
 
 -- --------------------------------------------------------
 
@@ -387,8 +394,20 @@ CREATE TABLE `events_booking` (
 CREATE TABLE `events_halls_configuration` (
   `event_id` int(11) NOT NULL,
   `event_guid` varchar(32) DEFAULT NULL,
-  `configuration` text DEFAULT NULL
+  `hall_guid` varchar(32) DEFAULT NULL,
+  `hall_name` varchar(255) DEFAULT NULL,
+  `configuration` text DEFAULT NULL,
+  `commenced` enum('0','1') NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `events_halls_configuration`
+--
+
+INSERT INTO `events_halls_configuration` (`event_id`, `event_guid`, `hall_guid`, `hall_name`, `configuration`, `commenced`) VALUES
+(2, 'SiItVavogkBM9EOAz862YwQL0jZ3pmHF', '1OV9ytXor7Qdu4lZc0Cqxhgk5WLTMesB', 'Second Hall to Insert', '{\"blocked\":[\"1_1\",\"1_8\",\"4_4\",\"4_5\"],\"removed\":[\"7_4\",\"7_5\",\"1_1\",\"1_8\",\"6_1\",\"6_8\",\"6_3\",\"6_4\",\"6_5\",\"6_6\"],\"labels\":{\"1_2\":\"2\",\"1_3\":\"3\",\"1_4\":\"4\",\"1_5\":\"5\",\"1_6\":\"6\",\"1_7\":\"7\",\"2_1\":\"M9\",\"2_2\":\"10\",\"2_3\":\"11\",\"2_4\":\"12\",\"2_5\":\"13\",\"2_6\":\"M14\",\"2_7\":\"15\",\"2_8\":\"16\",\"3_1\":\"17\",\"3_2\":\"18\",\"3_3\":\"19\",\"3_4\":\"M20\",\"3_5\":\"21\",\"3_6\":\"M22\",\"3_7\":\"23\",\"3_8\":\"24\",\"4_1\":\"25\",\"4_2\":\"M26\",\"4_3\":\"27\",\"4_4\":\"\",\"4_5\":\"\",\"4_6\":\"30\",\"4_7\":\"M31\",\"4_8\":\"32\",\"5_1\":\"33\",\"5_2\":\"34\",\"5_3\":\"M35\",\"5_4\":\"36\",\"5_5\":\"37\",\"5_6\":\"M38\",\"5_7\":\"39\",\"5_8\":\"40\",\"6_2\":\"M42\",\"6_7\":\"47\",\"7_1\":\"49\",\"7_2\":\"50\",\"7_3\":\"51\",\"7_6\":\"54\",\"7_7\":\"55\",\"7_8\":\"56\"}}', '0'),
+(3, 'SiItVavogkBM9EOAz862YwQL0jZ3pmHF', 'Nc9P0FguL7fobH2pV16r4ykSQijKlY8M', 'Final Test No errors', '{\"blocked\":[],\"removed\":[],\"labels\":{\"1_1\":1,\"1_2\":2,\"1_3\":3,\"1_4\":4,\"1_5\":5,\"1_6\":6,\"1_7\":7,\"1_8\":8,\"2_1\":9,\"2_2\":10,\"2_3\":11,\"2_4\":12,\"2_5\":13,\"2_6\":14,\"2_7\":15,\"2_8\":16,\"3_1\":17,\"3_2\":18,\"3_3\":19,\"3_4\":20,\"3_5\":21,\"3_6\":22,\"3_7\":23,\"3_8\":24,\"4_1\":25,\"4_2\":26,\"4_3\":27,\"4_4\":28,\"4_5\":29,\"4_6\":30,\"4_7\":31,\"4_8\":32,\"5_1\":33,\"5_2\":34,\"5_3\":35,\"5_4\":36,\"5_5\":37,\"5_6\":38,\"5_7\":39,\"5_8\":40,\"6_1\":41,\"6_2\":42,\"6_3\":43,\"6_4\":44,\"6_5\":45,\"6_6\":46,\"6_7\":47,\"6_8\":48,\"7_1\":49,\"7_2\":50,\"7_3\":51,\"7_4\":52,\"7_5\":53,\"7_6\":54,\"7_7\":55,\"7_8\":56,\"8_1\":57,\"8_2\":58,\"8_3\":59,\"8_4\":60,\"8_5\":61,\"8_6\":62,\"8_7\":63,\"8_8\":64,\"9_1\":65,\"9_2\":66,\"9_3\":67,\"9_4\":68,\"9_5\":69,\"9_6\":70,\"9_7\":71,\"9_8\":72,\"10_1\":73,\"10_2\":74,\"10_3\":75,\"10_4\":76,\"10_5\":77,\"10_6\":78,\"10_7\":79,\"10_8\":80,\"11_1\":81,\"11_2\":82,\"11_3\":83,\"11_4\":84,\"11_5\":85,\"11_6\":86,\"11_7\":87,\"11_8\":88}}', '0'),
+(4, 'SiItVavogkBM9EOAz862YwQL0jZ3pmHF', 'kZyXxACRUgbdaVu2tH9qro01EfhY6LSm', 'Final Test', '{\"blocked\":[],\"removed\":[\"1_1\",\"1_2\",\"1_3\",\"1_4\",\"1_6\",\"1_7\",\"1_8\",\"1_9\",\"2_1\",\"2_2\",\"2_3\",\"2_7\",\"2_8\",\"2_9\",\"3_1\",\"3_2\",\"3_8\",\"3_9\",\"4_1\",\"4_9\",\"5_2\",\"5_3\",\"5_4\",\"5_5\",\"5_6\",\"5_7\",\"5_8\",\"6_5\",\"7_5\",\"8_5\",\"9_4\",\"9_5\",\"9_6\",\"10_1\",\"10_9\"],\"labels\":{\"1_5\":\"A1\",\"2_4\":\"A2\",\"2_5\":\"A3\",\"2_6\":\"A4\",\"3_3\":\"A5\",\"3_4\":\"A6\",\"3_5\":\"A7\",\"3_6\":\"A8\",\"3_7\":\"A9\",\"4_2\":\"B1\",\"4_3\":\"B2\",\"4_4\":\"B3\",\"4_5\":\"B4\",\"4_6\":\"B5\",\"4_7\":\"B6\",\"4_8\":\"B7\",\"5_1\":\"B8\",\"5_9\":\"B9\",\"6_1\":\"C1\",\"6_2\":\"C2\",\"6_3\":\"C3\",\"6_4\":\"C4\",\"6_6\":\"C5\",\"6_7\":\"C6\",\"6_8\":\"C7\",\"6_9\":\"C8\",\"7_1\":\"D1\",\"7_2\":\"D2\",\"7_3\":\"D3\",\"7_4\":\"D4\",\"7_6\":\"D5\",\"7_7\":\"D6\",\"7_8\":\"D7\",\"7_9\":\"D8\",\"8_1\":\"D9\",\"8_2\":\"D10\",\"8_3\":\"D11\",\"8_4\":\"D12\",\"8_6\":\"D13\",\"8_7\":\"D14\",\"8_8\":\"D15\",\"8_9\":\"D16\",\"9_1\":\"D17\",\"9_2\":\"D18\",\"9_3\":\"D19\",\"9_7\":\"D20\",\"9_8\":\"D21\",\"9_9\":\"D22\",\"10_2\":\"E1\",\"10_3\":\"E2\",\"10_4\":\"E3\",\"10_5\":\"E4\",\"10_6\":\"E5\",\"10_7\":\"E6\",\"10_8\":\"E7\"}}', '0');
 
 -- --------------------------------------------------------
 
@@ -420,9 +439,9 @@ INSERT INTO `halls` (`id`, `client_guid`, `hall_guid`, `rows`, `columns`, `seats
 (1, '244444', 'kZyXxACRUgbdaVu2tH9qro01EfhY6LSm', '10', '9', 55, 'that is the test hall', '11111', '{\"blocked\":[],\"removed\":[\"1_1\",\"1_2\",\"1_3\",\"1_4\",\"1_6\",\"1_7\",\"1_8\",\"1_9\",\"2_1\",\"2_2\",\"2_3\",\"2_7\",\"2_8\",\"2_9\",\"3_1\",\"3_2\",\"3_8\",\"3_9\",\"4_1\",\"4_9\",\"5_2\",\"5_3\",\"5_4\",\"5_5\",\"5_6\",\"5_7\",\"5_8\",\"6_5\",\"7_5\",\"8_5\",\"9_4\",\"9_5\",\"9_6\",\"10_1\",\"10_9\"],\"labels\":{\"1_5\":\"A1\",\"2_4\":\"A2\",\"2_5\":\"A3\",\"2_6\":\"A4\",\"3_3\":\"A5\",\"3_4\":\"A6\",\"3_5\":\"A7\",\"3_6\":\"A8\",\"3_7\":\"A9\",\"4_2\":\"B1\",\"4_3\":\"B2\",\"4_4\":\"B3\",\"4_5\":\"B4\",\"4_6\":\"B5\",\"4_7\":\"B6\",\"4_8\":\"B7\",\"5_1\":\"B8\",\"5_9\":\"B9\",\"6_1\":\"C1\",\"6_2\":\"C2\",\"6_3\":\"C3\",\"6_4\":\"C4\",\"6_6\":\"C5\",\"6_7\":\"C6\",\"6_8\":\"C7\",\"6_9\":\"C8\",\"7_1\":\"D1\",\"7_2\":\"D2\",\"7_3\":\"D3\",\"7_4\":\"D4\",\"7_6\":\"D5\",\"7_7\":\"D6\",\"7_8\":\"D7\",\"7_9\":\"D8\",\"8_1\":\"D9\",\"8_2\":\"D10\",\"8_3\":\"D11\",\"8_4\":\"D12\",\"8_6\":\"D13\",\"8_7\":\"D14\",\"8_8\":\"D15\",\"8_9\":\"D16\",\"9_1\":\"D17\",\"9_2\":\"D18\",\"9_3\":\"D19\",\"9_7\":\"D20\",\"9_8\":\"D21\",\"9_9\":\"D22\",\"10_2\":\"E1\",\"10_3\":\"E2\",\"10_4\":\"E3\",\"10_5\":\"E4\",\"10_6\":\"E5\",\"10_7\":\"E6\",\"10_8\":\"E7\"}}', 'This hall has a lot of facilities that we are very much interest in. I am hoping that it will be a great service to all of us', '2020-07-01 21:41:07', '1', '0'),
 (2, '244444', 'Nc9P0FguL7fobH2pV16r4ykSQijKlY8M', '11', '8', 78, 'Second Hall to Insert', '11111', '{\"blocked\":[],\"removed\":[],\"labels\":{\"1_1\":1,\"1_2\":2,\"1_3\":3,\"1_4\":4,\"1_5\":5,\"1_6\":6,\"1_7\":7,\"1_8\":8,\"2_1\":9,\"2_2\":10,\"2_3\":11,\"2_4\":12,\"2_5\":13,\"2_6\":14,\"2_7\":15,\"2_8\":16,\"3_1\":17,\"3_2\":18,\"3_3\":19,\"3_4\":20,\"3_5\":21,\"3_6\":22,\"3_7\":23,\"3_8\":24,\"4_1\":25,\"4_2\":26,\"4_3\":27,\"4_4\":28,\"4_5\":29,\"4_6\":30,\"4_7\":31,\"4_8\":32,\"5_1\":33,\"5_2\":34,\"5_3\":35,\"5_4\":36,\"5_5\":37,\"5_6\":38,\"5_7\":39,\"5_8\":40,\"6_1\":41,\"6_2\":42,\"6_3\":43,\"6_4\":44,\"6_5\":45,\"6_6\":46,\"6_7\":47,\"6_8\":48,\"7_1\":49,\"7_2\":50,\"7_3\":51,\"7_4\":52,\"7_5\":53,\"7_6\":54,\"7_7\":55,\"7_8\":56,\"8_1\":57,\"8_2\":58,\"8_3\":59,\"8_4\":60,\"8_5\":61,\"8_6\":62,\"8_7\":63,\"8_8\":64,\"9_1\":65,\"9_2\":66,\"9_3\":67,\"9_4\":68,\"9_5\":69,\"9_6\":70,\"9_7\":71,\"9_8\":72,\"10_1\":73,\"10_2\":74,\"10_3\":75,\"10_4\":76,\"10_5\":77,\"10_6\":78,\"10_7\":79,\"10_8\":80,\"11_1\":81,\"11_2\":82,\"11_3\":83,\"11_4\":84,\"11_5\":85,\"11_6\":86,\"11_7\":87,\"11_8\":88}}', '', '2020-07-01 21:44:12', '1', '0'),
 (3, '244444', '1OV9ytXor7Qdu4lZc0Cqxhgk5WLTMesB', '7', '8', 46, 'Final Test No errors', '11111', '{\"blocked\":[\"1_1\",\"1_8\",\"4_4\",\"4_5\"],\"removed\":[\"7_4\",\"7_5\",\"1_1\",\"1_8\",\"6_1\",\"6_8\",\"6_3\",\"6_4\",\"6_5\",\"6_6\"],\"labels\":{\"1_2\":\"2\",\"1_3\":\"3\",\"1_4\":\"4\",\"1_5\":\"5\",\"1_6\":\"6\",\"1_7\":\"7\",\"2_1\":\"M9\",\"2_2\":\"10\",\"2_3\":\"11\",\"2_4\":\"12\",\"2_5\":\"13\",\"2_6\":\"M14\",\"2_7\":\"15\",\"2_8\":\"16\",\"3_1\":\"17\",\"3_2\":\"18\",\"3_3\":\"19\",\"3_4\":\"M20\",\"3_5\":\"21\",\"3_6\":\"M22\",\"3_7\":\"23\",\"3_8\":\"24\",\"4_1\":\"25\",\"4_2\":\"M26\",\"4_3\":\"27\",\"4_4\":\"\",\"4_5\":\"\",\"4_6\":\"30\",\"4_7\":\"M31\",\"4_8\":\"32\",\"5_1\":\"33\",\"5_2\":\"34\",\"5_3\":\"M35\",\"5_4\":\"36\",\"5_5\":\"37\",\"5_6\":\"M38\",\"5_7\":\"39\",\"5_8\":\"40\",\"6_2\":\"M42\",\"6_7\":\"47\",\"7_1\":\"49\",\"7_2\":\"50\",\"7_3\":\"51\",\"7_6\":\"54\",\"7_7\":\"55\",\"7_8\":\"56\"}}', 'This is the final test', '2020-07-01 21:45:18', '1', '0'),
-(4, '244444', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '3', '4', 12, 'Final Test', '11111', '{\"blocked\":[],\"removed\":[],\"labels\":{\"1_1\":1,\"1_2\":2,\"1_3\":3,\"1_4\":4,\"2_1\":5,\"2_2\":6,\"2_3\":7,\"2_4\":8,\"3_1\":9,\"3_2\":10,\"3_3\":11,\"3_4\":12}}', 'This is a final test for my halls', '2020-07-02 00:51:08', '1', '0'),
-(5, '244444', 'CENwouk4yhHGXDfdixsgLrTlFtIp9jOq', '12', '12', 110, 'pre test', 'KidkkL949', '{\"blocked\":[],\"removed\":[\"1_1\",\"1_2\",\"1_11\",\"1_12\",\"2_4\",\"2_5\",\"2_6\",\"2_7\",\"2_8\",\"2_9\",\"4_6\",\"4_7\",\"6_3\",\"6_6\",\"6_7\",\"6_10\",\"7_6\",\"7_7\",\"8_6\",\"8_7\",\"9_1\",\"9_12\",\"10_1\",\"10_12\",\"11_1\",\"11_2\",\"11_11\",\"11_12\",\"12_1\",\"12_2\",\"12_3\",\"12_10\",\"12_11\",\"12_12\"],\"labels\":{\"1_3\":\"3\",\"1_4\":\"4\",\"1_5\":\"5\",\"1_6\":\"6\",\"1_7\":\"7\",\"1_8\":\"8\",\"1_9\":\"9\",\"1_10\":\"10\",\"2_1\":\"13\",\"2_2\":\"14\",\"2_3\":\"15\",\"2_10\":\"22\",\"2_11\":\"23\",\"2_12\":\"24\",\"3_1\":\"25\",\"3_2\":\"26\",\"3_3\":\"27\",\"3_4\":\"28\",\"3_5\":\"29\",\"3_6\":\"30\",\"3_7\":\"31\",\"3_8\":\"32\",\"3_9\":\"33\",\"3_10\":\"34\",\"3_11\":\"35\",\"3_12\":\"36\",\"4_1\":\"37\",\"4_2\":\"38\",\"4_3\":\"39\",\"4_4\":\"40\",\"4_5\":\"41\",\"4_8\":\"44\",\"4_9\":\"45\",\"4_10\":\"46\",\"4_11\":\"47\",\"4_12\":\"48\",\"5_1\":\"49\",\"5_2\":\"50\",\"5_3\":\"51\",\"5_4\":\"52\",\"5_5\":\"53\",\"5_6\":\"54\",\"5_7\":\"55\",\"5_8\":\"56\",\"5_9\":\"57\",\"5_10\":\"58\",\"5_11\":\"59\",\"5_12\":\"60\",\"6_1\":\"61\",\"6_2\":\"62\",\"6_4\":\"64\",\"6_5\":\"65\",\"6_8\":\"68\",\"6_9\":\"69\",\"6_11\":\"71\",\"6_12\":\"72\",\"7_1\":\"73\",\"7_2\":\"74\",\"7_3\":\"75\",\"7_4\":\"76\",\"7_5\":\"77\",\"7_8\":\"80\",\"7_9\":\"81\",\"7_10\":\"82\",\"7_11\":\"83\",\"7_12\":\"84\",\"8_1\":\"85\",\"8_2\":\"86\",\"8_3\":\"87\",\"8_4\":\"88\",\"8_5\":\"89\",\"8_8\":\"92\",\"8_9\":\"93\",\"8_10\":\"94\",\"8_11\":\"95\",\"8_12\":\"96\",\"9_2\":\"98\",\"9_3\":\"99\",\"9_4\":\"100\",\"9_5\":\"101\",\"9_6\":\"102\",\"9_7\":\"103\",\"9_8\":\"104\",\"9_9\":\"105\",\"9_10\":\"106\",\"9_11\":\"107\",\"10_2\":\"110\",\"10_3\":\"111\",\"10_4\":\"112\",\"10_5\":\"113\",\"10_6\":\"114\",\"10_7\":\"115\",\"10_8\":\"116\",\"10_9\":\"117\",\"10_10\":\"118\",\"10_11\":\"119\",\"11_3\":\"123\",\"11_4\":\"124\",\"11_5\":\"125\",\"11_6\":\"126\",\"11_7\":\"127\",\"11_8\":\"128\",\"11_9\":\"129\",\"11_10\":\"130\",\"12_4\":\"136\",\"12_5\":\"137\",\"12_6\":\"138\",\"12_7\":\"139\",\"12_8\":\"140\",\"12_9\":\"141\"}}', '', '2020-07-02 08:18:32', '0', '1'),
-(6, '244444', 'pQSP594rEGjlzyVOtae6YiTqfuhxvg8I', '2', '3', 6, 'jhgjhgj', 'KidkkL949', '{\"blocked\":[],\"removed\":[],\"labels\":{\"1_1\":1,\"1_2\":2,\"1_3\":3,\"2_1\":4,\"2_2\":5,\"2_3\":6}}', '', '2020-07-02 09:07:00', '0', '1');
+(5, '244444', 'CENwouk4yhHGXDfdixsgLrTlFtIp9jOq', '12', '12', 110, 'Craziest Hall With Perfect Seat', 'KidkkL949', '{\"blocked\":[],\"removed\":[\"1_1\",\"1_2\",\"1_11\",\"1_12\",\"2_4\",\"2_5\",\"2_6\",\"2_7\",\"2_8\",\"2_9\",\"4_6\",\"4_7\",\"6_3\",\"6_6\",\"6_7\",\"6_10\",\"7_6\",\"7_7\",\"8_6\",\"8_7\",\"9_1\",\"9_12\",\"10_1\",\"10_12\",\"11_1\",\"11_2\",\"11_11\",\"11_12\",\"12_1\",\"12_2\",\"12_3\",\"12_10\",\"12_11\",\"12_12\"],\"labels\":{\"1_3\":\"3\",\"1_4\":\"4\",\"1_5\":\"5\",\"1_6\":\"6\",\"1_7\":\"7\",\"1_8\":\"8\",\"1_9\":\"9\",\"1_10\":\"10\",\"2_1\":\"13\",\"2_2\":\"14\",\"2_3\":\"15\",\"2_10\":\"22\",\"2_11\":\"23\",\"2_12\":\"24\",\"3_1\":\"25\",\"3_2\":\"26\",\"3_3\":\"27\",\"3_4\":\"28\",\"3_5\":\"29\",\"3_6\":\"30\",\"3_7\":\"31\",\"3_8\":\"32\",\"3_9\":\"33\",\"3_10\":\"34\",\"3_11\":\"35\",\"3_12\":\"36\",\"4_1\":\"37\",\"4_2\":\"38\",\"4_3\":\"39\",\"4_4\":\"40\",\"4_5\":\"41\",\"4_8\":\"44\",\"4_9\":\"45\",\"4_10\":\"46\",\"4_11\":\"47\",\"4_12\":\"48\",\"5_1\":\"49\",\"5_2\":\"50\",\"5_3\":\"51\",\"5_4\":\"52\",\"5_5\":\"53\",\"5_6\":\"54\",\"5_7\":\"55\",\"5_8\":\"56\",\"5_9\":\"57\",\"5_10\":\"58\",\"5_11\":\"59\",\"5_12\":\"60\",\"6_1\":\"61\",\"6_2\":\"62\",\"6_4\":\"64\",\"6_5\":\"65\",\"6_8\":\"68\",\"6_9\":\"69\",\"6_11\":\"71\",\"6_12\":\"72\",\"7_1\":\"73\",\"7_2\":\"74\",\"7_3\":\"75\",\"7_4\":\"76\",\"7_5\":\"77\",\"7_8\":\"80\",\"7_9\":\"81\",\"7_10\":\"82\",\"7_11\":\"83\",\"7_12\":\"84\",\"8_1\":\"85\",\"8_2\":\"86\",\"8_3\":\"87\",\"8_4\":\"88\",\"8_5\":\"89\",\"8_8\":\"92\",\"8_9\":\"93\",\"8_10\":\"94\",\"8_11\":\"95\",\"8_12\":\"96\",\"9_2\":\"98\",\"9_3\":\"99\",\"9_4\":\"100\",\"9_5\":\"101\",\"9_6\":\"102\",\"9_7\":\"103\",\"9_8\":\"104\",\"9_9\":\"105\",\"9_10\":\"106\",\"9_11\":\"107\",\"10_2\":\"110\",\"10_3\":\"111\",\"10_4\":\"112\",\"10_5\":\"113\",\"10_6\":\"114\",\"10_7\":\"115\",\"10_8\":\"116\",\"10_9\":\"117\",\"10_10\":\"118\",\"10_11\":\"119\",\"11_3\":\"123\",\"11_4\":\"124\",\"11_5\":\"125\",\"11_6\":\"126\",\"11_7\":\"127\",\"11_8\":\"128\",\"11_9\":\"129\",\"11_10\":\"130\",\"12_4\":\"136\",\"12_5\":\"137\",\"12_6\":\"138\",\"12_7\":\"139\",\"12_8\":\"140\",\"12_9\":\"141\"}}', '', '2020-07-02 08:18:32', '1', '0'),
+(6, '244444', 'pQSP594rEGjlzyVOtae6YiTqfuhxvg8I', '2', '3', 6, 'jhgjhgj', 'KidkkL949', '{\"blocked\":[],\"removed\":[],\"labels\":{\"1_1\":1,\"1_2\":2,\"1_3\":3,\"2_1\":4,\"2_2\":5,\"2_3\":6}}', '', '2020-07-02 09:07:00', '0', '1'),
+(7, '244444', 'jsN64gp3daOnXiLSyzAEK0VuQ1qDbI5x', '3', '5', 9, 'test add', 'KidkkL949', '{\"blocked\":[],\"removed\":[\"1_2\",\"1_3\",\"1_4\",\"2_3\",\"3_2\",\"3_4\"],\"labels\":{\"1_1\":\"1\",\"1_5\":\"5\",\"2_1\":\"6\",\"2_2\":\"7\",\"2_4\":\"9\",\"2_5\":\"10\",\"3_1\":\"11\",\"3_3\":\"13\",\"3_5\":\"15\"}}', 'test hall insert', '2020-07-04 00:00:13', '1', '0');
 
 -- --------------------------------------------------------
 
@@ -444,14 +463,14 @@ CREATE TABLE `tickets` (
   `created_by` varchar(32) DEFAULT NULL,
   `generated` enum('yes','waiting') NOT NULL DEFAULT 'waiting',
   `activated` enum('0','1') NOT NULL DEFAULT '0',
-  `state` enum('0','1') NOT NULL DEFAULT '1'
+  `status` enum('0','1') NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `client_guid`, `ticket_guid`, `ticket_title`, `number_generated`, `number_sold`, `number_left`, `is_payable`, `ticket_amount`, `created_on`, `created_by`, `generated`, `activated`, `state`) VALUES
+INSERT INTO `tickets` (`id`, `client_guid`, `ticket_guid`, `ticket_title`, `number_generated`, `number_sold`, `number_left`, `is_payable`, `ticket_amount`, `created_on`, `created_by`, `generated`, `activated`, `status`) VALUES
 (1, '244444', 'lFUASkPm1ZhcnXJ0N8IWVY5uLyOdb97s', 'Dinner for the Event', 130, 0, 0, '0', 0.00, '2020-07-03 00:11:34', 'KidkkL949', 'yes', '1', '1'),
 (2, '244444', '4qMcpyKvEuJh35OjzP8aNDdxIRW6kmSi', 'This is the test ticket', 10, 0, 0, '1', 0.00, '2020-07-03 00:27:32', 'KidkkL949', 'yes', '1', '1'),
 (3, '244444', 'JjSLgXe3cBo0R7YxPHus5p2rk8d6ZFOV', 'test generated ticket', 1000, 0, 0, '1', 240.00, '2020-07-03 00:33:54', 'KidkkL949', 'yes', '1', '1'),
@@ -509,7 +528,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `client_guid`, `user_guid`, `name`, `gender`, `email`, `username`, `password`, `access_level`, `theme`, `status`, `deleted`, `verify_token`, `last_login`, `last_login_attempts_time`, `contact`, `created_on`, `created_by`, `image`) VALUES
-(1, '244444', 'KidkkL949', 'Emmanuel Obeng', NULL, 'admin@mail.com', 'emmanuel', '$2y$10$9cJ2TrRa9djMO9dbMWKFiutl6jaR6z4xPfUoZFjb2ibWdEfU7IcPK', 1, '2', '1', '0', 'thaisakjfkalfd', '2020-07-02 22:20:01', '2020-07-01 07:02:30', '0438388388', '2020-07-01 07:02:30', NULL, 'assets/img/profiles/avatar.jpg');
+(1, '244444', 'KidkkL949', 'Emmanuel Obeng', NULL, 'admin@mail.com', 'emmanuel', '$2y$10$9cJ2TrRa9djMO9dbMWKFiutl6jaR6z4xPfUoZFjb2ibWdEfU7IcPK', 1, '2', '1', '0', 'thaisakjfkalfd', '2020-07-03 20:44:32', '2020-07-01 07:02:30', '0438388388', '2020-07-01 07:02:30', NULL, 'assets/img/profiles/avatar.jpg');
 
 -- --------------------------------------------------------
 
@@ -549,7 +568,7 @@ CREATE TABLE `users_accounts` (
 --
 
 INSERT INTO `users_accounts` (`id`, `client_guid`, `client_key`, `name`, `email`, `phone`, `address`, `logo`, `date_created`, `activated`, `subscription`) VALUES
-(1, '244444', NULL, 'Test Company', 'testmail@mail.com', '3939393993', 'test address', NULL, '2020-07-01 21:18:18', '0', '{\"halls_created\":4,\"halls\":10,\"users\":12,\"users_created\":1}');
+(1, '244444', NULL, 'Test Company', 'testmail@mail.com', '3939393993', 'test address', NULL, '2020-07-01 21:18:18', '0', '{\"halls_created\":3,\"halls\":10,\"users\":12,\"users_created\":1}');
 
 -- --------------------------------------------------------
 
@@ -620,7 +639,27 @@ INSERT INTO `users_activity_logs` (`id`, `client_guid`, `user_guid`, `page`, `it
 (45, NULL, NULL, 'tickets', 'lFUASkPm1ZhcnXJ0N8IWVY5uLyOdb97s', '2020-07-03 00:11:34', 'Windows 10 | Chrome | ::1', 'Generated 130 tickets for an Event.'),
 (46, NULL, NULL, 'tickets', '4qMcpyKvEuJh35OjzP8aNDdxIRW6kmSi', '2020-07-03 00:27:32', 'Windows 10 | Chrome | ::1', 'Generated 10 tickets for an Event.'),
 (47, NULL, NULL, 'tickets', 'JjSLgXe3cBo0R7YxPHus5p2rk8d6ZFOV', '2020-07-03 00:33:54', 'Windows 10 | Chrome | ::1', 'Generated 1000 tickets for an Event.'),
-(48, NULL, NULL, 'tickets', '4oWil7hATQP2MzCSv5g3ncpENmf9euka', '2020-07-03 00:38:29', 'Windows 10 | Chrome | ::1', 'Generated 5000 tickets for an Event.');
+(48, NULL, NULL, 'tickets', '4oWil7hATQP2MzCSv5g3ncpENmf9euka', '2020-07-03 00:38:29', 'Windows 10 | Chrome | ::1', 'Generated 5000 tickets for an Event.'),
+(49, NULL, NULL, 'events', 'kojxfBZOSsQ1HKpyA5480Rh7lLVEnizX', '2020-07-03 22:00:37', 'Windows 10 | Chrome | ::1', 'Created a new Event.'),
+(50, NULL, NULL, 'events', 'SiItVavogkBM9EOAz862YwQL0jZ3pmHF', '2020-07-03 22:53:09', 'Windows 10 | Chrome | ::1', 'Created a new Event.'),
+(51, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:07:20', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(52, NULL, NULL, 'halls', NULL, '2020-07-03 23:35:01', 'Windows 10 | Chrome | ::1', 'Updated hall details.'),
+(53, NULL, NULL, 'halls', NULL, '2020-07-03 23:38:18', 'Windows 10 | Chrome | ::1', 'Updated hall details.'),
+(54, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:38:33', 'Windows 10 | Chrome | ::1', 'Updated hall details.'),
+(55, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:40:31', 'Windows 10 | Chrome | ::1', 'Updated hall details.'),
+(56, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:41:20', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(57, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:41:36', 'Windows 10 | Chrome | ::1', 'Updated hall details.'),
+(58, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:42:45', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(59, NULL, NULL, 'halls', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:43:16', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(60, 'KidkkL949', '244444', 'remove', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:56:22', 'Windows 10 | Chrome | ::1', 'Deleted a hall.'),
+(61, 'KidkkL949', '244444', 'remove', '0iHFD5QuyvdaeMsnWZSUYoNTqPCxGw1X', '2020-07-03 23:57:17', 'Windows 10 | Chrome | ::1', 'Deleted a hall.'),
+(62, NULL, NULL, 'halls', 'CENwouk4yhHGXDfdixsgLrTlFtIp9jOq', '2020-07-03 23:59:23', 'Windows 10 | Chrome | ::1', 'Updated hall details.'),
+(63, NULL, NULL, 'halls', 'CENwouk4yhHGXDfdixsgLrTlFtIp9jOq', '2020-07-03 23:59:36', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(64, NULL, NULL, 'halls', 'jsN64gp3daOnXiLSyzAEK0VuQ1qDbI5x', '2020-07-04 00:00:13', 'Windows 10 | Chrome | ::1', 'Created a new hall.'),
+(65, NULL, NULL, 'halls', 'jsN64gp3daOnXiLSyzAEK0VuQ1qDbI5x', '2020-07-04 00:00:25', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(66, NULL, NULL, 'halls', 'jsN64gp3daOnXiLSyzAEK0VuQ1qDbI5x', '2020-07-04 00:00:29', 'Windows 10 | Chrome | ::1', 'Updated the hall configuration data.'),
+(67, NULL, NULL, 'departments', 'Mez6F1RuHKA32ZvLWnNYPJ4qr7waIcCj', '2020-07-04 00:01:40', 'Windows 10 | Chrome | ::1', 'Created a new Department.'),
+(68, NULL, NULL, 'departments', 'Mez6F1RuHKA32ZvLWnNYPJ4qr7waIcCj', '2020-07-04 00:01:51', 'Windows 10 | Chrome | ::1', 'Updated the details of the department.');
 
 -- --------------------------------------------------------
 
@@ -679,7 +718,10 @@ INSERT INTO `users_login_history` (`id`, `client_guid`, `user_guid`, `username`,
 (5, '244444', '', 'admin@mail.com', '2020-07-02 08:16:27', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11'),
 (6, '244444', '', 'admin@mail.com', '2020-07-02 08:16:37', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11'),
 (7, '244444', '', 'admin@mail.com', '2020-07-02 08:44:09', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11'),
-(8, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-02 22:20:01', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11');
+(8, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-02 22:20:01', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11'),
+(9, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-03 09:49:00', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11'),
+(10, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-03 20:44:31', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11'),
+(11, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-03 20:44:32', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.11');
 
 -- --------------------------------------------------------
 
@@ -726,7 +768,7 @@ CREATE TABLE `users_roles` (
 --
 
 INSERT INTO `users_roles` (`id`, `client_guid`, `user_guid`, `permissions`, `date_logged`, `last_updated`) VALUES
-(1, '244444', 'KidkkL949', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1}}}', '2020-07-02 09:03:11', NULL);
+(1, '244444', 'KidkkL949', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1}}}', '2020-07-02 09:03:11', NULL);
 
 --
 -- Indexes for dumped tables
@@ -854,13 +896,13 @@ ALTER TABLE `country`
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `events_booking`
@@ -872,13 +914,13 @@ ALTER TABLE `events_booking`
 -- AUTO_INCREMENT for table `events_halls_configuration`
 --
 ALTER TABLE `events_halls_configuration`
-  MODIFY `event_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `event_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `halls`
 --
 ALTER TABLE `halls`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `tickets`
@@ -914,7 +956,7 @@ ALTER TABLE `users_accounts`
 -- AUTO_INCREMENT for table `users_activity_logs`
 --
 ALTER TABLE `users_activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `users_email_list`
@@ -926,7 +968,7 @@ ALTER TABLE `users_email_list`
 -- AUTO_INCREMENT for table `users_login_history`
 --
 ALTER TABLE `users_login_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `users_reset_request`

@@ -73,6 +73,10 @@
     color: white;
 }
 
+.seats-table .blocked-border {
+    border: solid 2px #4cac50!important;
+}
+
 .slim-scroll {
     background: #fff;
 }
