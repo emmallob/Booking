@@ -184,7 +184,7 @@ class Events extends Booking {
         }
 
         // tickets checker
-        if(!empty($params->ticket_guid) && empty($this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
+        if(!empty($params->ticket_guid) && ($params->ticket_guid != "null") && empty($this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
             return "Sorry! An invalid tickets guid was submitted.";
         }
 
@@ -289,13 +289,14 @@ class Events extends Booking {
                 ".(isset($attachment) ? "attachment='{$attachment}'," : null)."
                 ".(!empty($params->description) ? "description='{$params->description}'," : null)."
                 ".(!empty($params->ticket_guid) ? "ticket_guid='{$params->ticket_guid}'," : null)."
-                created_by = ?
+                created_by = ?, event_slug = ?
             ");
             
             /** Execute */
             if($stmt->execute([
                 $params->clientId, $guid, $params->event_title, $params->event_date, 
-                $params->start_time, $params->end_time, $book_start, $book_end, $params->userId
+                $params->start_time, $params->end_time, $book_start, $book_end, 
+                $params->userId, create_slug($params->event_title)
             ])) {
                 
                 /** Insert the halls list */
@@ -371,7 +372,7 @@ class Events extends Booking {
         }
 
         // tickets checker
-        if(!empty($params->ticket_guid) && empty($this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
+        if(!empty($params->ticket_guid) && ($params->ticket_guid != "null") && empty($this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
             return "Sorry! An invalid tickets guid was submitted.";
         }
 
@@ -464,9 +465,9 @@ class Events extends Booking {
             /** Execute the statement */
             $stmt = $this->db->prepare("
                 UPDATE events 
-                SET event_title = ?, 
-                ".(isset($halls_guid) ? "halls_guid='".implode(",", $halls_guid)."'," : null)."
-                event_date = ?, start_time = ?, end_time = ?, booking_start_time = ?, booking_end_time = ?
+                SET event_title = ?, event_slug = ?
+                ".(isset($halls_guid) ? ", halls_guid='".implode(",", $halls_guid)."'" : null)."
+                ,event_date = ?, start_time = ?, end_time = ?, booking_start_time = ?, booking_end_time = ?
                 ".(!empty($params->event_is_payable) ? ",is_payable='{$params->event_is_payable}'" : null)."
                 ".(!empty($params->department_guid) ? ",department_guid='{$params->department_guid}'" : null)."
                 ".(!empty($params->multiple_booking) ? ",allow_multiple_booking='{$params->multiple_booking}'" : null)."
@@ -479,8 +480,9 @@ class Events extends Booking {
             
             /** Execute */
             if($stmt->execute([
-                $params->event_title, $params->event_date, $params->start_time, $params->end_time, 
-                $book_start, $book_end, $params->clientId, $params->event_guid
+                $params->event_title, create_slug($params->event_title), $params->event_date, 
+                $params->start_time, $params->end_time, $book_start, $book_end, 
+                $params->clientId, $params->event_guid
             ])) {
                 
                 /** Insert the halls list */

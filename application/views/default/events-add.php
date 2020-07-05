@@ -35,6 +35,7 @@ require "headtags.php";
             <?php } else { ?>
                 <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm" enctype="multipart/form-data">
                     <div class="row">
+                        <?= form_loader() ?>
                         <div class="col-lg-8 col-md-8">
                             <div class="form-group">
                                 <label for="event_title">Event Title <span class="required">*</span></label>

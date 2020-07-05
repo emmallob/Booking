@@ -1,0 +1,41 @@
+.booking-main {
+    background-color: #fff;
+    box-shadow: 0px 1px 2px #ccc;
+}
+
+table td.logo-td {
+    width: 95px;
+}
+
+img.header-logo {
+    position: absolute;
+    width: 85px;
+    border-radius: 50%;
+    left: 10px;
+    top: 0;
+}
+
+@media (max-width: 425px) {
+    table td.logo-td {
+        width: 80px;
+    }
+    table td.user-account {
+        display: none;
+    }
+    img.header-logo {
+        width: 70px;
+    }
+    .booking-main h1 {
+        font-size: 17px;
+    }
+}
+
+.cursor {
+    cursor: pointer;
+}
+
+span.booked {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}

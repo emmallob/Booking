@@ -96,7 +96,7 @@ if($hallId) {
 
                                             // confirm that it has not been removed
                                             if(!in_array($label, $removedSeats)) {
-                                                print "<div data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "title='This is a Blocked Seat'" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border ".(in_array($label, $blockedSeats) ? "blocked" : null)."\">
+                                                print "<div data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item border ".(in_array($label, $blockedSeats) ? "blocked" : null)."\">
                                                     {$counter}
                                                     <input value='".(isset($seatLabels[$label]) ? $seatLabels[$label] : $counter)."' class=\"form-control p-0\" data-label=\"{$label}\" ".(in_array($label, $blockedSeats) ? "disabled='disabled'" : null).">
                                                 </div>";

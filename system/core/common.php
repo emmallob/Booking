@@ -904,7 +904,7 @@ function pageNotFound($baseUrl) {
 				<div class="text-center mt-4">
 					<img class="mb-4 img-error" src="'.$baseUrl.'assets/img/drawkit/color/drawkit-error-404.svg" />
 					<p class="lead">This requested URL was not found on this server.</p>
-					<a class="text-arrow-icon" href="'.$baseUrl.'dashboard"><i class="ml-0 mr-1" data-feather="arrow-left"></i>Return to Dashboard</a>
+					<a class="text-arrow-icon" href="'.$baseUrl.'"><i class="ml-0 mr-1" data-feather="arrow-left"></i>Return to Dashboard</a>
 				</div>
 			</div>
 		</div>';

@@ -450,11 +450,11 @@ var populateDepartmentsList = (data) => {
             ]
         });
         $(`table th:last`).removeClass('sorting');
-        $(`div[class="form-content-loader"]`).css("display", "none");
         deleteItem();
     } else if ($(`select[name="department_guid"]`).length) {
         pushIntoOptions("department_guid", data, "Select Department or Group or Organization");
     }
+    $(`div[class="form-content-loader"]`).css("display", "none");
 }
 
 async function departmentsList() {
@@ -491,14 +491,14 @@ var populateTicketsList = (data) => {
             ]
         });
         $(`table th:last`).removeClass('sorting');
-        $(`div[class="form-content-loader"]`).css("display", "none");
         deleteItem();
         activateItem();
     } else if ($(`select[name="ticket_guid"]`).length) {
         pushIntoOptions("ticket_guid", data, "Select Event Ticket");
     }
-
+    $(`div[class="form-content-loader"]`).css("display", "none");
 }
+
 async function ticketsList() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
     $.ajax({
@@ -534,11 +534,10 @@ var populateEventsList = (data) => {
             ]
         });
         $(`table th:last`).removeClass('sorting');
-        $(`div[class="form-content-loader"]`).css("display", "none");
         deleteItem();
         activateItem();
     }
-
+    $(`div[class="form-content-loader"]`).css("display", "none");
 }
 async function eventsList() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
