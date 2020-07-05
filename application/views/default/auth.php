@@ -140,6 +140,21 @@ if(confirm_url_id(1)) {
 		$session->set("logoutOk", true);
 	}
 
+	// contact number session
+	elseif(confirm_url_id(1, "reserve")) {
+		// contact number is parsed
+		if(isset($_POST["payload"]) && (strlen($_POST["payload"]) > 9) && (strlen($_POST["payload"]) < 13)) {
+			// verify
+			if(preg_match("/^[+0-9]+$/", $_POST["payload"])) {
+				// set the contact number in a cookie
+				set_cookie("loggedInUser", xss_clean($_POST["payload"]), (60*60*48), "", "/");
+				// success response
+				$response->result = "Contact number saved.";
+				$response->status = 200;
+			}
+		}
+	}
+
 	echo json_encode($response);
 
 } else {

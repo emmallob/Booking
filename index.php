@@ -97,7 +97,7 @@ GLOBAL $SITEURL, $session;
 
 // confirm if the first index has been parsed
 // however the api api is exempted from this file traversing loop
-if(isset($SITEURL[1]) && (!in_array($SITEURL[0], ["api", "auth"]))) {
+if(isset($SITEURL[1]) && (!in_array($SITEURL[0], ["api", "auth", "reservation"]))) {
 
 	// default file to include
 	$otherFile = config_item('default_view_path').strtolower(preg_replace('/[^\w_]-/','',$SITEURL[1])).'.php';

@@ -16,6 +16,7 @@ var responseCode = (code) => {
         return "error";
     }
 }
+
 $("form[id='authForm']").on('submit', function(e) {
     e.preventDefault();
     $("#submit-button").attr("disabled", true);

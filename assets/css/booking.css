@@ -1,6 +1,10 @@
-.booking-main {
+.booking-header {
     background-color: #fff;
     box-shadow: 0px 1px 2px #ccc;
+}
+
+.booking-header a {
+    text-decoration: none;
 }
 
 table td.logo-td {
@@ -25,7 +29,16 @@ img.header-logo {
     img.header-logo {
         width: 70px;
     }
-    .booking-main h1 {
+    .booking-header h1 {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 320px) {
+    .booking-header h1 {
+        font-size: 17px;
+    }
+    .halls-listing h3 {
         font-size: 17px;
     }
 }
@@ -38,4 +51,13 @@ span.booked {
     position: absolute;
     top: 5px;
     right: 5px;
+}
+
+.mouse-hover:hover {
+    border-bottom: solid 4px #0061f2;
+}
+
+.halls-listing {
+    min-height: 150px!important;
+    overflow: hidden;
 }

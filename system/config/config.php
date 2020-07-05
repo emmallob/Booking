@@ -42,7 +42,7 @@ $config['encryption_key'] = 'I99_Obeng_F109';
 |--------------------------------------------------------------------------
 */
 $config['sess_driver'] = 'files';
-$config['sess_cookie_name'] = 'followin_session';
+$config['sess_cookie_name'] = 'booking_session';
 $config['sess_expiration'] = 3600;
 $config['sess_save_path'] = "/AnaliticaInnovare/FollowinApi/sessions/";
 $config['sess_match_ip'] = FALSE;

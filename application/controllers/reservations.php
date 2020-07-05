@@ -28,6 +28,8 @@ class Reservations extends Booking {
             /** Query to append */
             $queryAppend = null;
 
+            $condition = !empty($params->event_guid) ? "AND a.event_guid='{$params->event_guid}'" : null;
+
             /** Confirm that the userid was set */
             if(isset($params->loggedInUser)) {
                 $queryAppend = "
@@ -47,6 +49,9 @@ class Reservations extends Booking {
                     a.booking_start_time, a.booking_end_time, a.is_payable, a.allow_multiple_booking,
                     a.maximum_multiple_booking, a.attachment, a.description, a.state,
                     (
+                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0'
+                    ) AS booked_count,
+                    (
                         SELECT b.department_name FROM departments b WHERE b.department_guid = a.department_guid
                     ) AS department_name,
                     (
@@ -55,14 +60,47 @@ class Reservations extends Booking {
                     {$queryAppend}
                 FROM events a
                 WHERE 
-                    (TIMESTAMP(a.booking_end_time) > CURRENT_TIME()) AND a.deleted = ? AND a.state = ? AND a.client_guid = ?
+                    (TIMESTAMP(a.booking_end_time) > CURRENT_TIME()) AND a.deleted = ? 
+                    AND a.state = ? AND a.client_guid = ? {$condition}
                 ORDER BY DATE(a.event_date) ASC
             ");
             $stmt->execute([0, "pending", $params->clientId]);
 
             $result = [];
 
+            /** Halls class object */
+            $hallObject = load_class("halls", "controllers");
+
             while($results = $stmt->fetch(PDO::FETCH_OBJ)) {
+
+                // get each hall information
+                $halls = $this->stringToArray($results->event_halls);
+                
+                /** Begin an empty array */
+                $halls_array = [];
+                $hall_seats = "";
+                $seats = 0;
+
+                /** Loop through the list of halls */
+                foreach($halls as $eachHall) {
+                    // set the hall_guid parameter
+                    $params->hall_guid = $eachHall;
+
+                    /** Load the hall information */
+                    $hallInfo = $hallObject->listItems($params, true);
+                    
+                    /** Cofirm that the hall information is not empty */
+                    if(!empty($hallInfo)) {
+                        $halls_array[] = $hallInfo;
+                        $seats += count($hallInfo->configuration["labels"]);
+                        $hall_seats .= "<a href='{$this->baseUrl}halls-configuration/{$eachHall}'>".count($hallInfo->configuration["labels"])."</a> + ";
+                    }
+                }
+
+                /** Add additional information */
+                $results->seats = $seats;
+                $results->event_halls = $halls_array;
+
                 $result[] = $results;
             }
 
@@ -91,6 +129,35 @@ class Reservations extends Booking {
             return [];
         }
 
+    }
+
+    /**
+     * Check the seats booked for a hall for an event
+     * 
+     * @param stdClass $params                      This is an object of the various parameters
+     * @param String $params->event_guid            This is the unique event id
+     * @param String $params->hall_guid             This is the id for the hall to query
+     * @param String $params->client_guid           This is the unique id for the client account
+     * 
+     * @return Int
+     */
+    public function bookedCount(stdClass $params) {
+
+        try {
+
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS booked_count
+                FROM events_booking a
+                LEFT JOIN events b ON b.event_guid = a.event_guid 
+                WHERE a.event_guid = ? AND a.hall_guid = ? AND b.client_guid = ?
+            ");
+            $stmt->execute([$params->event_guid, $params->hall_guid, $params->client_guid]);
+
+            return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ)->booked_count : 0;
+            
+        } catch(PDOException $e) {
+
+        }
     }
 
 }

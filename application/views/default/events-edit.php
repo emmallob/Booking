@@ -188,7 +188,7 @@ if($eventsId) {
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="attachment">Event Attachment <small><em>(Attach an image or video)</em></small></label>
-                                            <input type="file" multiple name="attachment" id="attachment" class="form-control" accept="image/x-png,image/gif,image/jpeg,video/*">
+                                            <input type="file" name="attachment" id="attachment" class="form-control" accept="image/x-png,image/gif,image/jpeg,video/*">
                                         </div>
                                     </div>
                                 </div>

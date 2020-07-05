@@ -4,9 +4,12 @@ $baseUrl = $config->base_url();
 
 // get the current client guid
 $accountFound = false;
+$eventFound = false;
+$eventId = null;
 
 // if theAccount variable is empty then get the clientGUID
 if(confirm_url_id(1)) {
+
     // assign the uid in the url
     $theId = xss_clean($SITEURL[1]);
     
@@ -25,18 +28,45 @@ if(confirm_url_id(1)) {
 
         // userId to be set in cookies
         $userId = isset($_COOKIE["loggedInUser"]) ? xss_clean($_COOKIE["loggedInUser"]) : null;
+        
+        // save in session
+        if(!empty($userId)) {
+            $session->loggedInUser = empty($session->loggedInUser) ? $userId : $session->loggedInUser;
+        }
 
+        // append more information
         $params = [];
         $params["clientId"] = $thisAccount->client_guid;
         
-        /** parse the user id if it has been set in the cookie */
+        /** Parse the user id if it has been set in the cookie */
         $params["loggedInUser"] = $userId;
         
+        /** Parse the event data if it has been set */
+        if(confirm_url_id(3) && confirm_url_id(2, "halls")) {
+            /** Assign the event guid */
+            $eventId = xss_clean($SITEURL[3]);
+        } elseif(confirm_url_id(4) && confirm_url_id(2, "book")) {
+            /** Assign the event and hall guid */
+            $eventId = xss_clean($SITEURL[3]);
+            $hallId = xss_clean($SITEURL[4]);
+        }
+
+        /** Append the event id if the event id has been supplied */
+        if(!empty($eventId)) {
+            $params["event_guid"] = $eventId;
+        }
+
         // convert the params to object
         $param = (Object) $params;
 
         // get the list of all events
-        $eventsList = $eventsObj->listItems($param);
+        $eventData = $eventsObj->listItems($param);
+        
+        // confirm that the event has been found
+        if(!empty($eventData) && !empty($eventId)) {
+            $eventFound = true;
+            $eventData = $eventData[0];
+        }
     }
 
 } 
@@ -74,17 +104,17 @@ if(confirm_url_id(1)) {
                             print pageNotFound($baseUrl);
                             print '</div>';
                         } else { ?>
-                        <div class="col-lg-12 bg-default booking-main">
+                        <div class="col-lg-12 bg-default booking-header">
                             <div class="row m-1">
                                 <div class="pt-2 col-lg-12 col-md-12">
                                     <table width="100%">
                                         <tr>
                                             <td class="logo-td"><img class="header-logo" src="<?= $baseUrl ?><?= $thisAccount->logo ?>" alt=""></td>
                                             <td>
-                                                <h1><?= $thisAccount->name ?></h1>
+                                                <h1><a class="text-black-75" href="<?= $baseUrl ?>reservation/<?= $theId ?>"><?= $thisAccount->name ?></a></h1>
                                             </td>
                                             <td class="text-right user-account">
-                                                <i class="fa fa-user"></i> <span class="loggedInUser"></span>
+                                                <i class="fa fa-user"></i> <?= $session->loggedInUser ?>
                                             </td>
                                         </tr>
                                     </table>
@@ -92,17 +122,16 @@ if(confirm_url_id(1)) {
                             </div>
                         </div>
 
-                        <!-- <div class="containedfkar"> -->
-
-                            <div style="width:90%" class="mt-3 row">
+                        <?php /** If the user wants to view the list of upcoming events */ if(!confirm_url_id(2, "halls") && !confirm_url_id(2, "book")) { ?>
+                            <div style="width:90%" class="mt-3 row booking-events-list">
                                 <?php
                                 // get the list of events
-                                foreach($eventsList as $eachEvent) {
+                                foreach($eventData as $eachEvent) {
                                     ?>
-                                    <div class="col-lg-3 mb-2">
+                                    <div data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" title="Click to book the Event <?= $eachEvent->event_title ?>" class="col-lg-3 col-md-6 mb-2 event-selector">
                                         <div class="card cursor">
-                                            <div class="card-header"><?= date("l jS F, Y", strtotime($eachEvent->event_date)) ?></div>
-                                            <div class="card-body">
+                                            <div class="card-header text-success"><?= date("l jS F, Y", strtotime($eachEvent->event_date)) ?></div>
+                                            <div class="card-body mouse-hover">
                                                 <div class="border-bottom pb-2">
                                                     <strong><?= $eachEvent->event_title ?></strong>
                                                     <?php if(isset($eachEvent->user_booking_count) && ($eachEvent->user_booking_count > 0)) { ?>
@@ -114,13 +143,160 @@ if(confirm_url_id(1)) {
                                                         <em><?= $eachEvent->description ?>...</em>
                                                     </div>
                                                 </div>
+                                                <div class="mt-2 border-top text-gray-700">
+                                                    <i class="fa fa-clock"></i>
+                                                    <strong><?= $eachEvent->start_time ?> </strong> to <strong><?= $eachEvent->end_time ?></strong>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 <?php } ?>
                             </div>
+                            <div class="modal fade" id="eventDialogModal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Provide your phone number</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="form-group col-sm-12">
+                                                <div class="input-group">
+                                                    <input autocomplete="Off" value="<?= $session->loggedInUser ?>" class="form-control" placeholder="Please enter your phone number" minlength="9" maxlength="13" type="text" name="contact_number">
+                                                </div>
+                                            </div>
+                                            <input name="event_guid" type="hidden">
+                                            <input type="hidden" name="event_halls_guid">
+                                        </div>
+                                        <div style="width:100%" class="mb-2">
+                                            <div class="col-lg-12 p-3">
+                                                <button type="button" class="btn border btn-sm float-left btn-default" data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-sm float-right btn-primary">Proceed</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        <?php } ?>
 
-                        <!-- </div> -->
+                        <?php /** If the user has visited the halls list panel */ if(confirm_url_id(2, "halls")) { ?>
+                            <?php if(!$eventFound) {
+                                // page was not found
+                                // print the page not found error message
+                                print '<div class="col-lg-5">';
+                                print pageNotFound($baseUrl);
+                                print '</div>';
+                            } else {
+                                /** 
+                                 * First confirm that its a paid or free event. If paid then display a field
+                                 * to enter the ticket serial number for validation
+                                 */
+                                if($eventData->is_payable) {
+                                    $showTicketForm = true;
+                                }
+                                
+                                /** 
+                                 * If a ticket applies to this event and there is no validation yet
+                                 * Then show the form to validate the ticket
+                                 */
+                                if((isset($showTicketForm) && empty($session->eventTicketValidated))){ ?>
+                                <div class="col-lg-4 m-1 col-md-6 mt-3" id="validateTicket">
+                                    <div class="mb-4 text-center">
+                                        <h2 class="text-uppercase border-bottom border-cyan-soft"><?= $eventData->event_title ?></h2>
+                                    </div>
+                                    <form action="<?= $baseUrl ?>api/tickets/validate" class="appForm" method="POST">
+                                        <div class="form-group text-center">
+                                            <label for="event_ticket">Enter the Ticket Serial Number</label>
+                                            <input type="text" name="event_ticket" id="event_ticket" class="form-control text-center text-uppercase" maxlength="20">
+                                        </div>
+                                        <div class="form-group text-center">
+                                            <button class="btn btn-sm btn-outline-success">Validate Ticket</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <?php } else {
+                                    /** 
+                                     * If the session for event validation was set 
+                                     * then confirm if id in that session is equal to the current id 
+                                     */
+                                    if(isset($showTicketForm) && !empty($session->eventTicketValidated) && ($session->eventTicketValidatedId != $eventId)) {
+                                        // show the error message for a page not found
+                                        print '<div class="col-lg-5">';
+                                        print pageNotFound($baseUrl);
+                                        print '</div>';
+                                    } else {
+                                    ?>
+                                    <div style="width:90%" class="mt-3 row">
+                                        <div class="mb-2 col-lg-12 text-center">
+                                            <h2 class="text-uppercase border-bottom border-cyan-soft">
+                                                <strong><?= $eventData->event_title ?></strong>
+                                                <br>
+                                                <small style="font-size: 15px">
+                                                    <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
+                                                    | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                </small>
+                                            </h2>
+                                        </div>
+                                        <?php
+                                        /** Create an object */
+                                        $hallStd = (Object) [];
+                                        $hallStd->client_guid = $thisAccount->client_guid;
+                                        $hallStd->event_guid = $eventId;
+
+                                        /** List the halls available to the user by looping through it   */
+                                        foreach($eventData->event_halls as $eachHall) {
+                                            /** Append to the object variable */
+                                            $hallStd->hall_guid = $eachHall->guid;
+                                            ?>
+                                            <div class="col-lg-3 col-md-6 mb-2 cursor" onclick="window.location.href='<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $eachHall->guid ?>'">
+                                                <div class="card halls-listing mouse-hover">
+                                                    
+                                                    <div class="card-header">
+                                                        <h3 class="text-gray-600"><i class="fa fa-building"></i> &nbsp; <?= $eachHall->hall_name; ?></h3>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <strong><?= ($eachHall->seats-$eventsObj->bookedCount($hallStd)); ?></strong> out of <strong><?= $eachHall->seats ?></strong> available seats
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php }
+                                        }
+                                        ?>
+                                    </div>
+                                <?php } ?>
+                                <div style="width:90%" class="mt-3 mb-4 row">
+                                    <div class="col-lg-12 text-right">
+                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>"><i class="fa fa-list"></i>    Go Back</a>
+                                    </div>
+                                </div>
+
+
+                            <?php } ?>
+                        <?php } ?>
+
+                        <?php /** If the user has visited the booking panel */ if(confirm_url_id(2, "book")) { ?>
+                            <?php if(!$eventFound) {
+                                // print the page not found error message
+                                print '<div class="col-lg-5">';
+                                print pageNotFound($baseUrl);
+                                print '</div>';
+                            } elseif(!in_array($hallId, array_column($eventData->event_halls, "guid"))) {
+                                // print the page not found error message
+                                print '<div class="col-lg-5">';
+                                print pageNotFound($baseUrl);
+                                print '</div>';
+                            } else {
+                                /** */
+                            ?>
+                            
+
+
+
+                            <?php } ?>
+                        <?php } ?>
 
                         <?php } ?>
                     </div>
@@ -145,6 +321,7 @@ if(confirm_url_id(1)) {
         <script src="<?= $baseUrl ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
         <script src="<?= $baseUrl ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
         <script src="<?= $baseUrl ?>assets/js/Cookies.js"></script>
+        <script>var baseUrl = "<?= $baseUrl ?>";</script>
         <script src="<?= $baseUrl ?>assets/js/reserve.js"></script>
         <sb-customizer project="sb-admin-pro"></sb-customizer>
     </body>

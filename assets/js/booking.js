@@ -422,9 +422,15 @@ async function listHalls() {
         type: "GET",
         dataType: "json",
         success: function(response) {
-            populateHallsList(response.data.result);
+            if (response.code == 200) {
+                populateHallsList(response.data.result);
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
         },
-        error: function() {},
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
         complete: function() {}
     });
 }
@@ -456,7 +462,6 @@ var populateDepartmentsList = (data) => {
     }
     $(`div[class="form-content-loader"]`).css("display", "none");
 }
-
 async function departmentsList() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
     $.ajax({
@@ -464,9 +469,15 @@ async function departmentsList() {
         type: "GET",
         dataType: "json",
         success: function(response) {
-            populateDepartmentsList(response.data.result);
+            if (response.code == 200) {
+                populateDepartmentsList(response.data.result);
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
         },
-        error: function() {},
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
         complete: function() {}
     });
 }
@@ -498,7 +509,6 @@ var populateTicketsList = (data) => {
     }
     $(`div[class="form-content-loader"]`).css("display", "none");
 }
-
 async function ticketsList() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
     $.ajax({
@@ -506,9 +516,15 @@ async function ticketsList() {
         type: "GET",
         dataType: "json",
         success: function(response) {
-            populateTicketsList(response.data.result);
+            if (response.code == 200) {
+                populateTicketsList(response.data.result);
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
         },
-        error: function() {},
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
         complete: function() {}
     });
 }
@@ -546,9 +562,15 @@ async function eventsList() {
         type: "GET",
         dataType: "json",
         success: function(response) {
-            populateEventsList(response.data.result);
+            if (response.code == 200) {
+                populateEventsList(response.data.result);
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
         },
-        error: function() {},
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
         complete: function() {}
     });
 }

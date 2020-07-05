@@ -26,6 +26,8 @@ class Events extends Booking {
 
         try {
 
+            $condition = !empty($params->event_guid) ? "AND a.event_guid='{$params->event_guid}'" : null;
+
             $stmt = $this->db->prepare("
                 SELECT a.*,
                     (
@@ -38,7 +40,8 @@ class Events extends Booking {
                         SELECT GROUP_CONCAT(b.hall_guid) FROM events_halls_configuration b WHERE b.event_guid = a.event_guid
                     ) AS event_halls
                 FROM events a
-                WHERE a.client_guid = ? AND a.deleted = ? ORDER BY DATE(a.event_date)    DESC
+                WHERE a.client_guid = ? AND a.deleted = ? {$condition}
+                ORDER BY DATE(a.event_date)    DESC
             ");
             $stmt->execute([$params->clientId, 0]);
 
