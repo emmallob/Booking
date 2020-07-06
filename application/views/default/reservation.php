@@ -84,6 +84,7 @@ if(confirm_url_id(1)) {
         <meta name="author" content />
         <title>Reserve Seat - <?= config_item("site_name") ?></title>
         <link href="<?= $baseUrl ?>assets/css/styles.css" rel="stylesheet" />
+        <!-- <link href="<?= $baseUrl ?>assets/css/custom.css" rel="stylesheet" /> -->
         <link href="<?= $baseUrl ?>assets/css/booking.css" rel="stylesheet" />
         <link href='<?= "{$baseUrl}assets/libs/sweetalert/sweetalert.css" ?>' rel="stylesheet" type="text/css" />
         <link rel="icon" type="image/x-icon" href="<?= $baseUrl ?>assets/img/favicon.png" />
@@ -104,6 +105,7 @@ if(confirm_url_id(1)) {
                             print pageNotFound($baseUrl);
                             print '</div>';
                         } else { ?>
+                        
                         <div class="col-lg-12 bg-default booking-header">
                             <div class="row m-1">
                                 <div class="pt-2 col-lg-12 col-md-12">
@@ -272,8 +274,6 @@ if(confirm_url_id(1)) {
                                         <a href="<?= $baseUrl ?>reservation/<?= $theId ?>"><i class="fa fa-list"></i>    Go Back</a>
                                     </div>
                                 </div>
-
-
                             <?php } ?>
                         <?php } ?>
 
@@ -289,11 +289,64 @@ if(confirm_url_id(1)) {
                                 print pageNotFound($baseUrl);
                                 print '</div>';
                             } else {
-                                /** */
+                                /** Get the halls list */
+                                $hallsList = array_column($eventData->event_halls, "guid");
+
+                                /** Get the current hall key */
+                                $hallKey = array_search($hallId, $hallsList);
+
+                                /** Load the data at that key */
+                                $hallData = $eventData->event_halls[$hallKey];
+                                $hallConf = $hallData->configuration;
+
+                                /** Settings passed */
+                                $settingsPassed = true;
                             ?>
-                            
 
+                            <div style="width:90%" class="mt-3 mb-4 row">
+                                <div class="col-lg-9 col-md-9" >
+                                    <div class="mb-2 col-lg-12 text-center">
+                                        <h3 class="text-uppercase border-bottom border-cyan-soft">
+                                            <strong><?= $hallData->hall_name ?></strong>
+                                        </h3>
+                                    </div>
+                                    <div style="padding:1rem" class="slim-scroll seats-table">
+                                        <table class="p-0 m-0">
+                                            <?php
+                                            // start the counter
+                                            $counter = 0;
 
+                                            // draw the items
+                                            for($i = 1; $i < $hallData->rows + 1; $i++) {
+                                                print "<tr>\n";
+                                                for($ii = 1; $ii < $hallData->columns + 1; $ii++) {
+                                                    // label
+                                                    $label = "{$i}_{$ii}";
+
+                                                    // print header
+                                                    print "<td data-label=\"{$label}\" class=\"width\">";
+
+                                                    // confirm that it has not been removed
+                                                    if(!in_array($label, $hallConf["removed"])) {
+                                                        /** list the items */
+                                                        print "<div data-label=\"{$label}\" ".(in_array($label, $hallConf["blocked"]) ? "" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item ".(in_array($label, $hallConf["blocked"]) ? "unavailable" : null)."\">
+                                                            <span data-label=\"{$label}\" class=\"booking-item\">".(isset($hallConf["labels"][$label]) ? $hallConf["labels"][$label] : $counter)."</span>
+                                                        </div>";
+                                                    }
+                                                    print "</td>\n";
+                                                    // increment the counter
+                                                    $counter++;
+                                                }
+                                                print "</tr>";
+                                            }
+                                            ?>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-3">
+                                    <div><?= $eventData->event_title ?></div>
+                                </div>
+                            </div>
 
                             <?php } ?>
                         <?php } ?>
@@ -322,6 +375,15 @@ if(confirm_url_id(1)) {
         <script src="<?= $baseUrl ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
         <script src="<?= $baseUrl ?>assets/js/Cookies.js"></script>
         <script>var baseUrl = "<?= $baseUrl ?>";</script>
+        <?php if(isset($settingsPassed)) { ?>
+        <script>
+            var maximumBooking = <?= $eventData->maximum_multiple_booking ?>,
+                event_guid = "<?= $eventId ?>",
+                hall_guid = "<?= $hallId ?>",
+                hall_guid_key = <?= $hallKey ?>,
+                bookingSelectedItems = [];
+        </script>
+        <?php } ?>
         <script src="<?= $baseUrl ?>assets/js/reserve.js"></script>
         <sb-customizer project="sb-admin-pro"></sb-customizer>
     </body>
