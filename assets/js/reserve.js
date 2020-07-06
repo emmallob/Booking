@@ -49,9 +49,27 @@ function remove(array) {
 
 function appendToArray(itemLabel) {
 
+    let label = $(`div[class~="seats-table"] table td[data-label="${itemLabel}"] span[data-label="${itemLabel}"]`).html();
+
+    let seatForm = `
+        <div data-seat="${itemLabel}" class="mb-2">
+            <p class="mb-0"><strong>Seat:</strong> ${label}</p>
+            <div class="form-group mb-1">
+                <input type="text" required data-seat-id="${itemLabel}" name="phone_number" id="phone_number" placeholder="Contact Number *" class="form-control">
+            </div>
+            <div class="form-group mb-1">
+                <input type="text" required data-seat-id="${itemLabel}" placeholder="Fullname *" name="fullname" id="fullname" class="form-control">
+            </div>
+            <div class="form-group mb-1">
+                <input type="text" data-seat-id="${itemLabel}" placeholder="House Address / GhanaPostGPS" name="address" id="address" class="form-control">
+            </div>
+        </div>`;
+
     if ($.inArray(itemLabel, bookingSelectedItems) !== -1) {
         $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div[data-label="${itemLabel}"]`).removeClass("selected");
+        $(`div[class~="selected-seats"] div[class~="selected-seats-content"] div[data-seat="${itemLabel}"]`).remove();
         remove(bookingSelectedItems, itemLabel);
+        $(`div[class~="selected-seats"] h4 span`).html(bookingSelectedItems.length);
         return false;
     }
     if (bookingSelectedItems.length == maximumBooking) {
@@ -59,6 +77,8 @@ function appendToArray(itemLabel) {
     }
 
     bookingSelectedItems.push(itemLabel);
+    $(`div[class~="selected-seats"] h4 span`).html(bookingSelectedItems.length);
+    $(`div[class~="selected-seats"] div[class~="selected-seats-content"]`).append(seatForm);
     $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div[data-label="${itemLabel}"]`).addClass("selected");
 }
 
@@ -67,4 +87,8 @@ $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div`).on
     if (!item.hasClass("unavailable")) {
         appendToArray(item.data("label"));
     }
+});
+
+$(`button[class~="reserve-seat"]`).on("click", function() {
+
 });

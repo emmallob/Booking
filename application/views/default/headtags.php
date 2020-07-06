@@ -206,7 +206,7 @@ $accessObject->userId = $userId;
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
 						<div class="collapse <?= in_array($SITEURL[0], ["reservation"]) ? "show" : null ?>" id="collapseFlows" data-parent="#accordionSidenav">
-							<nav class="sidenav-menu-nested nav"><a class="nav-link" href="<?= $baseUrl ?>reservation">Reserve Seat</a></nav>
+							<nav class="sidenav-menu-nested nav"><a class="nav-link" target="_blank" href="<?= $baseUrl ?>reservation/<?= $clientData->client_abbr ?>">Reserve Seat</a></nav>
 						</div>
 						<?php if($accessObject->hasAccess("list", "departments")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseDepartments" aria-expanded="false" aria-controls="collapseDepartments">

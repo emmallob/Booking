@@ -128,22 +128,51 @@ span.booked {
     border: solid 2px #4cac50!important;
 }
 
-.seats-table .unavailable {
+.seats-table .unavailable,
+ul.legend div.unavailable {
     background-color: black;
     color: white;
 }
 
 .seats-table .unavailable:hover {
     border: none!important;
+    cursor: not-allowed;
 }
-
-
-/* .seats-table .selected {
-    background-color: #4caf50;
-    color: #fff;
-} */
 
 .seats-table .selected {
     color: #fff!important;
-    background-color: #8bc34a!important;
+    background-color: #91ce4a!important;
+}
+
+ul.legend {
+    padding-left: 3px;
+}
+
+ul.legend li {
+    list-style-type: none;
+    margin-bottom: 5px;
+}
+
+ul.legend li div {
+    float: left;
+    font-size: 12px;
+    min-width: 20px;
+    border-radius: 4px;
+    border: solid 1px #fff;
+    margin-right: 5px;
+}
+
+ul.legend div.selected {
+    background-color: #91ce4a;
+}
+
+ul.legend div.available {
+    background-color: #dddddd;
+}
+
+.selected-seats input.form-control {
+    height: 30px;
+    padding: 10px;
+    font-size: 12px;
+    border-radius: 0px;
 }

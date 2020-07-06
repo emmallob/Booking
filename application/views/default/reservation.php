@@ -304,11 +304,11 @@ if(confirm_url_id(1)) {
                             ?>
 
                             <div style="width:90%" class="mt-3 mb-4 row">
-                                <div class="col-lg-9 col-md-9" >
+                                <div class="col-lg-9 mb-3 col-md-9" >
                                     <div class="mb-2 col-lg-12 text-center">
-                                        <h3 class="text-uppercase border-bottom border-cyan-soft">
+                                        <h4 class="text-uppercase border-bottom border-cyan-soft">
                                             <strong><?= $hallData->hall_name ?></strong>
-                                        </h3>
+                                        </h4>
                                     </div>
                                     <div style="padding:1rem" class="slim-scroll seats-table">
                                         <table class="p-0 m-0">
@@ -343,8 +343,43 @@ if(confirm_url_id(1)) {
                                         </table>
                                     </div>
                                 </div>
-                                <div class="col-lg-3 col-md-3">
-                                    <div><?= $eventData->event_title ?></div>
+                                <div class="col-lg-3 mt-2 col-md-3">
+                                    <div class="mb-2 col-lg-12 text-center">
+                                        <h6 class="text-uppercase border-bottom border-cyan-soft">
+                                            <div>
+                                                <strong><?= $eventData->event_title ?></strong>
+                                            </div>                                           
+                                            <div class="mt-2 pb-2">
+                                                <small style="font-size: 15px">
+                                                    <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
+                                                    | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                </small>
+                                            </div>
+                                        </h6>
+                                    </div>
+                                    <div class="mb-4 mt-3">
+                                        <ul class="legend">
+                                            <li>
+                                                <div class="available">&nbsp;</div>
+                                                <span>Available</span>
+                                            </li>
+                                            <li>
+                                                <div class="selected">&nbsp;</div>
+                                                <span>Selected</span>
+                                            </li>
+                                            <li>
+                                                <div class="unavailable">&nbsp;</div>
+                                                <span>Unavailable</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="mt-4 selected-seats">
+                                        <h4>Selected Seats (<span>0</span>)</h4>
+                                        <div class="selected-seats-content"></div>
+                                        <div class="form-group mt-3 text-right">
+                                            <button class="btn btn-success btn-sm reserve-seat">Reserve</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
