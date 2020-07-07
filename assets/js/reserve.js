@@ -55,13 +55,13 @@ function appendToArray(itemLabel) {
         <div data-seat="${itemLabel}" class="mb-2">
             <p class="mb-0"><strong>Seat:</strong> ${label}</p>
             <div class="form-group mb-1">
-                <input type="text" required data-seat-id="${itemLabel}" placeholder="Fullname *" name="fullname" id="fullname" class="form-control">
+                <input type="text" maxlength="85" required data-seat-id="${itemLabel}" placeholder="Fullname *" name="fullname" id="fullname" class="form-control">
             </div>
             <div class="form-group mb-1">
-                <input type="text" required data-seat-id="${itemLabel}" name="phone_number" id="phone_number" placeholder="Contact Number *" class="form-control">
+                <input type="text" maxlength="15" required data-seat-id="${itemLabel}" name="phone_number" id="phone_number" placeholder="Contact Number *" class="form-control">
             </div>
             <div class="form-group mb-1">
-                <input type="text" data-seat-id="${itemLabel}" placeholder="House Address / GhanaPostGPS" name="address" id="address" class="form-control">
+                <input type="text" maxlength="85" data-seat-id="${itemLabel}" placeholder="House Address / GhanaPostGPS" name="address" id="address" class="form-control">
             </div>
         </div>`;
 
@@ -110,5 +110,10 @@ $(`button[class~="reserve-seat"]`).on("click", function() {
             title: response.data.result,
             type: (response.code == 200) ? "success" : "error"
         });
+        if (response.code == 200) {
+            setTimeout(function() {
+                window.location.href = `${baseUrl}reservation/${abbr}/book/${event_guid}/${hall_guid}?history`;
+            }, 1000);
+        }
     }, "json");
 });

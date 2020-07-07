@@ -148,6 +148,10 @@ if(confirm_url_id(1)) {
 			if(preg_match("/^[+0-9]+$/", $_POST["payload"])) {
 				// set the contact number in a cookie
 				set_cookie("loggedInUser", xss_clean($_POST["payload"]), (60*60*48), "", "/");
+				
+				// save the contact number in a session
+				$session->loggedInUser = $_POST["payload"];
+
 				// success response
 				$response->result = "Contact number saved.";
 				$response->status = 200;

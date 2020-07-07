@@ -268,7 +268,7 @@ if(confirm_url_id(1)) {
                                                         <h3 class="text-gray-600"><i class="fa fa-building"></i> &nbsp; <?= $eachHall->hall_name; ?></h3>
                                                     </div>
                                                     <div class="card-body">
-                                                        <strong><?= ($eachHall->seats-$eventsObj->bookedCount($hallStd)); ?></strong> out of <strong><?= $eachHall->seats ?></strong> available seats
+                                                        <strong><?= ($eachHall->seats - $eventsObj->bookedCount($hallStd)); ?></strong> out of <strong><?= $eachHall->seats ?></strong> available seats
                                                     </div>
                                                 </div>
                                             </div>
@@ -316,7 +316,7 @@ if(confirm_url_id(1)) {
                             <div style="width:90%" class="mt-3 mb-4  row justify-content-center">
                                 <div class="mt-2 bg-white p-3" style="box-shadow:0px 1px 2px #000">
                                     <div class="mb-2 col-lg-12 text-center">
-                                        <h6 class="text-uppercase border-bottom border-cyan-soft">
+                                        <h5 class="text-uppercase border-bottom border-cyan-soft">
                                             <div>
                                                 <strong><?= $eventData->event_title ?></strong>
                                             </div>                                           
@@ -326,7 +326,7 @@ if(confirm_url_id(1)) {
                                                     | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
                                                 </small>
                                             </div>
-                                        </h6>
+                                        </h5>
                                     </div>
                                     <div class="mt-4 text-center">
                                         <p>You have reserved <?= $eventData->user_booking_count ?> out of <?= $eventData->maximum_multiple_booking ?> seats for this event with the provided contact number.</p>
@@ -378,12 +378,14 @@ if(confirm_url_id(1)) {
                                         <a href="<?= $baseUrl ?>reservation/<?= $theId ?>">
                                             Change <?= ($eventData->is_payable) ? "Ticket" : "Contact" ?>
                                         </a>
+                                        <?php } else { ?>
+                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
+                                            Book Seat
+                                        </a>
                                         <?php } ?>
                                     </div>
                                 </div>
                             </div>
-
-
                             <?php } else { ?>
                             <div style="width:90%" class="mt-3 mb-4 row">
                                 <div class="col-lg-9 mb-3 col-md-9" >
@@ -455,6 +457,13 @@ if(confirm_url_id(1)) {
                                             </li>
                                         </ul>
                                     </div>
+                                    <div class="mt-4">
+                                        <?php if($eventData->user_booking_count) { ?>
+                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>?history">
+                                            View Booked Seats
+                                        </a>
+                                        <?php } ?>
+                                    </div>
                                     <div class="mt-4 selected-seats">
                                         <h4>Selected Seats (<span>0</span>)</h4>
                                         <div class="selected-seats-content"></div>
@@ -501,7 +510,8 @@ if(confirm_url_id(1)) {
         <script>var baseUrl = "<?= $baseUrl ?>";</script>
         <?php if(isset($settingsPassed)) { ?>
         <script>
-            var maximumBooking = <?= $eventData->maximum_multiple_booking ?>,
+            var abbr = "<?= $theId ?>",
+                maximumBooking = <?= $eventData->maximum_multiple_booking - $eventData->user_booking_count ?>,
                 event_guid = "<?= $eventId ?>",
                 hall_guid = "<?= $hallId ?>",
                 hall_guid_key = <?= $hallKey ?>,

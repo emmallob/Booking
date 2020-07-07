@@ -114,8 +114,9 @@ require "headtags.php";
                                     <th width="12%">Event Date</th>
                                     <th>Summary Details</th>
                                     <th width="12%">&#8470; Booked</th>
+                                    <th width="14%">&#8470; of Seats</th>
                                     <th width="10%">Status</th>
-                                    <th width="13%"></th>
+                                    <th width="15%"></th>
                                 </thead>
                                 <tbody></tbody>
                             </table>
