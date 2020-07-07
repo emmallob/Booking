@@ -180,7 +180,7 @@ class Booking {
 	 * 
 	 * @return Object
 	 **/
-	public function pushQuery($columns = "*", $tableName, $whereClause = null) {
+	public function pushQuery($columns = "*", $tableName, $whereClause = 1) {
 
 		try {
 			

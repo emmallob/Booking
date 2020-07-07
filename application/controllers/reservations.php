@@ -38,7 +38,13 @@ class Reservations extends Booking {
                         FROM events_booking b 
                         WHERE 
                             b.created_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid
-                    ) AS user_booking_count
+                    ) AS user_booking_count,
+                    (
+                        SELECT GROUP_CONCAT(hall_guid) 
+                        FROM events_booking b 
+                        WHERE 
+                            b.created_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid
+                    ) AS user_halls_booked
                 "; 
             }
 
@@ -207,7 +213,7 @@ class Reservations extends Booking {
 
                 /** Ensure that the seat has not already been booked */
                 if(!isset($eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]])) {
-                    return "Sorry! The seat {$eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]]} has already been booked.";
+                    return "Sorry! The selected seat has already been booked.";
                     break;
                 }
 
@@ -241,7 +247,7 @@ class Reservations extends Booking {
                 $this->db->query("UPDATE halls SET overall_booking=(overall_booking+1) WHERE hall_guid = '{$parameters->hall_guid}'");
 
                 /** Remove the seat from the list of available seats and append to the blocked list */
-                return $this->removeAvailableSeat($parameters, $item[0], $parameters->hall_guid);
+                $this->removeAvailableSeat($parameters, $item[0], $parameters->hall_guid);
             }
 
             /** Set the event ticket as having been used */
@@ -254,7 +260,7 @@ class Reservations extends Booking {
             $this->db->commit();
             
             /** print a success message */
-            return "Congrats, Your booking was successful";
+            return "perfect";
 
         } catch(\Exception $e) {
             $this->db->rollBack();

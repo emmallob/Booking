@@ -249,7 +249,7 @@ class Events extends Booking {
                 foreach($halls_guid as $eachHall) {
                     
                     // query the database for the information on this hall
-                    $query = $this->pushQuery("configuration, hall_name, rows, columns", "halls", "hall_guid='{$eachHall}' AND client_guid='{$params->clientId}' AND deleted='0'");
+                    $query = $this->pushQuery("`configuration`, `hall_name`, `rows`, `columns`", "halls", "hall_guid='{$eachHall}' AND client_guid='{$params->clientId}' AND deleted='0'");
 
                     // confirm that the query did not return an error
                     if(empty($query)) {
@@ -261,7 +261,7 @@ class Events extends Booking {
                             "name" => $query[0]->hall_name,
                             "conf" => $query[0]->configuration,
                             "rows" => $query[0]->rows,
-                            "columns" => $query[0]->columns,
+                            "columns" => $query[0]->columns
                         ];
                     }
                 }

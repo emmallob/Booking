@@ -70,6 +70,9 @@ function appendToArray(itemLabel) {
         $(`div[class~="selected-seats"] div[class~="selected-seats-content"] div[data-seat="${itemLabel}"]`).remove();
         remove(bookingSelectedItems, itemLabel);
         $(`div[class~="selected-seats"] h4 span`).html(bookingSelectedItems.length);
+
+        (bookingSelectedItems.length) ? $(`button[class~="reserve-seat"]`).removeClass('hidden'): $(`button[class~="reserve-seat"]`).addClass('hidden');
+
         return false;
     }
     if (bookingSelectedItems.length == maximumBooking) {
@@ -77,6 +80,7 @@ function appendToArray(itemLabel) {
     }
 
     bookingSelectedItems.push(itemLabel);
+    (bookingSelectedItems.length) ? $(`button[class~="reserve-seat"]`).removeClass('hidden'): $(`button[class~="reserve-seat"]`).addClass('hidden');
     $(`div[class~="selected-seats"] h4 span`).html(bookingSelectedItems.length);
     $(`div[class~="selected-seats"] div[class~="selected-seats-content"]`).append(seatForm);
     $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div[data-label="${itemLabel}"]`).addClass("selected");
@@ -102,6 +106,9 @@ $(`button[class~="reserve-seat"]`).on("click", function() {
     });
 
     $.post(`${baseUrl}api/reservations/reserve`, { booking_details, event_guid, hall_guid, hall_guid_key }, function(response) {
-
+        Toast.fire({
+            title: response.data.result,
+            type: (response.code == 200) ? "success" : "error"
+        });
     }, "json");
 });

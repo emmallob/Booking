@@ -176,3 +176,7 @@ ul.legend div.available {
     font-size: 12px;
     border-radius: 0px;
 }
+
+.hidden {
+    display: none;
+}

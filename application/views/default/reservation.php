@@ -87,7 +87,6 @@ if(confirm_url_id(1)) {
         <meta name="author" content />
         <title>Reserve Seat - <?= config_item("site_name") ?></title>
         <link href="<?= $baseUrl ?>assets/css/styles.css" rel="stylesheet" />
-        <!-- <link href="<?= $baseUrl ?>assets/css/custom.css" rel="stylesheet" /> -->
         <link href="<?= $baseUrl ?>assets/css/booking.css" rel="stylesheet" />
         <link href='<?= "{$baseUrl}assets/libs/sweetalert/sweetalert.css" ?>' rel="stylesheet" type="text/css" />
         <link rel="icon" type="image/x-icon" href="<?= $baseUrl ?>assets/img/favicon.png" />
@@ -251,14 +250,20 @@ if(confirm_url_id(1)) {
                                         $hallStd->client_guid = $thisAccount->client_guid;
                                         $hallStd->event_guid = $eventId;
 
+                                        /** Halls booked to array */
+                                        $hallsBooked = $bookingClass->stringToArray($eventData->user_halls_booked, ",");
+
                                         /** List the halls available to the user by looping through it   */
                                         foreach($eventData->event_halls as $eachHall) {
+
                                             /** Append to the object variable */
                                             $hallStd->hall_guid = $eachHall->guid;
                                             ?>
                                             <div class="col-lg-3 col-md-6 mb-2 cursor" onclick="window.location.href='<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $eachHall->guid ?>'">
                                                 <div class="card halls-listing mouse-hover">
-                                                    
+                                                    <?php if(in_array($eachHall->guid, $hallsBooked)) { ?>
+                                                    <span class="booked" title="Hall has already been booked"><i class="fa text-success fa-check-circle"></i></span>
+                                                    <?php } ?>
                                                     <div class="card-header">
                                                         <h3 class="text-gray-600"><i class="fa fa-building"></i> &nbsp; <?= $eachHall->hall_name; ?></h3>
                                                     </div>
@@ -380,7 +385,7 @@ if(confirm_url_id(1)) {
                                         <h4>Selected Seats (<span>0</span>)</h4>
                                         <div class="selected-seats-content"></div>
                                         <div class="form-group mt-3 text-right">
-                                            <button class="btn btn-success btn-sm reserve-seat">Reserve</button>
+                                            <button class="btn hidden btn-success btn-sm reserve-seat">Reserve</button>
                                         </div>
                                     </div>
                                 </div>

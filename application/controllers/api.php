@@ -752,9 +752,11 @@ class Api {
                 $request = $objectClass->reserveSeat($params);
                 
                 // if the request was successful
-                if($request) {
-                    $result['result'] = $request;
+                if($request == "perfect") {
+                    $result['result'] = "Congrats, Your booking was successful";
                     $code = 200;
+                } else {
+                    $result['result'] = $request;
                 }
             }
 

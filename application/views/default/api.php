@@ -116,7 +116,7 @@ else if(
         // loop through the url items
         foreach($_POST as $key => $value) {
             // only parse if the value is not empty
-            if(!empty($value)) {
+            if(!empty($value) || in_array($key, ["hall_guid_key"])) {
                 // append the parameters
                 $params[$key] = is_array($value) ? $value : xss_clean($value);
             }
