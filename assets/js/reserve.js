@@ -90,5 +90,17 @@ $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div`).on
 });
 
 $(`button[class~="reserve-seat"]`).on("click", function() {
+    var seatInfo = new Array();
+    $.each($(`div[class~="selected-seats"] div[class~="selected-seats-content"] div[data-seat]`), function(i, e) {
+        let seatLabel = $(this).attr("data-seat"),
+            seatAddress = $(`input[name="address"][data-seat-id="${seatLabel}"]`).val(),
+            seatPhone = $(`input[name="phone_number"][data-seat-id="${seatLabel}"]`).val(),
+            seatFullname = $(`input[name="fullname"][data-seat-id="${seatLabel}"]`).val();
 
+        seatInfo[seatLabel] = `address=${seatAddress}:fullname=${seatFullname}:phone=${seatPhone}`;
+    });
+
+    $.post(`${baseUrl}api/reservations/reserve`, { seatInfo: seatInfo }, function(response) {
+
+    }, "json");
 });

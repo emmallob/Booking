@@ -1,1 +1,0 @@
-[06-Jul-2020 19:11:04 Africa/Accra] PHP Notice:  Undefined property: stdClass::$abbr in C:\xampp\htdocs\booking\application\views\default\headtags.php on line 209

@@ -416,7 +416,7 @@ if(confirm_url_id(1)) {
                 event_guid = "<?= $eventId ?>",
                 hall_guid = "<?= $hallId ?>",
                 hall_guid_key = <?= $hallKey ?>,
-                bookingSelectedItems = [];
+                bookingSelectedItems = new Array();
         </script>
         <?php } ?>
         <script src="<?= $baseUrl ?>assets/js/reserve.js"></script>
