@@ -20,7 +20,7 @@ class Reservations extends Booking {
      * 
      * @param stdClass $params              This is a composite of several dataset to be used for the query
      * 
-     * @return Array
+     * @return Object
      */
     public function listItems(stdClass $params) {
         
@@ -83,11 +83,9 @@ class Reservations extends Booking {
 
                 /** Loop through the list of halls */
                 foreach($halls as $eachHall) {
-                    // set the hall_guid parameter
-                    $params->hall_guid = $eachHall;
-
+                    
                     /** Load the hall information */
-                    $hallInfo = $hallObject->listItems($params, true);
+                    $hallInfo = $hallObject->listEventHalls($eachHall, $results->event_guid, true);
                     
                     /** Cofirm that the hall information is not empty */
                     if(!empty($hallInfo)) {
@@ -113,22 +111,187 @@ class Reservations extends Booking {
     }
 
     /**
+     * Contact / Ticket Booking Count
+     * 
+     * @param String $event_guid        This is the event to check
+     * @param String $contact           This is the contact number to verify
+     * 
+     * @return Int
+     */
+    public function countBooking($event_guid, $contact) {
+
+        try {
+            
+            /** Make the query for the list of events */
+            $stmt = $this->db->prepare("
+                SELECT a.id,
+                    (
+                        SELECT COUNT(*) 
+                        FROM events_booking b 
+                        WHERE 
+                            b.created_by = ? AND b.event_guid = a.event_guid
+                    ) AS user_booking_count
+                FROM events a
+                WHERE 
+                    a.deleted = ? AND a.event_guid= ?
+                ORDER BY DATE(a.event_date) ASC
+            ");
+            $stmt->execute([$contact, 0, $event_guid]);
+
+            return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ)->user_booking_count : 0;
+
+        } catch(PDOException $e) {
+            return 0;
+        }
+    }
+
+    /**
      * This method reserves a set for a user
      * 
-     * @param stdClass $params              This is a composite of several dataset to be used for the query
+     * @param stdClass  $params                     This is a composite of several dataset to be used for the query
+     * @param String    $params->booking_details    An array that contains the seat_id, contact number fullname and address
+     * @param String    $params->event_guid         The Event Guid
+     * @param String    $params->hall_guid          The Hall Guid for the hall currently been booked
+     * @param String    $params->hall_guid_key      The hall guid key for easy reference
      * 
      * @return Array
      */
-    public function reserveSeat(stdClass $params) {
+    public function reserveSeat(stdClass $parameters) {
         
         try {
 
+            /** load the event details */ 
+            $eventData = $this->listItems($parameters);
+
+            /** Get the first key */
+            $eventData = $eventData[0];
+
+            /** Validate the user credentials */
+            if(!is_array($parameters->booking_details)) {
+                return "Sorry! The booking details must be a valid array";
+            }
+
+            /** confirm event exits */
+            if(empty($eventData)) {
+                return "Sorry! An invalid event guid has been parsed.";
+            }
+
+            /** Confirm if a valid ticket has been parsed if its a paid event */
+            if($eventData->is_payable && empty($this->session->eventTicketValidated)) {
+                return "This is a paid event and requires a valid ticket to be used for booking";
+            }
+
+            /** Confirm if a valid ticket has been parsed if its a paid event */
+            if($eventData->is_payable && !empty($this->session->eventTicketValidated) && ($this->session->eventTicketValidatedId != $parameters->event_guid)) {
+                return "The ticket could not be validated";
+            }
+
+            /** confirm that the hall is actually a part of the list of halls for this event */
+            if(!in_array($parameters->hall_guid, array_column($eventData->event_halls, "guid"))) {
+                return "An invalid hall guid has been parsed";
+            }
+
+            $this->db->beginTransaction();
+
+            /** Loop through the list of booking details parsed by the user */
+            foreach($parameters->booking_details as $eachItem) {
+
+                /** Explode the data string */
+                $item = explode("||", $eachItem);
+
+                /** Confirm that it has four part */
+                if(!isset($item[3])) {
+                    return "Sorry an invalid array data has been parsed. Accepted (seat_id||fullname||contact||address)";
+                    break;
+                }
+
+                /** Ensure that the seat has not already been booked */
+                if(!isset($eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]])) {
+                    return "Sorry! The seat {$eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]]} has already been booked.";
+                    break;
+                }
+
+                /** Validate the contact number */
+                if(!preg_match("/^[+0-9]+$/", $item[2])) {
+                    return "Sorry please enter a valid contact number for Seat ".$eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]];
+                    break;
+                }
+
+                /** Confirm the contact has not reached the maximum booking count */
+                if($this->countBooking($parameters->event_guid, $item[2]) == $eventData->maximum_multiple_booking) {
+                    return "Sorry! The contact {$item[2]} has already been used to book {$eventData->maximum_multiple_booking} times and cannot be used again.";
+                    break;
+                }
+
+                /** Insert the booking record */
+                $stmt = $this->db->prepare("
+                    INSERT INTO events_booking SET event_guid = ?, hall_guid = ?, seat_guid = ?,
+                    ".(($eventData->is_payable) ? "ticket_guid = '{$this->session->eventTicketValidatedTicket}', ticket_serial = '{$this->session->eventTicketValidatedSerial}'," : null)."
+                    fullname = ?, created_by = ?, address = ?, user_agent = ?
+                ");
+                $stmt->execute([$parameters->event_guid, $parameters->hall_guid, $item[0], $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
+
+                /** 
+                 * Commence the count for the halls configuration for this event
+                 * This will prevent any further update on the halls to affect this particular event structure
+                */
+                $this->db->query("UPDATE events_halls_configuration SET commenced = '1' WHERE event_guid='{$parameters->event_guid}' AND hall_guid='{$parameters->hall_guid}'");
+
+                /** Alltime booking count for the hall */
+                $this->db->query("UPDATE halls SET overall_booking=(overall_booking+1) WHERE hall_guid = '{$parameters->hall_guid}'");
+
+                /** Remove the seat from the list of available seats and append to the blocked list */
+                return $this->removeAvailableSeat($parameters, $item[0], $parameters->hall_guid);
+            }
+
+            /** Set the event ticket as having been used */
+            if($eventData->is_payable) {
+                /** update */
+                $this->db->query("UPDATE tickets_listing SET `status`='used', used_date=now() WHERE ticket_guid='{$this->session->eventTicketValidatedTicket}' AND ticket_serial='{$this->session->eventTicketValidatedSerial}'");
+            }
+
+            /** Commit the pending transactions */
+            $this->db->commit();
             
+            /** print a success message */
+            return "Congrats, Your booking was successful";
 
         } catch(\Exception $e) {
-            return [];
+            $this->db->rollBack();
+            return $e->getMessage();
         }
 
+    }
+
+    /**
+     * Remove a seat from the list of available seats and append to the blocked list
+     * afterwards update the database table column
+     */
+    private function removeAvailableSeat(stdClass $parameters, $seat_key, $hall_guid) {
+
+        try {
+
+            /** load the event details */ 
+            $eventData = $this->listItems($parameters);
+
+            /** halls configuration list */
+            $hallsConf = $eventData[0]->event_halls[$parameters->hall_guid_key]->configuration;
+
+            /** Blocked new list */
+            $hallsConf["blocked"][] = $seat_key;
+
+            /** Remove the item from the array value in the available seats */
+            unset($hallsConf["labels"][$seat_key]);
+
+            $hallsConf = json_encode($hallsConf);
+
+            /** Update the database accordingly */
+            $stmt = $this->db->prepare("UPDATE events_halls_configuration SET `configuration` = '{$hallsConf}' WHERE `event_guid` = '{$parameters->event_guid}' AND `hall_guid`='{$hall_guid}'");
+            return $stmt->execute();
+
+        } catch(PDOException $e) {
+            return $e->getMessage();
+        }
     }
 
     /**
@@ -158,6 +321,7 @@ class Reservations extends Booking {
         } catch(PDOException $e) {
 
         }
+
     }
 
 }

@@ -73,11 +73,9 @@ class Events extends Booking {
 
                     /** Loop through the list of halls */
                     foreach($halls as $eachHall) {
-                        // set the hall_guid parameter
-                        $params->hall_guid = $eachHall;
 
                         /** Load the hall information */
-                        $hallInfo = $hallObject->listItems($params, true);
+                        $hallInfo = $hallObject->listEventHalls($eachHall, $result->event_guid, true);
                         
                         /** Cofirm that the hall information is not empty */
                         if(!empty($hallInfo)) {
@@ -251,7 +249,7 @@ class Events extends Booking {
                 foreach($halls_guid as $eachHall) {
                     
                     // query the database for the information on this hall
-                    $query = $this->pushQuery("configuration, hall_name", "halls", "hall_guid='{$eachHall}' AND client_guid='{$params->clientId}' AND deleted='0'");
+                    $query = $this->pushQuery("configuration, hall_name, rows, columns", "halls", "hall_guid='{$eachHall}' AND client_guid='{$params->clientId}' AND deleted='0'");
 
                     // confirm that the query did not return an error
                     if(empty($query)) {
@@ -261,7 +259,9 @@ class Events extends Booking {
                         // append to the halls list
                         $halls_list[$eachHall] = [
                             "name" => $query[0]->hall_name,
-                            "conf" => $query[0]->configuration
+                            "conf" => $query[0]->configuration,
+                            "rows" => $query[0]->rows,
+                            "columns" => $query[0]->columns,
                         ];
                     }
                 }
@@ -309,7 +309,7 @@ class Events extends Booking {
                         $this->db->query("
                             INSERT INTO events_halls_configuration 
                             SET event_guid = '{$guid}',hall_guid = '{$key}', `configuration` = '{$value["conf"]}',
-                            `hall_name` = '{$value["name"]}'
+                            `hall_name` = '{$value["name"]}', `rows` = '{$value["rows"]}', `columns` = '{$value["columns"]}'
                         ");
                     }
                 }

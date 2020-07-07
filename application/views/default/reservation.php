@@ -37,6 +37,7 @@ if(confirm_url_id(1)) {
         // append more information
         $params = [];
         $params["clientId"] = $thisAccount->client_guid;
+        $session->clientId = $thisAccount->client_guid;
         
         /** Parse the user id if it has been set in the cookie */
         $params["loggedInUser"] = $userId;
@@ -67,6 +68,8 @@ if(confirm_url_id(1)) {
             $eventFound = true;
             $eventData = $eventData[0];
         }
+        // print "<pre>";
+        // print_r($eventData);exit;
     }
 
 } 

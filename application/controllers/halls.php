@@ -93,6 +93,54 @@ class Halls extends Booking {
     }
 
     /**
+     * This method lists items from the database table
+     * 
+     * @param stdClass $params              This is a composite of several dataset to be used for the query
+     * 
+     * @return Array
+     */
+    public function listEventHalls($hall_guid, $event_guid, $item = false) {
+
+        global $accessObject;
+
+        try {
+
+            $stmt = $this->db->prepare("
+                SELECT 
+                    a.*, a.hall_guid AS guid
+                FROM events_halls_configuration a
+                WHERE a.hall_guid='{$hall_guid}' AND a.event_guid='{$event_guid}' ORDER BY id DESC
+            ");
+            $stmt->execute([0]);
+
+            /** Begin an empty array of the result */
+            $data = [];
+            $i = 0;
+            /** Count the number of rows found */
+            if($stmt->rowCount() > 0) {
+                
+                /** Loop through the results */
+                while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+                    $i++;
+                    $result->configuration = json_decode($result->configuration, true);
+
+                    // the seats available count
+                    $result->seats = count($result->configuration["labels"]);
+                
+                    /** Append to the array */
+                    $data[] = $result;
+                }
+            }
+
+            return ($item) ? $data[0] : $data;
+
+        } catch(\Exception $e) {
+            return $e->getMessage();
+        }
+
+    }
+
+    /**
      * This method activates a hall
      * 
      * @param stdClass $params     This is a composite of several dataset to be used for the query
@@ -445,7 +493,9 @@ class Halls extends Booking {
                     UPDATE 
                         events_halls_configuration 
                     SET 
-                        `hall_name` = '{$params->hall_name}' 
+                        `hall_name` = '{$params->hall_name}',
+                        `rows` = '{$params->hall_rows}', 
+                        `columns` = '{$params->hall_columns}'
                     WHERE 
                         hall_guid = '{$params->hall_guid}' AND commenced = '0'
                 ");

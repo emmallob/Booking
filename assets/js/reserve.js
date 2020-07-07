@@ -55,10 +55,10 @@ function appendToArray(itemLabel) {
         <div data-seat="${itemLabel}" class="mb-2">
             <p class="mb-0"><strong>Seat:</strong> ${label}</p>
             <div class="form-group mb-1">
-                <input type="text" required data-seat-id="${itemLabel}" name="phone_number" id="phone_number" placeholder="Contact Number *" class="form-control">
+                <input type="text" required data-seat-id="${itemLabel}" placeholder="Fullname *" name="fullname" id="fullname" class="form-control">
             </div>
             <div class="form-group mb-1">
-                <input type="text" required data-seat-id="${itemLabel}" placeholder="Fullname *" name="fullname" id="fullname" class="form-control">
+                <input type="text" required data-seat-id="${itemLabel}" name="phone_number" id="phone_number" placeholder="Contact Number *" class="form-control">
             </div>
             <div class="form-group mb-1">
                 <input type="text" data-seat-id="${itemLabel}" placeholder="House Address / GhanaPostGPS" name="address" id="address" class="form-control">
@@ -90,17 +90,18 @@ $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div`).on
 });
 
 $(`button[class~="reserve-seat"]`).on("click", function() {
-    var seatInfo = new Array();
+    var booking_details = [];
     $.each($(`div[class~="selected-seats"] div[class~="selected-seats-content"] div[data-seat]`), function(i, e) {
         let seatLabel = $(this).attr("data-seat"),
             seatAddress = $(`input[name="address"][data-seat-id="${seatLabel}"]`).val(),
             seatPhone = $(`input[name="phone_number"][data-seat-id="${seatLabel}"]`).val(),
             seatFullname = $(`input[name="fullname"][data-seat-id="${seatLabel}"]`).val();
 
-        seatInfo[seatLabel] = `address=${seatAddress}:fullname=${seatFullname}:phone=${seatPhone}`;
+        booking_details.push(`${seatLabel}||${seatFullname}||${seatPhone}||${seatAddress}`);
+
     });
 
-    $.post(`${baseUrl}api/reservations/reserve`, { seatInfo: seatInfo }, function(response) {
+    $.post(`${baseUrl}api/reservations/reserve`, { booking_details, event_guid, hall_guid, hall_guid_key }, function(response) {
 
     }, "json");
 });
