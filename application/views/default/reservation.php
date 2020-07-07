@@ -309,8 +309,82 @@ if(confirm_url_id(1)) {
 
                                 /** Settings passed */
                                 $settingsPassed = true;
-                            ?>
 
+                                /** Confirm that the user has not yet reached the number of booking to be done */
+                                if(($eventData->user_booking_count == $eventData->maximum_multiple_booking) || isset($_GET["history"])) {
+                            ?>
+                            <div style="width:90%" class="mt-3 mb-4  row justify-content-center">
+                                <div class="mt-2 bg-white p-3" style="box-shadow:0px 1px 2px #000">
+                                    <div class="mb-2 col-lg-12 text-center">
+                                        <h6 class="text-uppercase border-bottom border-cyan-soft">
+                                            <div>
+                                                <strong><?= $eventData->event_title ?></strong>
+                                            </div>                                           
+                                            <div class="mt-2 pb-2">
+                                                <small style="font-size: 15px">
+                                                    <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
+                                                    | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                </small>
+                                            </div>
+                                        </h6>
+                                    </div>
+                                    <div class="mt-4 text-center">
+                                        <p>You have reserved <?= $eventData->user_booking_count ?> out of <?= $eventData->maximum_multiple_booking ?> seats for this event with the provided contact number.</p>
+                                        <h4 class="text-center">Booking History</h4>
+                                        <div class="table-responsive">
+                                            <table style="font-size:15px" class="table nowrap table-bordered table-hover" width="100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-left">Name</th>
+                                                        <th class="text-left">Seat</th>
+                                                        <th>Code</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    /** Load the seats booked using this contact number */
+                                                    $seatsBooked = $booking->prepare("
+                                                        SELECT a.*,
+                                                            (
+                                                                SELECT b.hall_name FROM events_halls_configuration b
+                                                                WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
+                                                            ) AS hall_name,
+                                                            (
+                                                                SELECT b.configuration FROM events_halls_configuration b
+                                                                WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
+                                                            ) AS configuration
+                                                        FROM events_booking a 
+                                                        WHERE a.event_guid = ? AND a.created_by = ?
+                                                    ");
+                                                    $seatsBooked->execute([$eventId, $session->loggedInUser]);
+
+                                                    /** Loop through the list */
+                                                    while($result = $seatsBooked->fetch(PDO::FETCH_OBJ)) { ?>
+                                                    <tr>
+                                                        <td class="text-left"><?= $result->fullname ?></td>
+                                                        <td class="text-left">
+                                                            <strong>Hall</strong>: <?= $result->hall_name ?><br>
+                                                            <strong>Seat</strong>: <?= $result->seat_guid ?>
+                                                        </td>
+                                                        <td><?= $result->id ?></td>
+                                                    </tr>    
+                                                    <?php }?>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <?php if($eventData->user_booking_count == $eventData->maximum_multiple_booking) { ?>
+                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>">
+                                            Change <?= ($eventData->is_payable) ? "Ticket" : "Contact" ?>
+                                        </a>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <?php } else { ?>
                             <div style="width:90%" class="mt-3 mb-4 row">
                                 <div class="col-lg-9 mb-3 col-md-9" >
                                     <div class="mb-2 col-lg-12 text-center">
@@ -388,6 +462,13 @@ if(confirm_url_id(1)) {
                                             <button class="btn hidden btn-success btn-sm reserve-seat">Reserve</button>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <?php } ?>
+
+                            <div style="width:90%" class="mt-3 mb-4 row">
+                                <div class="col-lg-12 text-center">
+                                    <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eventId ?>"><i class="fa fa-list"></i>  Go Back</a>
                                 </div>
                             </div>
 

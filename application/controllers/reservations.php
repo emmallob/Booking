@@ -229,13 +229,17 @@ class Reservations extends Booking {
                     break;
                 }
 
+                /** Get the seat name */
+                $seatName = $eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]];
+
                 /** Insert the booking record */
                 $stmt = $this->db->prepare("
                     INSERT INTO events_booking SET event_guid = ?, hall_guid = ?, seat_guid = ?,
                     ".(($eventData->is_payable) ? "ticket_guid = '{$this->session->eventTicketValidatedTicket}', ticket_serial = '{$this->session->eventTicketValidatedSerial}'," : null)."
                     fullname = ?, created_by = ?, address = ?, user_agent = ?
+                    ".(!empty($this->session->loggedInUser) ? ", booked_by='{$this->session->loggedInUser}'" : null)."
                 ");
-                $stmt->execute([$parameters->event_guid, $parameters->hall_guid, $item[0], $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
+                $stmt->execute([$parameters->event_guid, $parameters->hall_guid, $seatName, $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
 
                 /** 
                  * Commence the count for the halls configuration for this event

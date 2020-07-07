@@ -50,7 +50,7 @@
     background-color: #569013;
 }
 
-.seats-table {
+i .seats-table {
     display: block!important;
     width: 100%;
     overflow-x: auto!important;
