@@ -19,7 +19,7 @@ require "headtags.php";
             </div>
         </div>
     </div>
-    <div class="container-fluid mt-n10">
+    <div class="container-fluid event-guid mt-n10" data-event-guid="<?= (confirm_url_id(1) ? xss_clean($SITEURL[1]) : null) ?>">
         <div class="card">
             <div class="card-header">
                 <div class="row" style="width:100%">
@@ -38,7 +38,7 @@ require "headtags.php";
                 <?php } else { ?>
                     <?= form_loader() ?>
                     <div class="datatable table-responsive">
-                        <table width="100%" class="table eventsBookedList table-hover" data-toggle="datatable">
+                        <table width="100%" class="table bookedEventList table-hover" data-toggle="datatable">
                             <thead>
                                 <th width="6%">&#8470;</th>
                                 <th>Hall</th>

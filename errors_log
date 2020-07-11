@@ -1,1 +1,10 @@
-[07-Jul-2020 21:23:13 Africa/Accra] PHP Recoverable fatal error:  Object of class Reservations could not be converted to string in C:\xampp\htdocs\booking\application\views\default\reservation.php on line 271
+[08-Jul-2020 21:27:12 Africa/Accra] PHP Notice:  Undefined property: Config::$manager_dashboard in C:\xampp\htdocs\booking\application\controllers\insight.php on line 16
+[08-Jul-2020 21:27:29 Africa/Accra] PHP Fatal error:  Uncaught Error: Cannot use object of type Config as array in C:\xampp\htdocs\booking\application\controllers\insight.php:16
+Stack trace:
+#0 C:\xampp\htdocs\booking\application\controllers\api.php(899): Insight->generateInsight(Object(stdClass))
+#1 C:\xampp\htdocs\booking\application\views\default\api.php(170): Api->apiHandler(Object(stdClass), 'GET')
+#2 C:\xampp\htdocs\booking\index.php(116): include('C:\\xampp\\htdocs...')
+#3 {main}
+  thrown in C:\xampp\htdocs\booking\application\controllers\insight.php on line 16
+[11-Jul-2020 12:56:31 Africa/Accra] PHP Notice:  Trying to get property 'booked_count' of non-object in C:\xampp\htdocs\booking\application\controllers\insight.php on line 129
+[11-Jul-2020 12:56:31 Africa/Accra] PHP Notice:  Trying to get property 'confirmed_count' of non-object in C:\xampp\htdocs\booking\application\controllers\insight.php on line 133

@@ -342,6 +342,17 @@ class Api {
                         ]
                     ]
                 ]
+            ],
+            "insight" => [
+                "GET" => [
+                    "report" => [
+                        "params" => [
+                            "tree" => "The data to return: to be comma separated (list, summary, detail) - Default is list.",
+                            "event_guid" => "The event guid to load the data",
+                            "period" => "The timeframe for the report to generate"
+                        ]
+                    ]
+                ]
             ]
         ];
     }
@@ -877,6 +888,19 @@ class Api {
                         $result['result'] = $request;
                     }
                 }                
+            }
+            
+        }
+
+        // insight endpoint
+        elseif( $this->inner_url == "insight" ) {
+            
+            // create a new object
+            $insightObj = load_class("insight", "controllers");
+            $request = $insightObj->generateInsight($params);
+
+            if($request) {
+                $result['result'] = $request;
             }
             
         }

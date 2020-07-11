@@ -459,6 +459,30 @@ class Booking {
 	 * 
 	 * @return String
 	 */
+	public function inList($param) {
+
+		$params = (is_array($param)) ? $param : $this->stringToArray($param);
+
+		$string = '(';
+		foreach($params as $item) {
+			$string .= "'{$item}',";
+		}
+		$string = substr($string, 0, -1);
+		$string .= ')';
+
+		return $string; 
+	}
+
+	/**
+	 * This method prepares a string to be used in a query
+	 * This will format the user parameters to for a valid IN query
+	 * 
+	 * @param String $params 	This is the string that the user has parsed
+	 * @param Array $compare 	This is the string to test the user's own against
+	 * @param String $colum 	This is the column name
+	 * 
+	 * @return String
+	 */
 	public function formatInQuery($param, array $compare, $column) {
 
 		$params = (is_array($param)) ? $param : $this->stringToArray($param);

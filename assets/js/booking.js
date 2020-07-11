@@ -577,3 +577,50 @@ async function eventsList() {
 if ($(`table[class~="eventsList"]`).length) {
     eventsList();
 }
+
+var populateBookedEventsList = (data) => {
+    if ($(`table[class~="bookedEventList"]`).length) {
+        $(`table[class~="bookedEventList"]`).dataTable().fnDestroy();
+        $(`table[class~="bookedEventList"]`).dataTable({
+            "aaData": data,
+            "iDisplayLength": 10,
+            "columns": [
+                { "data": 'row_id' },
+                { "data": 'hall_name' },
+                { "data": 'fullname' },
+                { "data": 'contact' },
+                { "data": 'address' },
+                { "data": 'seat' },
+                { "data": 'action' }
+            ]
+        });
+        $(`table th:last`).removeClass('sorting');
+        deleteItem();
+        activateItem();
+    }
+    $(`div[class="form-content-loader"]`).css("display", "none");
+}
+async function bookedEventList() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
+
+    $.ajax({
+        url: `${baseUrl}api/insight/report?event_guid=${event_guid}`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            if (response.code == 200) {
+                populateBookedEventsList(response.data.result);
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
+        },
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
+        complete: function() {}
+    });
+}
+if ($(`table[class~="bookedEventList"]`).length) {
+    bookedEventList();
+}
