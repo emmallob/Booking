@@ -204,6 +204,11 @@ class Reservations extends Booking {
                 return "An invalid hall guid has been parsed";
             }
 
+            /** confirm that the booking information parsed is not more than the accepted maximum booking */
+            if(count($parameters->booking_details) > $eventData->maximum_multiple_booking) {
+                return "Sorry! The data submitted exceeds the accepted of {$eventData->maximum_multiple_booking} bookings.";
+            }
+
             $this->db->beginTransaction();
 
             /** Loop through the list of booking details parsed by the user */
@@ -272,6 +277,10 @@ class Reservations extends Booking {
 
             /** Commit the pending transactions */
             $this->db->commit();
+
+            /** remove the session for the ticket validation */
+            // $this->session->remove("eventTicketValidatedTicket");
+            // $this->session->remove("eventTicketValidatedSerial");
             
             /** print a success message */
             return "perfect";
