@@ -164,7 +164,7 @@ class Reservations extends Booking {
      * 
      * @return Array
      */
-    public function reserveSeat(stdClass $parameters) {
+public function reserveSeat(stdClass $parameters) {
         
         try {
 
@@ -269,7 +269,7 @@ class Reservations extends Booking {
             /** Set the event ticket as having been used */
             if($eventData->is_payable) {
                 /** Update the ticket status */
-                $this->db->query("UPDATE tickets_listing SET `status`='used', used_date=now() WHERE ticket_guid='{$this->session->eventTicketValidatedTicket}' AND ticket_serial='{$this->session->eventTicketValidatedSerial}'");
+                $this->db->query("UPDATE tickets_listing SET `status`='used', used_date=now(), event_booked='{$parameters->event_guid}' WHERE ticket_guid='{$this->session->eventTicketValidatedTicket}' AND ticket_serial='{$this->session->eventTicketValidatedSerial}'");
 
                 /** Increment the ticket used count */
                 $this->db->query("UPDATE tickets SET number_left = (number_left-1) WHERE ticket_guid = '{$this->session->eventTicketValidatedTicket}'");

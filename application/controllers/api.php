@@ -353,9 +353,10 @@ class Api {
                 "GET" => [
                     "report" => [
                         "params" => [
-                            "tree" => "The data to return: to be comma separated (list, summary, detail) - Default is list.",
+                            "tree" => "The data to return: to be comma separated (list, booking_summary, detail, booking_count) - Default is list.",
                             "event_guid" => "The event guid to load the data",
-                            "period" => "The timeframe for the report to generate"
+                            "period" => "The timeframe for the report to generate",
+                            "order" => "The order for the results listing (ASC or DESC)"
                         ]
                     ]
                 ]

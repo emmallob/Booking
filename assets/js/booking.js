@@ -590,7 +590,7 @@ var populateBookedEventsList = (data) => {
     if ($(`table[class~="bookedEventList"]`).length) {
         $(`table[class~="bookedEventList"]`).dataTable().fnDestroy();
         $(`table[class~="bookedEventList"]`).dataTable({
-            "aaData": data.bookedList,
+            "aaData": data.booking_list,
             "iDisplayLength": 10,
             "columns": [
                 { "data": 'row_id' },
@@ -604,9 +604,9 @@ var populateBookedEventsList = (data) => {
         });
         $(`table th:last`).removeClass('sorting');
 
-        $(`input[name="event_title"]`).val(data.event_title).prop("disabled", true);
-        $(`input[name="event_date"]`).val(data.event_date).prop("disabled", true);
-        $(`input[name="event_time"]`).val(`${data.start_time} to ${data.end_time}`).prop("disabled", true);
+        $(`input[name="event_title"]`).val(data.detail.event_title).prop("disabled", true);
+        $(`input[name="event_date"]`).val(data.detail.event_date).prop("disabled", true);
+        $(`input[name="event_time"]`).val(`${data.detail.start_time} to ${data.detail.end_time}`).prop("disabled", true);
         deleteItem();
     }
     $(`div[class="form-content-loader"]`).css("display", "none");
@@ -634,4 +634,112 @@ async function bookedEventList() {
 }
 if ($(`table[class~="bookedEventList"]`).length) {
     bookedEventList();
+}
+
+async function eventsChart() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
+
+    $.ajax({
+        url: `${baseUrl}api/insight/report?tree=booking_count&order=desc`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            if (response.code == 200) {
+                let chartLabel = new Array(),
+                    chartData = new Array();
+
+                $.each(response.data.result, function(i, e) {
+                    chartLabel.push(e.booking_count.event_title);
+                    chartData.push(e.booking_count.booked_count);
+                });
+
+                // Area Chart Example
+                var ctx = document.getElementById("myAreaChart");
+                var myLineChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: chartLabel,
+                        datasets: [{
+                            label: "Total Booking",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(0, 97, 242, 0.05)",
+                            borderColor: "rgba(0, 97, 242, 1)",
+                            pointRadius: 3,
+                            pointBackgroundColor: "rgba(0, 97, 242, 1)",
+                            pointBorderColor: "rgba(0, 97, 242, 1)",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "rgba(0, 97, 242, 1)",
+                            pointHoverBorderColor: "rgba(0, 97, 242, 1)",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 2,
+                            data: chartData
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            xAxes: [{
+                                gridLines: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 7
+                                }
+                            }],
+                            yAxes: [{
+                                ticks: {},
+                                gridLines: {
+                                    color: "rgb(234, 236, 244)",
+                                    zeroLineColor: "rgb(234, 236, 244)",
+                                    drawBorder: false,
+                                    borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                                }
+                            }]
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltips: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyFontColor: "#858796",
+                            titleMarginBottom: 10,
+                            titleFontColor: "#6e707e",
+                            titleFontSize: 14,
+                            borderColor: "#dddfeb",
+                            borderWidth: 1,
+                            xPadding: 15,
+                            yPadding: 15,
+                            displayColors: false,
+                            intersect: false,
+                            mode: "index",
+                            caretPadding: 10,
+                            callbacks: {}
+                        }
+                    }
+                });
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
+        },
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
+        complete: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        }
+    });
+}
+if ($(`canvas[id="myAreaChart"`).length) {
+    eventsChart();
 }

@@ -1,0 +1,4 @@
+[15-Jul-2020 22:50:57 Africa/Accra] PHP Notice:  Trying to get property 'overall_funds_realised' of non-object in C:\xampp\htdocs\booking\application\controllers\insight.php on line 174
+[15-Jul-2020 22:50:57 Africa/Accra] PHP Notice:  Trying to get property 'overall_tickets_sold' of non-object in C:\xampp\htdocs\booking\application\controllers\insight.php on line 175
+[15-Jul-2020 22:51:54 Africa/Accra] PHP Notice:  Trying to get property 'overall_funds_realised' of non-object in C:\xampp\htdocs\booking\application\controllers\insight.php on line 174
+[15-Jul-2020 22:51:54 Africa/Accra] PHP Notice:  Trying to get property 'overall_tickets_sold' of non-object in C:\xampp\htdocs\booking\application\controllers\insight.php on line 175

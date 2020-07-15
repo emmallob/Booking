@@ -19,6 +19,8 @@ class Insight extends Booking {
             $event_guid = !empty($params->event_guid) ? $this->inList($params->event_guid) : null;
             $condition = !empty($event_guid) ? "AND a.event_guid IN ". $event_guid : null;
 
+            $params->tree = (isset($params->tree)) ? $this->stringToArray($params->tree) : ["list", "booking_summary", "detail", "booking_count"];
+
             $stmt = $this->db->prepare("
                 SELECT 
                     a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
@@ -39,18 +41,36 @@ class Insight extends Booking {
                     ) AS event_halls
                 FROM events a
                 WHERE a.client_guid = ? AND a.deleted = ? {$condition}
-                ORDER BY DATE(a.event_date)    DESC
+                ORDER BY DATE(a.event_date) ".(isset($params->order) ? $params->order : "DESC")."
             ");
             $stmt->execute([$params->clientId, 0]);
 
             $data = [];
+            $i = 0;
             while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
                 
                 // booked list
-                $result->bookedList = $this->bookedList($result->event_guid, $params->remote);
-                $result->summary = $this->summaryDetails($result->event_guid);
+                if(in_array("list", $params->tree)) {
+                    $data[$i]['booking_list'] = $this->bookedList($result->event_guid, $params->remote);
+                }
+
+                if(in_array("booking_summary", $params->tree)) {
+                    $data[$i]['booking_summary'] = $this->summaryDetails($result->event_guid);
+                }
                 
-                $data[] = $result;
+                if(in_array("booking_count", $params->tree)) {
+                    $data[$i]['booking_count'] = [
+                        "event_title" => $result->event_title . " (". date("jS F", strtotime($result->event_date)) . ")",
+                        "booked_count" => $result->booked_count
+                    ];
+                }
+                    
+                if(in_array("detail", $params->tree)) {
+                    $data[$i]['detail'] = $result;
+                }
+
+                $i++;
+                
             }
 
             return $data;
@@ -122,29 +142,42 @@ class Insight extends Booking {
         try {
 
             $stmt = $this->db->prepare("
-                SELECT 
+                SELECT
+                    (
+                        SELECT SUM(ticket_amount) AS overall_funds_realised FROM tickets_listing WHERE status='used' AND sold_state = '1'
+                    ) AS overall_funds_realised,
+                    (
+                        SELECT COUNT(*) FROM tickets_listing WHERE status='used' AND sold_state = '1'
+                    ) AS overall_tickets_sold,
                     (
                         SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND sold_state = '1'
                     ) AS tickets_sold,
                     (
-                        SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND sold_state = '1'
-                    ) AS tickets_sold,
-                    (
-                        SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND status = 'booked'
+                        SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND status = 'used'
                     ) AS tickets_used,
+                    (
+                        SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND status = 'invalid'
+                    ) AS invalid_tickets,
                     (
                         SELECT SUM(ticket_amount) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND sold_state = '1'
                     ) AS tickets_expected_funds,
                     (
-                        SELECT SUM(ticket_amount) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND status = 'booked' AND sold_state = '1'
+                        SELECT SUM(ticket_amount) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND status = 'used' AND sold_state = '1'
                     ) AS tickets_funds_realised
-                FROM tickets_listing WHERE event_booked = '{$event_guid}'
+                FROM tickets_listing WHERE 1
             ");
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_OBJ);
 
             return [
                 "funds" => [
+                    "overall_funds_realised" => [
+                        "description" => "This is the accumulated funds realized from the sale of tickets",
+                        "value" => [
+                            "funds" => $result->overall_funds_realised,
+                            "count" => $result->overall_tickets_sold
+                        ]
+                    ],
                     "tickets_sold" => [
                         "description" => "The total number of tickets that have been sold for this event.",
                         "value" => $result->tickets_sold ?? 0,
@@ -160,6 +193,10 @@ class Insight extends Booking {
                     "tickets_funds_realised" => [
                         "description" => "The actual amount realized from sale (These tickets have been used and booking confirmed)",
                         "value" => $result->tickets_funds_realised ?? 0,
+                    ],
+                    "invalid_tickets" => [
+                        "description" => "These are tickets that were sold however was returned and destroyed",
+                        "value" => $result->invalid_tickets ?? 0
                     ]
                 ]
             ];
@@ -204,6 +241,15 @@ class Insight extends Booking {
 
     }
 
+    /**
+     * Summary insight
+     * This generates all time data counts for all activities
+     * 
+     * @return Array
+     */
+    public function allInsight() {
+        
+    } 
 
     /**
      * This formats the correct date range

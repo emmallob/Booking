@@ -30,7 +30,7 @@ require "headtags.php";
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <div class="small font-weight-bold text-blue mb-1">Events (monthly)</div>
+                                <div class="small font-weight-bold text-blue mb-1">Events Held</div>
                                 <div class="h5">N/A</div>
                                 <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div>
                             </div>
@@ -44,7 +44,7 @@ require "headtags.php";
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <div class="small font-weight-bold text-purple mb-1">Bookings</div>
+                                <div class="small font-weight-bold text-purple mb-1">Halls</div>
                                 <div class="h5">N/A</div>
                                 <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div>
                             </div>
@@ -58,7 +58,7 @@ require "headtags.php";
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <div class="small font-weight-bold text-green mb-1">Clicks</div>
+                                <div class="small font-weight-bold text-green mb-1">Unique Audience</div>
                                 <div class="h5">N/A</div>
                                 <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div>
                             </div>
@@ -72,7 +72,7 @@ require "headtags.php";
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <div class="small font-weight-bold text-yellow mb-1">Conversion rate</div>
+                                <div class="small font-weight-bold text-yellow mb-1">Funds Raised</div>
                                 <div class="h5">N/A</div>
                                 <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div>
                             </div>
@@ -95,7 +95,7 @@ require "headtags.php";
             </div>
             <div class="col-lg-9">
                 <div class="card mb-4">
-                    <div class="card-header">Events vs Bookings <i title="Event as against the number of Bookings" data-toggle="tooltip" class="fa ml-3 fa-info"></i></div>
+                    <div class="card-header">Events & Bookings <i title="Event as against the number of Bookings" data-toggle="tooltip" class="fa ml-3 fa-info"></i></div>
                     <div class="card-body">
                         <div class="chart-area"><canvas id="myAreaChart" width="100%" height="30"></canvas></div>
                     </div>

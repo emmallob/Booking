@@ -22,8 +22,25 @@ if($usersClass->logged_InControlled()) {
         <link rel="icon" type="image/x-icon" href="<?= $baseUrl ?>assets/img/favicon.png" />
         <script data-search-pseudo-elements defer src="<?= $baseUrl ?>assets/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
         <script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
+        <style>
+        .bg {
+            background-image: url('<?= $baseUrl ?>assets/img/bg.jpg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+
+        main {
+            margin-top: 100px;
+        }
+
+        footer.footer {
+            background: #3a2e2b;
+            height: 3rem;
+        }
+        </style>
     </head>
-    <body class="bg-primary">
+    <body class="bg-primary bg">
         <div id="layoutAuthentication">
             <div id="layoutAuthentication_content">
                 <main>

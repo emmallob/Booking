@@ -56,8 +56,19 @@ $accessObject->userId = $userId;
 	<link href='<?= "{$baseUrl}assets/css/custom.css" ?>' rel="stylesheet" type="text/css" />
 	<script data-search-pseudo-elements defer src="<?= $baseUrl ?>assets/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
 	<script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
+	<style>
+		.bg {
+            /*background-image: url('<?= $baseUrl ?>assets/img/bg.jpg'); */
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+		.footer .small {
+			/* color: #fff */
+        }
+	</style>
 </head>
-<body class="nav-fixed dashboard <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
+<body class="nav-fixed dashboard bg <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
 	<div id="current_url" value="<?= $session->current_url; ?>"></div>
 	<nav class="topnav navbar navbar-expand shadow navbar-light bg-white" id="sidenavAccordion">
 		<a class="navbar-brand d-none d-sm-block" href="<?= $baseUrl ?>"><?= config_item("site_name") ?></a><button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle" href="#"><i data-feather="menu"></i></button>
