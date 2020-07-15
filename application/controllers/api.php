@@ -911,7 +911,7 @@ class Api {
         elseif( $this->inner_url == "remove" ) {
             
             // confirm that the user has the permission to perform the action
-            if((!in_array($params->item, ["cancel-event","confirm-booking"])) && !$this->accessCheck->hasAccess("delete", "{$params->item}s")) {
+            if((!in_array($params->item, ["cancel-event","confirm-booking","remove-booking"])) && !$this->accessCheck->hasAccess("delete", "{$params->item}s")) {
                 // permission denied message
                 $result['result'] = self::PERMISSION_DENIED;
             }
@@ -933,6 +933,8 @@ class Api {
                         $result['result'] = "The event was successfully cancelled.";
                     } elseif($params->item == "confirm-booking") {
                         $result['result'] = "The Booking was successfully confirmed.";
+                    } elseif($params->item == "remove-booking") {
+                        $result['result'] = "The Booked Seat was successfully reversed.";
                     } else {
                         $result['result'] = "The ".ucfirst($params->item)." was successfully deleted";
                     }

@@ -42,12 +42,12 @@ require "headtags.php";
                             <thead>
                                 <th width="6%">&#8470;</th>
                                 <th>Event Title</th>
-                                <th width="12%">Event Date</th>
+                                <th width="10%">Event Date</th>
                                 <th>Summary Details</th>
-                                <th width="12%">&#8470; Booked</th>
-                                <th width="14%">&#8470; of Seats</th>
+                                <th width="10%">&#8470; Booked</th>
+                                <th width="12%">&#8470; of Seats</th>
                                 <th width="10%">Status</th>
-                                <th width="15%"></th>
+                                <th width="12%"></th>
                             </thead>
                             <tbody></tbody>
                         </table>

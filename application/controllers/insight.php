@@ -73,7 +73,7 @@ class Insight extends Booking {
 
             $stmt = $this->db->prepare("
                 SELECT 
-                    a.id, seat_guid AS seat_name, ticket_guid, ticket_serial, booked_by, fullname, 
+                    a.id, a.seat_guid, a.seat_name, ticket_guid, ticket_serial, booked_by, fullname, 
                     a.created_by AS contact, address, a.created_on, user_agent, b.hall_name,
                     CASE WHEN a.status IS NULL THEN 'booked' ELSE 'confirmed' END AS booked_state, a.status
                 FROM events_booking a

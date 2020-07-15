@@ -937,6 +937,35 @@ class Booking {
 				
 			}
 
+			/** Unbook a seat */
+			elseif($params->item == "remove-booking") {
+				/** Split the event and the row id */
+				$event = explode("_", $params->item_id);
+
+				/** If there is not a second item */
+				if(!isset($event[1])) {
+					return "denied";
+				}
+				
+				/** Confirm that events is not already deleted */
+				$userActive = $this->db->prepare("SELECT `id` FROM `events` WHERE `event_guid` = ? AND `deleted`=? AND `state` !='cancelled' AND client_guid = ?");
+				$userActive->execute([$event[0], 0, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					$reserveObj = load_class("reservations", "controllers");
+					$unbook = $reserveObj->unbookSeat($event[0], $event[1], $params->clientId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					return $unbook;
+				}
+
+			}
+
 			/** remove ticket  */
 			elseif($params->item == "ticket") {
 

@@ -22,7 +22,7 @@ class Reservations extends Booking {
      * 
      * @return Object
      */
-    public function listItems(stdClass $params) {
+    public function listItems(stdClass $params, $bypass = false) {
         
         try {
             /** Query to append */
@@ -48,6 +48,9 @@ class Reservations extends Booking {
                 "; 
             }
 
+            /** If the request is to bypass */
+            $bypass_query = !($bypass) ? "AND (TIMESTAMP(a.booking_end_time) > CURRENT_TIME()) AND a.state = 'pending'" : null;
+
             /** Make the query for the list of events */
             $stmt = $this->db->prepare("
                 SELECT 
@@ -66,11 +69,10 @@ class Reservations extends Booking {
                     {$queryAppend}
                 FROM events a
                 WHERE 
-                    (TIMESTAMP(a.booking_end_time) > CURRENT_TIME()) AND a.deleted = ? 
-                    AND a.state = ? AND a.client_guid = ? {$condition}
+                    a.deleted = ? {$bypass_query} AND a.client_guid = ? {$condition}
                 ORDER BY DATE(a.event_date) ASC
             ");
-            $stmt->execute([0, "pending", $params->clientId]);
+            $stmt->execute([0, $params->clientId]);
 
             $result = [];
 
@@ -169,6 +171,11 @@ class Reservations extends Booking {
             /** load the event details */ 
             $eventData = $this->listItems($parameters);
 
+            /** Return if event could not be found */
+            if(empty($eventData)) {
+                return;
+            }
+
             /** Get the first key */
             $eventData = $eventData[0];
 
@@ -234,12 +241,12 @@ class Reservations extends Booking {
 
                 /** Insert the booking record */
                 $stmt = $this->db->prepare("
-                    INSERT INTO events_booking SET event_guid = ?, hall_guid = ?, seat_guid = ?,
+                    INSERT INTO events_booking SET event_guid = ?, hall_guid = ?, seat_guid = ?, seat_name = ?,
                     ".(($eventData->is_payable) ? "ticket_guid = '{$this->session->eventTicketValidatedTicket}', ticket_serial = '{$this->session->eventTicketValidatedSerial}'," : null)."
                     fullname = ?, created_by = ?, address = ?, user_agent = ?
                     ".(!empty($this->session->loggedInUser) ? ", booked_by='{$this->session->loggedInUser}'" : null)."
                 ");
-                $stmt->execute([$parameters->event_guid, $parameters->hall_guid, $seatName, $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
+                $stmt->execute([$parameters->event_guid, $parameters->hall_guid, $item[0], $seatName, $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
 
                 /** 
                  * Commence the count for the halls configuration for this event
@@ -332,6 +339,85 @@ class Reservations extends Booking {
 
         }
 
+    }
+
+    /**
+     * Unbook a seat
+     * 
+     * @param String $event_guid                This is the unique id for the event
+     * @param String $rowId                     This is the id for the booked seat to reverse
+     * @param String $clientId                  The unique id for this client record
+     * 
+     * @return String
+     */
+    public function unbookSeat($event_guid, $rowId, $clientId) {
+        /** Get the record from the database */
+        $parameters = (Object) [
+            "event_guid" => $event_guid,
+            "clientId" => $clientId
+        ];
+
+        /** load the event details */ 
+        $eventData = $this->listItems($parameters, true);
+
+        /** Get the first key */
+        if(empty($eventData)) {
+            return;
+        }
+
+        /** Set the event data */
+        $eventData = $eventData[0];
+
+        /** Booking record */
+        $bookingData = $this->pushQuery("*", "events_booking", "event_guid='{$event_guid}' AND id='{$rowId}'");
+
+        /** Get the first key */
+        if(empty($bookingData)) {
+            return;
+        }
+
+        /** Set the event data */
+        $bookingData = $bookingData[0];
+
+        /** Get the halls list */
+        $hallsList = array_column($eventData->event_halls, "guid");
+
+        /** Get the current hall key */
+        $hallKey = array_search($bookingData->hall_guid, $hallsList);
+
+        /** Load the data at that key */
+        $hallData = $eventData->event_halls[$hallKey];
+        $hallConf = $hallData->configuration;
+
+        /** Get the key from the blocked list */
+        $seatKey = array_search($bookingData->seat_guid, $hallConf['blocked']);
+
+        /** return if the seat was not found */
+        if(!isset($hallConf['blocked'][$seatKey])) {
+            return;
+        }
+
+        /** Unset the key */
+        unset($hallConf['blocked'][$seatKey]);
+
+        /** Append to the available seats */
+        $hallConf['labels'][$bookingData->seat_guid] = $bookingData->seat_name;
+
+        try {
+
+            /** update the database accordingly */
+            $stmt = $this->db->prepare("UPDATE events_halls_configuration SET `configuration` = ? WHERE `event_guid` = ? AND `hall_guid`=?");
+            $stmt->execute([json_encode($hallConf), $event_guid, $bookingData->hall_guid]);
+
+            /** Update the user record */
+            $stmt = $this->db->prepare("UPDATE events_booking SET `deleted` = ? WHERE `id` = ?");
+            $stmt->execute([1, $rowId]);
+
+            return "great";
+
+        } catch(PDOException $e) {
+            return "denied";
+        }
     }
 
 }
