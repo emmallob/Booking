@@ -94,7 +94,7 @@ class Events extends Booking {
                     if($result->state == "pending") {
                         $result->status = "<span class='badge badge-primary'>Pending</span>";
                     } elseif($result->state == "in-progress") {
-                        $result->status = "<span class='badge badge-sucess'>In Progress</span>";
+                        $result->status = "<span class='badge badge-success'>In Progress</span>";
                     } elseif($result->state == "cancelled") {
                         $result->status = "<span class='badge badge-danger'>Cancelled</span>";
                     } else {

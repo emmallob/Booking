@@ -207,7 +207,7 @@ if($eventsId) {
                                             if($eventData->state == "pending") {
                                                 print "<span class='badge badge-primary'>Event is Pending</span>";
                                             } elseif($eventData->state == "in-progress") {
-                                                print "<span class='badge badge-sucess'>Event is In Progress</span>";
+                                                print "<span class='badge badge-success'>Event is In Progress</span>";
                                             } elseif($eventData->state == "cancelled") {
                                                 print "<span class='badge badge-danger'>Event has been Cancelled</span>";
                                             } else {
