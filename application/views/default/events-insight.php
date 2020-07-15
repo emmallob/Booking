@@ -97,11 +97,11 @@ if($eventsId) {
                                 <table width="100%" class="table bookedEventList table-hover" data-toggle="datatable">
                                     <thead>
                                         <th width="6%">&#8470;</th>
-                                        <th>Hall</th>
+                                        <th width="20%">Hall</th>
                                         <th>Fullname</th>
-                                        <th>Contact Number</th>
+                                        <th width="15%">Contact Number</th>
                                         <th>Address</th>
-                                        <th>Seat</th>
+                                        <th width="10%">Seat</th>
                                         <th width="10%"></th>
                                     </thead>
                                     <tbody></tbody>

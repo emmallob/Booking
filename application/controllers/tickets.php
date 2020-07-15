@@ -152,11 +152,12 @@ class Tickets extends Booking {
             /** Insert the record */
             $stmt = $this->db->prepare("INSERT INTO tickets SET 
                 client_guid = ?, ticket_guid = ?, ticket_title = ?, number_generated = ?, is_payable = ?, 
-                created_by = ?, `generated` = ?, ticket_amount = ?
+                created_by = ?, `generated` = ?, ticket_amount = ?, number_left = ?
             ");
             $stmt->execute([
                 $params->clientId, $ticket_guid, $params->ticket_title, $quantity, 
-                $params->ticket_is_payable, $params->userId, $generated, $params->ticket_amount
+                $params->ticket_is_payable, $params->userId, $generated, 
+                $params->ticket_amount, $quantity
             ]);
             
             /** Insert the tickets if it is true */

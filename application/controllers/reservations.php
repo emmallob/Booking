@@ -272,15 +272,17 @@ class Reservations extends Booking {
                 $this->db->query("UPDATE tickets_listing SET `status`='used', used_date=now() WHERE ticket_guid='{$this->session->eventTicketValidatedTicket}' AND ticket_serial='{$this->session->eventTicketValidatedSerial}'");
 
                 /** Increment the ticket used count */
-                $this->db->query("UPDATE tickets SET number_left = (number_generated-1) WHERE ticket_guid = '{$this->session->eventTicketValidatedTicket}'");
+                $this->db->query("UPDATE tickets SET number_left = (number_left-1) WHERE ticket_guid = '{$this->session->eventTicketValidatedTicket}'");
             }
 
             /** Commit the pending transactions */
             $this->db->commit();
 
             /** remove the session for the ticket validation */
-            // $this->session->remove("eventTicketValidatedTicket");
-            // $this->session->remove("eventTicketValidatedSerial");
+            $this->session->remove("eventTicketValidated");
+            $this->session->remove("eventTicketValidatedId");
+            $this->session->remove("eventTicketValidatedTicket");
+            $this->session->remove("eventTicketValidatedSerial");
             
             /** print a success message */
             return "perfect";

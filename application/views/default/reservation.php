@@ -68,8 +68,7 @@ if(confirm_url_id(1)) {
             $eventFound = true;
             $eventData = $eventData[0];
         }
-        // print "<pre>";
-        // print_r($eventData);exit;
+        
     }
 
 } 
@@ -307,182 +306,191 @@ $session->set("current_url", current_url());
                                 print pageNotFound($baseUrl);
                                 print '</div>';
                             } else {
-                                /** Get the halls list */
-                                $hallsList = array_column($eventData->event_halls, "guid");
+                                // confirm that ticket has been supplied
+                                if(($eventData->is_payable && empty($session->eventTicketValidated) || ($session->eventTicketValidatedId != $eventId)) && !isset($_GET["history"])) {
+                                    // show the error message for a page not found
+                                    print '<div class="col-lg-5">';
+                                    print validationError($baseUrl, "Sorry! The Ticket Serial could not be validated.");
+                                    print '</div>';
+                                } else {
+                                    /** Get the halls list */
+                                    $hallsList = array_column($eventData->event_halls, "guid");
 
-                                /** Get the current hall key */
-                                $hallKey = array_search($hallId, $hallsList);
+                                    /** Get the current hall key */
+                                    $hallKey = array_search($hallId, $hallsList);
 
-                                /** Load the data at that key */
-                                $hallData = $eventData->event_halls[$hallKey];
-                                $hallConf = $hallData->configuration;
+                                    /** Load the data at that key */
+                                    $hallData = $eventData->event_halls[$hallKey];
+                                    $hallConf = $hallData->configuration;
 
-                                /** Settings passed */
-                                $settingsPassed = true;
+                                    /** Settings passed */
+                                    $settingsPassed = true;
 
-                                /** Confirm that the user has not yet reached the number of booking to be done */
-                                if(($eventData->user_booking_count == $eventData->maximum_multiple_booking) || isset($_GET["history"])) {
-                            ?>
-                            <div style="width:90%" class="mt-3 mb-4  row justify-content-center">
-                                <div class="mt-2 bg-white p-3" style="box-shadow:0px 1px 2px #000">
-                                    <div class="mb-2 col-lg-12 text-center">
-                                        <h5 class="text-uppercase border-bottom border-cyan-soft">
-                                            <div>
-                                                <strong><?= $eventData->event_title ?></strong>
-                                            </div>                                           
-                                            <div class="mt-2 pb-2">
-                                                <small style="font-size: 15px">
-                                                    <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
-                                                    | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
-                                                </small>
+                                    /** Confirm that the user has not yet reached the number of booking to be done */
+                                    if(($eventData->user_booking_count == $eventData->maximum_multiple_booking) || isset($_GET["history"])) {
+                                    ?>
+                                    <div style="width:90%" class="mt-3 mb-4  row justify-content-center">
+                                        <div class="mt-2 bg-white p-3" style="box-shadow:0px 1px 2px #000">
+                                            <div class="mb-2 col-lg-12 text-center">
+                                                <h5 class="text-uppercase border-bottom border-cyan-soft">
+                                                    <div>
+                                                        <strong><?= $eventData->event_title ?></strong>
+                                                    </div>                                           
+                                                    <div class="mt-2 pb-2">
+                                                        <small style="font-size: 15px">
+                                                            <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
+                                                            | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                        </small>
+                                                    </div>
+                                                </h5>
                                             </div>
-                                        </h5>
+                                            <div class="mt-4 text-center">
+                                                <p>You have reserved <?= $eventData->user_booking_count ?> out of <?= $eventData->maximum_multiple_booking ?> seats for this event with the provided contact number.</p>
+                                                <h4 class="text-center">Booking History</h4>
+                                                <div class="table-responsive">
+                                                    <table style="font-size:15px" class="table nowrap table-bordered table-hover" width="100%">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="text-left">Name</th>
+                                                                <th class="text-left">Seat</th>
+                                                                <th>Code</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php
+                                                            /** Load the seats booked using this contact number */
+                                                            $seatsBooked = $booking->prepare("
+                                                                SELECT a.*,
+                                                                    (
+                                                                        SELECT b.hall_name FROM events_halls_configuration b
+                                                                        WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
+                                                                    ) AS hall_name,
+                                                                    (
+                                                                        SELECT b.configuration FROM events_halls_configuration b
+                                                                        WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
+                                                                    ) AS configuration
+                                                                FROM events_booking a 
+                                                                WHERE a.event_guid = ? AND a.created_by = ?
+                                                            ");
+                                                            $seatsBooked->execute([$eventId, $session->loggedInUser]);
+
+                                                            /** Loop through the list */
+                                                            while($result = $seatsBooked->fetch(PDO::FETCH_OBJ)) { ?>
+                                                            <tr>
+                                                                <td class="text-left"><?= $result->fullname ?></td>
+                                                                <td class="text-left">
+                                                                    <strong>Hall</strong>: <?= $result->hall_name ?><br>
+                                                                    <strong>Seat</strong>: <?= $result->seat_name ?>
+                                                                </td>
+                                                                <td><?= $result->id ?></td>
+                                                            </tr>    
+                                                            <?php }?>
+                                                            
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <?php if($eventData->user_booking_count == $eventData->maximum_multiple_booking) { ?>
+                                                <a href="<?= $baseUrl ?>reservation/<?= $theId ?>">
+                                                    Change <?= ($eventData->is_payable) ? "Ticket" : "Contact" ?>
+                                                </a>
+                                                <?php } else { ?>
+                                                <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
+                                                    Book Seat
+                                                </a>
+                                                <?php } ?>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="mt-4 text-center">
-                                        <p>You have reserved <?= $eventData->user_booking_count ?> out of <?= $eventData->maximum_multiple_booking ?> seats for this event with the provided contact number.</p>
-                                        <h4 class="text-center">Booking History</h4>
-                                        <div class="table-responsive">
-                                            <table style="font-size:15px" class="table nowrap table-bordered table-hover" width="100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="text-left">Name</th>
-                                                        <th class="text-left">Seat</th>
-                                                        <th>Code</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
+                                <?php } else { ?>
+                                    <div style="width:90%" class="mt-3 mb-4 row">
+                                        <div class="col-lg-9 mb-3 col-md-9" >
+                                            <div class="mb-2 col-lg-12 text-center">
+                                                <h4 class="text-uppercase border-bottom border-cyan-soft">
+                                                    <strong><?= $hallData->hall_name ?></strong>
+                                                </h4>
+                                            </div>
+                                            <div style="padding:1rem" class="slim-scroll seats-table">
+                                                <table class="p-0 m-0">
                                                     <?php
-                                                    /** Load the seats booked using this contact number */
-                                                    $seatsBooked = $booking->prepare("
-                                                        SELECT a.*,
-                                                            (
-                                                                SELECT b.hall_name FROM events_halls_configuration b
-                                                                WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
-                                                            ) AS hall_name,
-                                                            (
-                                                                SELECT b.configuration FROM events_halls_configuration b
-                                                                WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
-                                                            ) AS configuration
-                                                        FROM events_booking a 
-                                                        WHERE a.event_guid = ? AND a.created_by = ?
-                                                    ");
-                                                    $seatsBooked->execute([$eventId, $session->loggedInUser]);
+                                                    // start the counter
+                                                    $counter = 0;
 
-                                                    /** Loop through the list */
-                                                    while($result = $seatsBooked->fetch(PDO::FETCH_OBJ)) { ?>
-                                                    <tr>
-                                                        <td class="text-left"><?= $result->fullname ?></td>
-                                                        <td class="text-left">
-                                                            <strong>Hall</strong>: <?= $result->hall_name ?><br>
-                                                            <strong>Seat</strong>: <?= $result->seat_guid ?>
-                                                        </td>
-                                                        <td><?= $result->id ?></td>
-                                                    </tr>    
-                                                    <?php }?>
-                                                    
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                    // draw the items
+                                                    for($i = 1; $i < $hallData->rows + 1; $i++) {
+                                                        print "<tr>\n";
+                                                        for($ii = 1; $ii < $hallData->columns + 1; $ii++) {
+                                                            // label
+                                                            $label = "{$i}_{$ii}";
 
-                                        <?php if($eventData->user_booking_count == $eventData->maximum_multiple_booking) { ?>
-                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>">
-                                            Change <?= ($eventData->is_payable) ? "Ticket" : "Contact" ?>
-                                        </a>
-                                        <?php } else { ?>
-                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
-                                            Book Seat
-                                        </a>
-                                        <?php } ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php } else { ?>
-                            <div style="width:90%" class="mt-3 mb-4 row">
-                                <div class="col-lg-9 mb-3 col-md-9" >
-                                    <div class="mb-2 col-lg-12 text-center">
-                                        <h4 class="text-uppercase border-bottom border-cyan-soft">
-                                            <strong><?= $hallData->hall_name ?></strong>
-                                        </h4>
-                                    </div>
-                                    <div style="padding:1rem" class="slim-scroll seats-table">
-                                        <table class="p-0 m-0">
-                                            <?php
-                                            // start the counter
-                                            $counter = 0;
+                                                            // print header
+                                                            print "<td data-label=\"{$label}\" class=\"width\">";
 
-                                            // draw the items
-                                            for($i = 1; $i < $hallData->rows + 1; $i++) {
-                                                print "<tr>\n";
-                                                for($ii = 1; $ii < $hallData->columns + 1; $ii++) {
-                                                    // label
-                                                    $label = "{$i}_{$ii}";
-
-                                                    // print header
-                                                    print "<td data-label=\"{$label}\" class=\"width\">";
-
-                                                    // confirm that it has not been removed
-                                                    if(!in_array($label, $hallConf["removed"])) {
-                                                        /** list the items */
-                                                        print "<div data-label=\"{$label}\" ".(in_array($label, $hallConf["blocked"]) ? "" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item ".(in_array($label, $hallConf["blocked"]) ? "unavailable" : null)."\">
-                                                            <span data-label=\"{$label}\" class=\"booking-item\">".(isset($hallConf["labels"][$label]) ? $hallConf["labels"][$label] : $counter)."</span>
-                                                        </div>";
+                                                            // confirm that it has not been removed
+                                                            if(!in_array($label, $hallConf["removed"])) {
+                                                                /** list the items */
+                                                                print "<div data-label=\"{$label}\" ".(in_array($label, $hallConf["blocked"]) ? "" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item ".(in_array($label, $hallConf["blocked"]) ? "unavailable" : null)."\">
+                                                                    <span data-label=\"{$label}\" class=\"booking-item\">".(isset($hallConf["labels"][$label]) ? $hallConf["labels"][$label] : $counter)."</span>
+                                                                </div>";
+                                                            }
+                                                            print "</td>\n";
+                                                            // increment the counter
+                                                            $counter++;
+                                                        }
+                                                        print "</tr>";
                                                     }
-                                                    print "</td>\n";
-                                                    // increment the counter
-                                                    $counter++;
-                                                }
-                                                print "</tr>";
-                                            }
-                                            ?>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="col-lg-3 mt-2 col-md-3">
-                                    <div class="mb-2 col-lg-12 text-center">
-                                        <h6 class="text-uppercase border-bottom border-cyan-soft">
-                                            <div>
-                                                <strong><?= $eventData->event_title ?></strong>
-                                            </div>                                           
-                                            <div class="mt-2 pb-2">
-                                                <small style="font-size: 15px">
-                                                    <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
-                                                    | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
-                                                </small>
+                                                    ?>
+                                                </table>
                                             </div>
-                                        </h6>
-                                    </div>
-                                    <div class="mb-4 mt-3">
-                                        <ul class="legend">
-                                            <li>
-                                                <div class="available">&nbsp;</div>
-                                                <span>Available</span>
-                                            </li>
-                                            <li>
-                                                <div class="selected">&nbsp;</div>
-                                                <span>Selected</span>
-                                            </li>
-                                            <li>
-                                                <div class="unavailable">&nbsp;</div>
-                                                <span>Unavailable</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="mt-4">
-                                        <?php if($eventData->user_booking_count) { ?>
-                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>?history">
-                                            View Booked Seats
-                                        </a>
-                                        <?php } ?>
-                                    </div>
-                                    <div class="mt-4 selected-seats">
-                                        <h4>Selected Seats (<span>0</span>)</h4>
-                                        <div class="selected-seats-content"></div>
-                                        <div class="form-group mt-3 text-right">
-                                            <button class="btn hidden btn-success btn-sm reserve-seat">Reserve</button>
+                                        </div>
+                                        <div class="col-lg-3 mt-2 col-md-3">
+                                            <div class="mb-2 col-lg-12 text-center">
+                                                <h6 class="text-uppercase border-bottom border-cyan-soft">
+                                                    <div>
+                                                        <strong><?= $eventData->event_title ?></strong>
+                                                    </div>                                           
+                                                    <div class="mt-2 pb-2">
+                                                        <small style="font-size: 15px">
+                                                            <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
+                                                            | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                        </small>
+                                                    </div>
+                                                </h6>
+                                            </div>
+                                            <div class="mb-4 mt-3">
+                                                <ul class="legend">
+                                                    <li>
+                                                        <div class="available">&nbsp;</div>
+                                                        <span>Available</span>
+                                                    </li>
+                                                    <li>
+                                                        <div class="selected">&nbsp;</div>
+                                                        <span>Selected</span>
+                                                    </li>
+                                                    <li>
+                                                        <div class="unavailable">&nbsp;</div>
+                                                        <span>Unavailable</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="mt-4">
+                                                <?php if($eventData->user_booking_count) { ?>
+                                                <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>?history">
+                                                    View Booked Seats
+                                                </a>
+                                                <?php } ?>
+                                            </div>
+                                            <div class="mt-4 selected-seats">
+                                                <h4>Selected Seats (<span>0</span>)</h4>
+                                                <div class="selected-seats-content"></div>
+                                                <div class="form-group mt-3 text-right">
+                                                    <button class="btn hidden btn-success btn-sm reserve-seat">Reserve</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+                                <?php } ?>
+
                             <?php } ?>
 
                             <div style="width:90%" class="mt-3 mb-4 row">

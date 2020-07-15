@@ -910,6 +910,17 @@ function pageNotFound($baseUrl) {
 		</div>';
 }
 
+function validationError($baseUrl, $msg = null) {
+	return '<div class="row justify-content-center">
+			<div class="col-lg-12">
+				<div class="text-center mt-4">
+					<img class="mb-4 img-error" src="'.$baseUrl.'assets/img/drawkit/color/drawkit-error-404.svg" />
+					<p class="lead">'.(!empty($msg) ? $msg : "Sorry! The request could not be processed.").'</p>
+				</div>
+			</div>
+		</div>';
+}
+
 function no_data_to_display($title = "No data to Show at the Moment", $button = '<div>Please come back later as we fetch data that recorrespond to this metric.</div>') {
 	return '<div class="row">
 			<div class="col-lg-12 no-data-found">
