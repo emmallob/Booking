@@ -243,6 +243,12 @@ class Api {
                             "ticket_guid" => "required - The id for the generated tickets to be activated"
                         ]
                     ],
+                    "validate" => [
+                        "params" => [
+                            "ticket_guid" => "required - The id for the generated tickets to be validated",
+                            "event_guid" => "required - This is the unique id for the event"
+                        ]
+                    ],
                     "generate" => [
                         "params" => [
                             "ticket_title" => "required - The title for this ticket",
@@ -747,6 +753,18 @@ class Api {
 
             // ticket configuration
             elseif(($this->inner_url == "tickets") && ($this->outer_url == "activate")) {
+                // update the user theme color
+                $request = $objectClass->activateTicket($params);
+
+                // if the request was successful
+                if($request) {
+                    $result['result'] = "The Ticket was successfully activated and can now be used.";
+                    $code = 200;
+                }
+            }
+
+            // ticket validation
+            elseif(($this->inner_url == "tickets") && ($this->outer_url == "validate")) {
                 // update the user theme color
                 $request = $objectClass->activateTicket($params);
 

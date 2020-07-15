@@ -116,7 +116,7 @@ require "headtags.php";
                                     <th width="10%">&#8470; Booked</th>
                                     <th width="12%">&#8470; of Seats</th>
                                     <th width="10%">Status</th>
-                                    <th width="12%"></th>
+                                    <th width="15%"></th>
                                 </thead>
                                 <tbody></tbody>
                             </table>

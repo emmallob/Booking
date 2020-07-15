@@ -9,6 +9,14 @@ const Toast = Swal.mixin({
     }
 });
 
+var responseCode = (code) => {
+    if (code == 200 || code == 201) {
+        return "success";
+    } else {
+        return "error";
+    }
+}
+
 $(`div[id="layoutAuthentication"] div[id="validateTicket"]`).length ? $(`input[name="event_ticket"]`).focus() : null;
 
 $(`div[id="layoutAuthentication"] div[class~="event-selector"]`).on('click', function() {
@@ -116,4 +124,56 @@ $(`button[class~="reserve-seat"]`).on("click", function() {
             }, 1000);
         }
     }, "json");
+});
+
+$("form[class~='appForm']").on("submit", function(e) {
+    e.preventDefault();
+
+    data = $("form[class~='appForm']").formToJson();
+    payload = JSON.stringify(data);
+
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $(`form[class~='appForm'] button[type="submit"]`).prop("disabled", true);
+
+    $.ajax({
+        type: $(`form[class~='appForm']`).attr('method'),
+        url: $(`form[class~='appForm']`).attr('action'),
+        data: payload,
+        dataType: 'json',
+        success: function(response) {
+            Toast.fire({
+                title: response.data.result,
+                type: responseCode(response.code)
+            });
+            if (response.data.remote_request) {
+                if (response.data.remote_request.reload) {
+                    $(`form[class~='appForm'] input, form[class~='appForm'] textarea`).val('');
+                    setTimeout(() => {
+                        window.location.href = response.data.remote_request.href;
+                    }, 2000);
+                }
+            }
+        },
+        error: function(err) {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+            setTimeout(() => {
+                $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+            }, 1000);
+            Toast.fire({
+                title: "Sorry! An error was encountered while processing the request.",
+                type: "error"
+            });
+        },
+        complete: function(data) {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+            setTimeout(() => {
+                $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+            }, 1000);
+        }
+    }).catch((err) => {
+        $(`div[class="form-content-loader"]`).css("display", "none");
+        setTimeout(() => {
+            $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+        }, 1000);
+    });
 });

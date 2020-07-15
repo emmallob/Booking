@@ -129,6 +129,11 @@ if(confirm_url_id(1)) {
                         <?php /** If the user wants to view the list of upcoming events */ if(!confirm_url_id(2, "halls") && !confirm_url_id(2, "book")) { ?>
                             <div style="width:90%" class="mt-3 row booking-events-list">
                                 <?php
+                                if(empty($eventData)) { ?>
+                                <div class="col-lg-12 text-center">
+                                    <p><em>There is currently no pending events. Please do check back later</em></p>
+                                </div>
+                                <?php } else {
                                 // get the list of events
                                 foreach($eventData as $eachEvent) {
                                     ?>
@@ -154,6 +159,7 @@ if(confirm_url_id(1)) {
                                             </div>
                                         </div>
                                     </div>
+                                <?php } ?>
                                 <?php } ?>
                             </div>
                             <div class="modal fade" id="eventDialogModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -211,13 +217,14 @@ if(confirm_url_id(1)) {
                                     <div class="mb-4 text-center">
                                         <h2 class="text-uppercase border-bottom border-cyan-soft"><?= $eventData->event_title ?></h2>
                                     </div>
-                                    <form action="<?= $baseUrl ?>api/tickets/validate" class="appForm" method="POST">
+                                    <form autocomplete="Off" action="<?= $baseUrl ?>api/tickets/validate" class="appForm" method="POST">
                                         <div class="form-group text-center">
-                                            <label for="event_ticket">Enter the Ticket Serial Number</label>
-                                            <input type="text" name="event_ticket" id="event_ticket" class="form-control text-center text-uppercase" maxlength="20">
+                                            <label for="ticket_guid">Enter the Ticket Serial Number</label>
+                                            <input type="text" name="ticket_guid" id="ticket_guid" class="form-control text-center text-uppercase" maxlength="20">
                                         </div>
                                         <div class="form-group text-center">
-                                            <button class="btn btn-sm btn-outline-success">Validate Ticket</button>
+                                            <input type="hidden" value="<?= $eventId ?>" name="event_guid" class="event_guid">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Validate Ticket</button>
                                         </div>
                                     </form>
                                 </div>
@@ -518,6 +525,7 @@ if(confirm_url_id(1)) {
                 bookingSelectedItems = new Array();
         </script>
         <?php } ?>
+        <script src="<?= $baseUrl ?>assets/js/tojson.js"></script>
         <script src="<?= $baseUrl ?>assets/js/reserve.js"></script>
         <sb-customizer project="sb-admin-pro"></sb-customizer>
     </body>

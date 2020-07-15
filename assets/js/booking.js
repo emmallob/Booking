@@ -375,7 +375,9 @@ $("form[class~='appForm']").on("submit", function(e) {
         },
         error: function(err) {
             $(`div[class="form-content-loader"]`).css("display", "none");
-            $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+            setTimeout(() => {
+                $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+            }, 1000);
             Toast.fire({
                 title: "Sorry! An error was encountered while processing the request.",
                 type: "error"
@@ -384,10 +386,15 @@ $("form[class~='appForm']").on("submit", function(e) {
         complete: function(data) {
             activateItem();
             $(`div[class="form-content-loader"]`).css("display", "none");
-            $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+            setTimeout(() => {
+                $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+            }, 1000);
         }
     }).catch((err) => {
         $(`div[class="form-content-loader"]`).css("display", "none");
+        setTimeout(() => {
+            $(`form[class~="appForm"] button[type="submit"]`).prop("disabled", false);
+        }, 1000);
     });
 });
 
