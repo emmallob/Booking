@@ -479,7 +479,7 @@ class Booking {
 	 * 
 	 * @param String $params 	This is the string that the user has parsed
 	 * @param Array $compare 	This is the string to test the user's own against
-	 * @param String $colum 	This is the column name
+	 * @param String $column 	This is the column name
 	 * 
 	 * @return String
 	 */
@@ -872,7 +872,7 @@ class Booking {
 				
 			}
 
-			/** remove a department */
+			/** cancel an event */
 			elseif($params->item == "cancel-event") {
 				
 				/** Confirm that events is not already deleted */
@@ -890,6 +890,43 @@ class Booking {
 
 					/** Log the user activity */
 					$this->userLogs("remove", $params->item_id, "Cancelled an Event that is yet to be held.", $params->clientId, $params->userId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
+			}
+
+			/** confirm event booking */
+			elseif($params->item == "confirm-booking") {
+
+				/** Split the event and the row id */
+				$event = explode("_", $params->item_id);
+
+				/** If there is not a second item */
+				if(!isset($event[1])) {
+					return "denied";
+				}
+				
+				/** Confirm that events is not already deleted */
+				$userActive = $this->db->prepare("SELECT `id` FROM `events` WHERE `event_guid` = ? AND `deleted`=? AND `state` !='cancelled' AND client_guid = ?");
+				$userActive->execute([$event[0], 0, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					
+					/** Remove the item from the list of events by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE `events` SET `state`=? WHERE `event_guid` = ? AND client_guid = ?");
+					$stmt->execute(["in-progress", $event[0], $params->clientId]);
+
+					/** Update the user row */
+					$stmt = $this->db->prepare("UPDATE `events_booking` SET `status`=? WHERE `event_guid` = ? AND id = ?");
+					$stmt->execute([1, $event[0], $event[1]]);
 
 					/** Commit the transactions */
 					$this->db->commit();

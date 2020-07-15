@@ -64,6 +64,9 @@ if($eventsId) {
                     <div class="col-lg-8 col-md-8"></div>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>events" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Events</a>
+                        <?php if($itemFound) { ?>
+                        <a href="<?= $baseUrl ?>events-insight/<?= $eventsId ?>" class="btn btn-sm btn-outline-success"><i class="fa fa-chart-bar"></i> &nbsp; Booked List</a>
+                        <?php } ?>
                     </div>
                 </div>
             </div>

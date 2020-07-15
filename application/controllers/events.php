@@ -114,11 +114,11 @@ class Events extends Booking {
                     if($accessObject->hasAccess('delete', 'events')) {
                         /** Cancel Event */
                         if(in_array($result->state, ["pending"])) {
-                            $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
+                            $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" data-title=\"Cancel Event\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
                         }
                         /** If no one has booked and it is still pending */
                         if($result->booked_count == 0 && $result->state == "pending") {
-                            $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to delete this event.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this event?\" data-item=\"event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-trash'></i></a>";
+                            $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to delete this event.\" data-title=\"Delete Event\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this event?\" data-item=\"event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-trash'></i></a>";
                         }
                     }
 

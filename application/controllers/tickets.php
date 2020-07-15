@@ -61,7 +61,7 @@ class Tickets extends Booking {
 
                     // do not show the delete button once at least one person has used the ticket
                     if(!$result->number_used) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this Ticket.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this ticket?\" data-item=\"ticket\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";   
+                        $action .= "&nbsp; <a href='javascript:void(0)' data-title=\"Delete Ticket\" title=\"Click to delete this Ticket.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this ticket?\" data-item=\"ticket\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";   
                     }
 
                     $result->action = $action;

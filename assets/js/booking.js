@@ -276,6 +276,7 @@ function deleteItem() {
     $(`div[id="layoutSidenav_content"]`).on('click', `a[class~="delete-item"]`, function(evt) {
         var item = $(this).attr('data-item');
         var itemId = $(this).attr('data-item-id');
+        $(this).attr("data-title") != undefined ? $(`div[id="deleteModal"] [class="modal-header"] h5`).html($(this).attr("data-title")) : $(`div[id="deleteModal"] [class="modal-header"] h5`).html("Delete Item")
         $(`div[id="deleteModal"]`).modal("show");
         $(`div[id="deleteModal"] button[type="submit"]`).attr({ "data-item": item, "data-item-id": itemId });
     });
@@ -582,7 +583,7 @@ var populateBookedEventsList = (data) => {
     if ($(`table[class~="bookedEventList"]`).length) {
         $(`table[class~="bookedEventList"]`).dataTable().fnDestroy();
         $(`table[class~="bookedEventList"]`).dataTable({
-            "aaData": data,
+            "aaData": data.bookedList,
             "iDisplayLength": 10,
             "columns": [
                 { "data": 'row_id' },
@@ -590,13 +591,16 @@ var populateBookedEventsList = (data) => {
                 { "data": 'fullname' },
                 { "data": 'contact' },
                 { "data": 'address' },
-                { "data": 'seat' },
+                { "data": 'seat_name' },
                 { "data": 'action' }
             ]
         });
         $(`table th:last`).removeClass('sorting');
+
+        $(`input[name="event_title"]`).val(data.event_title).prop("disabled", true);
+        $(`input[name="event_date"]`).val(data.event_date).prop("disabled", true);
+        $(`input[name="event_time"]`).val(`${data.start_time} to ${data.end_time}`).prop("disabled", true);
         deleteItem();
-        activateItem();
     }
     $(`div[class="form-content-loader"]`).css("display", "none");
 }
@@ -610,7 +614,7 @@ async function bookedEventList() {
         dataType: "json",
         success: function(response) {
             if (response.code == 200) {
-                populateBookedEventsList(response.data.result);
+                populateBookedEventsList(response.data.result[0]);
             } else {
                 $(`div[class="form-content-loader"]`).css("display", "none");
             }

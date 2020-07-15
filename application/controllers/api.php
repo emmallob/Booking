@@ -467,7 +467,7 @@ class Api {
      * @param array $params         - This the array of parameters that the user parsed in the request
      * @return  
      */
-    final function apiHandler(array $params, $endPoints) {
+    final function apiHandler(array $params, $remote) {
         // preset the response
         $result = [];
         $code = 500;
@@ -478,6 +478,7 @@ class Api {
         $params = (Object) $params;
         $params->clientId = $this->clientId;
         $params->userId = $this->userId;
+        $params->remote = $remote;
 
         if(empty($this->clientId) && (($this->outer_url !== "select" && $this->inner_url !== "account"))) {
             return $this->output($code, $result);
@@ -901,6 +902,7 @@ class Api {
 
             if($request) {
                 $result['result'] = $request;
+                $code = 200;
             }
             
         }
@@ -909,7 +911,7 @@ class Api {
         elseif( $this->inner_url == "remove" ) {
             
             // confirm that the user has the permission to perform the action
-            if(($params->item != "cancel-event") && !$this->accessCheck->hasAccess("delete", "{$params->item}s")) {
+            if((!in_array($params->item, ["cancel-event","confirm-booking"])) && !$this->accessCheck->hasAccess("delete", "{$params->item}s")) {
                 // permission denied message
                 $result['result'] = self::PERMISSION_DENIED;
             }
@@ -929,6 +931,8 @@ class Api {
                     $code = 200;
                     if($params->item == "cancel-event") {
                         $result['result'] = "The event was successfully cancelled.";
+                    } elseif($params->item == "confirm-booking") {
+                        $result['result'] = "The Booking was successfully confirmed.";
                     } else {
                         $result['result'] = "The ".ucfirst($params->item)." was successfully deleted";
                     }

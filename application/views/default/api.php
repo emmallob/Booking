@@ -29,6 +29,8 @@ $clientId = $session->clientId;
 $bookingClass->user_guid = $userId;
 $bookingClass->clientId = $clientId;
 
+$remote = false;
+
 // init the params variable
 $params = [];
 
@@ -85,7 +87,7 @@ if( !empty($incomingData) ) {
     }
 }
 
-else if( in_array($inner_url, ["halls", "events", "tickets", "reports", "reservations", "insight"]) && ($requestMethod == "GET") ) {
+else if( empty($incomingData) && in_array($inner_url, ["halls", "events", "tickets", "reports", "reservations", "insight"]) && ($requestMethod == "GET") ) {
     // empty the parameters list
     $params = [];
 
@@ -103,10 +105,13 @@ else if( in_array($inner_url, ["halls", "events", "tickets", "reports", "reserva
 }
 
 else if(
-    (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST")) ||
-    (($inner_url == "events") && ($outer_url == "add") && ($requestMethod == "POST")) || 
-    (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) ||
-    (($inner_url == "reservations") && ($outer_url == "reserve") && ($requestMethod == "POST")) 
+    empty($incomingData) && 
+    (
+        (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST")) ||
+        (($inner_url == "events") && ($outer_url == "add") && ($requestMethod == "POST")) || 
+        (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) ||
+        (($inner_url == "reservations") && ($outer_url == "reserve") && ($requestMethod == "POST")) 
+    )
 ) {
     // empty the parameters list
     $params = [];
@@ -167,7 +172,7 @@ if( $paramChecker['code'] !== 100) {
      * Example for users
      */
     // run the request
-    $ApiRequest = $Api->apiHandler($params, $requestMethod);
+    $ApiRequest = $Api->apiHandler($params, $remote);
 
     // print out the response
     echo json_encode($ApiRequest);

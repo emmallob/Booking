@@ -21,10 +21,16 @@ class Insight extends Booking {
 
             $stmt = $this->db->prepare("
                 SELECT 
-                    a.event_guid, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
+                    a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
                     a.is_payable, a.allow_multiple_booking, a.maximum_multiple_booking, a.attachment, a.description,
                     (SELECT b.ticket_title FROM tickets b WHERE b.ticket_guid = a.ticket_guid) AS ticket_applicable,
                     a.state, a.created_on, 
+                    (
+                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0'
+                    ) AS booked_count,
+                    (
+                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0' AND b.status='1'
+                    ) AS confirmed_count,
                     (
                         SELECT b.department_name FROM departments b WHERE b.department_guid = a.department_guid
                     ) AS department_name,
@@ -41,7 +47,7 @@ class Insight extends Booking {
             while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
                 
                 // booked list
-                $result->bookedList = $this->bookedList($result->event_guid);
+                $result->bookedList = $this->bookedList($result->event_guid, $params->remote);
                 $result->summary = $this->summaryDetails($result->event_guid);
                 
                 $data[] = $result;
@@ -61,22 +67,43 @@ class Insight extends Booking {
      * 
      * @return Object
      */
-    public function bookedList($event_guid) {
+    public function bookedList($event_guid, $remote) {
 
         try {
 
             $stmt = $this->db->prepare("
                 SELECT 
-                    seat_guid, ticket_guid, ticket_serial, booked_by, fullname, 
+                    a.id, seat_guid AS seat_name, ticket_guid, ticket_serial, booked_by, fullname, 
                     a.created_by AS contact, address, a.created_on, user_agent, b.hall_name,
-                    CASE WHEN a.status IS NULL THEN 'booked' ELSE 'confirmed' END AS booked_state
+                    CASE WHEN a.status IS NULL THEN 'booked' ELSE 'confirmed' END AS booked_state, a.status
                 FROM events_booking a
                 LEFT JOIN halls b ON b.hall_guid = a.hall_guid
                 WHERE event_guid = '{$event_guid}' AND a.deleted = ?
             ");
             $stmt->execute([0]);
 
-            return $stmt->fetchAll(PDO::FETCH_OBJ);
+            $i = 0;
+            $data = [];
+            while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+                $i++;
+                $result->row_id = $i;
+
+                // show this link if not a remote (api) request
+                if(!$remote) {
+                    if(!$result->status) {
+                        $result->action = "
+                            <a href='javascript:void(0)' class='delete-item btn btn-sm btn-outline-success' title='Click to confirm attendance' data-title='Confirm Booking' data-item=\"confirm-booking\" data-item-id='{$event_guid}_{$result->id}'><i class=\"fa fa-check\"></i></a>
+                            <a href='javascript:void(0)' class='delete-item btn btn-sm btn-outline-danger' title='Click to unbook seat' data-title='Unbook Seat' data-item=\"remove-booking\" data-item-id='{$event_guid}_{$result->id}'><i class=\"fa fa-trash\"></i></a>
+                        ";
+                    } else {
+                        $result->action = $result->booked_state;
+                    }
+                }
+
+                $data[] = $result;
+            }
+
+            return $data;
 
         } catch(PDOException $e) {
             return $e->getMessage();
@@ -96,12 +123,6 @@ class Insight extends Booking {
 
             $stmt = $this->db->prepare("
                 SELECT 
-                    (
-                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = '{$event_guid}' AND b.deleted = '0'
-                    ) AS booked_count,
-                    (
-                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = '{$event_guid}' AND b.deleted = '0' AND b.status='1'
-                    ) AS confirmed_count,
                     (
                         SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND sold_state = '1'
                     ) AS tickets_sold,
@@ -123,16 +144,6 @@ class Insight extends Booking {
             $result = $stmt->fetch(PDO::FETCH_OBJ);
 
             return [
-                "booking" => [
-                    "total_booked" => [
-                        "description" => "This is the total number of persons who have booked",
-                        "value" => $result->booked_count
-                    ],
-                    "total_confirmed" => [
-                        "description" => "This is the total number of persons who have booked and an admin have confirmed",
-                        "value" => $result->confirmed_count
-                    ]
-                ],
                 "funds" => [
                     "tickets_sold" => [
                         "description" => "The total number of tickets that have been sold for this event.",

@@ -69,7 +69,7 @@ class Departments extends Booking {
                     }
 
                     if($accessObject->hasAccess('delete', 'departments')) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this department.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this department?\" data-item=\"department\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";
+                        $action .= "&nbsp; <a data-title=\"Delete Department\" href='javascript:void(0)' title=\"Click to delete this department.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this department?\" data-item=\"department\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";
                     }
 
                     $result->action = $action;

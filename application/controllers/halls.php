@@ -72,7 +72,7 @@ class Halls extends Booking {
 
                     // delete the hall
                     if($accessObject->hasAccess('delete', 'halls')) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' title=\"Click to delete this hall.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this hall?\" data-item=\"hall\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";
+                        $action .= "&nbsp; <a href='javascript:void(0)' data-title=\"Delete Hall\" title=\"Click to delete this hall.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this hall?\" data-item=\"hall\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";
                     }
 
 
