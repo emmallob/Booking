@@ -766,12 +766,17 @@ class Api {
             // ticket validation
             elseif(($this->inner_url == "tickets") && ($this->outer_url == "validate")) {
                 // update the user theme color
-                $request = $objectClass->activateTicket($params);
+                $request = $objectClass->validateTicket($params);
 
                 // if the request was successful
                 if($request) {
-                    $result['result'] = "The Ticket was successfully activated and can now be used.";
-                    $code = 200;
+                    $result['result'] = $request;
+
+                    if($request == "Ticket successfully validated") {
+                        $result['remote_request']['reload'] = true;
+                        $result['remote_request']['href'] = $this->session->current_url;
+                        $code = 200;
+                    }                    
                 }
             }
 

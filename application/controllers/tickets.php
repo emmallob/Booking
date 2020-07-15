@@ -94,7 +94,7 @@ class Tickets extends Booking {
             $initials = !empty($params->initials) ? strtoupper($params->initials) : null;
             $quantity = !empty($params->quantity) ? (int) $params->quantity : 100;
             $length = (int) $params->length;
-            $length = ($length > 20) ? 20 : $length;
+            $length = ($length > 32) ? 32 : $length;
 
             $params->ticket_is_payable = !empty($params->ticket_is_payable) ? $params->ticket_is_payable : 0;
             $params->ticket_amount = !empty($params->ticket_amount) ? $params->ticket_amount : 0;
@@ -210,6 +210,67 @@ class Tickets extends Booking {
         } catch(\Exception $e) {
             return false;
         }
+
+    }
+
+    /**
+     * This method validates the ticket and sets the sessions
+     * 
+     * @param StdClass  $params
+     * @param String    $params->ticket_guid        The ticket id
+     * @param String    $params->event_guid         The event guid
+     * 
+     * @return Bool
+     */
+    public function validateTicket(stdClass $params) {
+
+        /** confirm a valid event guid was parsed */
+        $eventData = $this->pushQuery("*", "events", "event_guid='{$params->event_guid}'");
+
+        /** Get the first key */
+        if(empty($eventData)) {
+            return "Invalid Event ID was parsed";
+        }
+
+        /** Limit the length to 32 */
+        $params->ticket_guid = substr($params->ticket_guid, 0, 32);
+
+        /** Set the event data */
+        $eventData = $eventData[0];
+
+        /** confirm that a valid ticket was parsed */
+        $ticketData = $this->pushQuery("*", "tickets_listing", "ticket_serial='{$params->ticket_guid}' AND sold_state = '1'");
+
+        /** Get the first key */
+        if(empty($ticketData)) {
+            return "An invalid Ticket Serial Number was submitted for processing";
+        }
+
+        /** Set the event data */
+        $ticketData = $ticketData[0];
+
+        /** Convert the event tickets into an array */
+        $eventTickets = $this->stringToArray($eventData->ticket_guid);
+
+        /** Confirm that the ticket applies to the current event */
+        if(!in_array($ticketData->ticket_guid, $eventTickets)) {
+            return "An invalid Ticket Serial Number was submitted for processing";
+        }
+
+        /** Confirm that the ticket is not already used */
+        if($ticketData->status != "pending") {
+            return "Sorry! This ticket has already been used.";
+        }       
+
+        /** Set the sessions */
+        $this->session->eventTicketValidated = random_string("alnum", 20);
+        $this->session->eventTicketValidatedSerial = $params->ticket_guid;
+        $this->session->eventTicketValidatedTicket = $ticketData->ticket_guid;
+        $this->session->eventTicketValidatedId = $params->event_guid;
+
+
+        /** Return success */
+        return "Ticket successfully validated";
 
     }
 }

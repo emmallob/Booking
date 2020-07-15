@@ -80,7 +80,7 @@ $(`select[name="event_is_payable"]`).on('change', function() {
 
 $(`select[name="multiple_booking"]`).on('change', function() {
     let value = $(this).val();
-    value == 0 ? $(`input[name="maximum_booking"]`).parents(`div[class~="cards"]:first`).addClass("hidden") : $(`input[name="maximum_booking"]`).parents(`div[class~="cards"]:first`).removeClass("hidden");
+    value == 0 ? $(`input[name="maximum_booking"]`).val(1).parents(`div[class~="cards"]:first`).addClass("hidden") : $(`input[name="maximum_booking"]`).parents(`div[class~="cards"]:first`).removeClass("hidden");
 });
 
 $(`select[name="ticket_is_payable"]`).on('change', function() {

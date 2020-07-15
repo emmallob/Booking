@@ -74,6 +74,9 @@ if(confirm_url_id(1)) {
 
 } 
 
+// save the current page in session
+$session->set("current_url", current_url());
+
 // several multiple checks will be runned on this page for reserving of seats
 // it will handle all forms of requests and using url queries, will determine what to do
 ?>
@@ -220,7 +223,7 @@ if(confirm_url_id(1)) {
                                     <form autocomplete="Off" action="<?= $baseUrl ?>api/tickets/validate" class="appForm" method="POST">
                                         <div class="form-group text-center">
                                             <label for="ticket_guid">Enter the Ticket Serial Number</label>
-                                            <input type="text" name="ticket_guid" id="ticket_guid" class="form-control text-center text-uppercase" maxlength="20">
+                                            <input type="text" name="ticket_guid" id="ticket_guid" class="form-control text-center text-uppercase" maxlength="32">
                                         </div>
                                         <div class="form-group text-center">
                                             <input type="hidden" value="<?= $eventId ?>" name="event_guid" class="event_guid">

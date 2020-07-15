@@ -63,7 +63,7 @@ $hallFound = true;
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
                                         <label for="length">Length of Characters <span class="required">*</span></label>
-                                        <input type="number" min="6" value="6" max="20" placeholder="Length of each ticket serial" name="length" id="length" class="form-control">
+                                        <input type="number" min="6" value="6" max="32" placeholder="Length of each ticket serial" name="length" id="length" class="form-control">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
