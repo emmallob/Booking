@@ -693,8 +693,6 @@ class Api {
                     $result['remote_request']['clear'] = "clear()";
                     $code = 200;
                 }
-
-
             }
 
             // if the user is updating a user profile

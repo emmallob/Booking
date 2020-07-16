@@ -68,6 +68,10 @@ class Users extends Booking {
 			LIMIT {$params->limit}
 		");
 
+		$manageUsers = $accessObject->hasAccess('manage', 'users');
+		$deleteUsers = $accessObject->hasAccess('delete', 'users');
+		$userAccessLevels = $accessObject->hasAccess('accesslevel', 'users');
+
 		if ($query->execute([$params->clientId, 0])) {
 			$i = 0;
 
@@ -78,7 +82,7 @@ class Users extends Booking {
 
 				$action = '<div width="100%" align="center">';
 
-				if($accessObject->hasAccess('update', 'users')) {
+				if($manageUsers) {
 					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
 							$action .= "<button title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
 							<i class=\"fa fa-edit\"></i>
@@ -90,19 +94,19 @@ class Users extends Booking {
 					}
 				}
 
-				if($accessObject->hasAccess('accesslevel', 'users')) {
+				if($userAccessLevels) {
 					$action .= "<button title=\"Manage access permissions of {$data->name}\" class=\"btn btn-sm btn-outline-primary edit-access-level\" data-user-id=\"{$data->user_guid}\">
 							<i class=\"fa fa-sitemap\"></i>
 						</button> ";
 				}
 
-				if($accessObject->hasAccess('delete', 'users')) {
+				if($deleteUsers) {
 					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
-						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_id}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
 							<i class=\"fa fa-trash\"></i>
 						</button> ";
 					} elseif(!in_array($data->access_level, [1, 2])) {
-						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_id}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
 							<i class=\"fa fa-trash\"></i>
 						</button> ";
 					}

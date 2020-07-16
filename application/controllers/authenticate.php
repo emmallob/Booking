@@ -38,7 +38,7 @@ class Authenticate extends Booking {
                         // set the user sessions for the person to continue
                         $session->set("bokLoggedIn", random_string('alnum', 50));
                         $session->set("userId", $results->user_guid);
-                        $session->set("userRole", $results->access_level);
+                        $session->set("accessLevel", $results->access_level);
                         $session->set("clientId", $results->client_guid);
                         
                         // unset session locked

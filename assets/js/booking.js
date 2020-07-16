@@ -398,6 +398,208 @@ $("form[class~='appForm']").on("submit", function(e) {
     });
 });
 
+
+
+async function eventsChart() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
+
+    $.ajax({
+        url: `${baseUrl}api/insight/report?tree=booking_count,overall_summary&order=desc`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            if (response.code == 200) {
+                let chartLabel = new Array(),
+                    bookingCount = new Array(),
+                    confirmedCount = new Array();
+
+                $.each(response.data.result.data, function(i, e) {
+                    chartLabel.push(e.booking_count.event_title);
+                    bookingCount.push(e.booking_count.booked_count);
+                    confirmedCount.push(e.booking_count.confirmed_count);
+                });
+
+                // Area Chart Example
+                var ctx = document.getElementById("myAreaChart");
+                var myLineChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: chartLabel,
+                        datasets: [{
+                            label: "Total Booked",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(0, 97, 242, 0.05)",
+                            borderColor: "rgba(0, 97, 242, 1)",
+                            pointRadius: 3,
+                            pointBackgroundColor: "rgba(0, 97, 242, 1)",
+                            pointBorderColor: "rgba(0, 97, 242, 1)",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "rgba(0, 97, 242, 1)",
+                            pointHoverBorderColor: "rgba(0, 97, 242, 1)",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 1,
+                            data: bookingCount
+                        }, {
+                            label: "Total Confirmed",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(0, 77, 242, 0.05)",
+                            borderColor: "#6900c7",
+                            pointRadius: 3,
+                            pointBackgroundColor: "#6900c7",
+                            pointBorderColor: "#6900c7",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "#6900c7",
+                            pointHoverBorderColor: "#6900c7",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 1,
+                            data: confirmedCount
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 25,
+                                top: 25,
+                                bottom: 0
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                });
+
+                $.each(response.data.result.overall_summary, function(i, e) {
+                    $(`div[data-count="${i}"]`).html(e);
+                });
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
+        },
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
+        complete: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        }
+    });
+}
+if ($(`canvas[id="myAreaChart"`).length) {
+    eventsChart();
+}
+
+$(`body[class~="nav-fixed"]`).on('click', `span[class~="view-user-activity"]`, function(evt) {
+
+    var payload = '{"user_id":"' + $(this).attr('data-user-id') + '"}';
+
+    $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "flex");
+    $(`[class~="default-content"]`).html(``);
+    $(`div[id="DefaultModalWindow"] h5[class="p-b-5"]`).html("User Activity History");
+
+    $.post(`${baseUrl}api/users/history`, payload, function(response) {
+
+        if (response.code != 200) {
+            Toast.fire({
+                type: "success",
+                title: "No results found at the moment."
+            });
+
+            return false;
+        }
+        $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
+        $(`div[id="DefaultModalWindow"]`).modal('show');
+
+        let e = response.data.result,
+            activityLogs = ``;
+
+        $.each(e, function(i, ee) {
+            i += 1;
+            activityLogs += `
+                <tr>
+                    <td>${i}</td>
+                    <td>${ee.page}</td>
+                    <td>${ee.description}</td>
+                    <td width="30%">${ee.user_agent}</td>
+                    <td width="20%">${ee.date_recorded}</td>
+                </tr>
+                `;
+        });
+
+        $(`div[id="DefaultModalWindow"] div[class="modal-body"]`).html(`
+        <div class="row">
+            <div class="col-lg-12">
+                <table class="table table-hover" id="activityLogs">
+                    <thead>
+                        <th>#</th>
+                        <th width="10%"><strong>Page</strong></th>
+                        <th><strong>Description</strong></th>
+                        <th width="30%"><strong>User Agent</strong></th>
+                        <th width="20%" style="text-align:left"><strong>Date Created</strong></th>
+                    </thead>
+                    <tbody>${activityLogs}</tbody>
+                </table>
+            </div>
+        </div>`);
+        $(`table[id="activityLogs"]`).dataTable();
+
+        $(`div[id="DefaultModalWindow"]`).css("z-index", "99999");
+
+    }, 'json').catch((err) => {
+        $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
+    });
+});
+
+$(`form[class="userManagerForm"]`).on('submit', function(evt) {
+    evt.preventDefault();
+    let myForm = document.getElementById('saveRecordWithAttachment');
+    let formData = new FormData(myForm);
+
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop("disabled", true);
+
+    $.ajax({
+        type: `POST`,
+        url: $(this).attr('action'),
+        data: formData,
+        dataType: 'json',
+        contentType: false,
+        cache: false,
+        processData: false,
+        success: function(response) {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+            Toast.fire({
+                title: response.data.result,
+                type: responseCode(response.code)
+            });
+
+            if (response.data.remote_request) {
+                if (response.data.remote_request.reload) {
+                    setTimeout(() => {
+                        window.location.href = response.data.remote_request.href;
+                    }, 1000);
+                }
+            }
+        },
+        complete: function(data) {
+            $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop('disabled', false);
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
+        error: function(err) {
+            $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop('disabled', false);
+            $(`div[class="form-content-loader"]`).css("display", "none");
+            Toast.fire({
+                type: 'error',
+                title: 'Sorry! There was an error while processing the request.'
+            });
+        }
+    });
+
+});
+
 var populateHallsList = (data) => {
     if ($(`table[class~="listHalls"]`).length) {
         $(`table[class~="listHalls"]`).dataTable().fnDestroy();
@@ -636,82 +838,37 @@ if ($(`table[class~="bookedEventList"]`).length) {
     bookedEventList();
 }
 
-async function eventsChart() {
+var populateUsersList = (data) => {
+    if ($(`table[class~="usersList"]`).length) {
+        $(`table[class~="usersList"]`).dataTable().fnDestroy();
+        $(`table[class~="usersList"]`).dataTable({
+            "aaData": data,
+            "iDisplayLength": 10,
+            "columns": [
+                { "data": 'row_id' },
+                { "data": 'fullname' },
+                { "data": 'access_level' },
+                { "data": 'contact' },
+                { "data": 'email' },
+                { "data": 'registered_date' },
+                { "data": 'action' }
+            ]
+        });
+        $(`table th:last`).removeClass('sorting');
+        deleteItem();
+        activateItem();
+    }
+    $(`div[class="form-content-loader"]`).css("display", "none");
+}
+async function usersList() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
-    let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
-
     $.ajax({
-        url: `${baseUrl}api/insight/report?tree=booking_count,overall_summary&order=desc`,
+        url: `${baseUrl}api/users/list`,
         type: "GET",
         dataType: "json",
         success: function(response) {
             if (response.code == 200) {
-                let chartLabel = new Array(),
-                    bookingCount = new Array(),
-                    confirmedCount = new Array();
-
-                $.each(response.data.result.data, function(i, e) {
-                    chartLabel.push(e.booking_count.event_title);
-                    bookingCount.push(e.booking_count.booked_count);
-                    confirmedCount.push(e.booking_count.confirmed_count);
-                });
-
-                // Area Chart Example
-                var ctx = document.getElementById("myAreaChart");
-                var myLineChart = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: chartLabel,
-                        datasets: [{
-                            label: "Total Booked",
-                            lineTension: 0.3,
-                            backgroundColor: "rgba(0, 97, 242, 0.05)",
-                            borderColor: "rgba(0, 97, 242, 1)",
-                            pointRadius: 3,
-                            pointBackgroundColor: "rgba(0, 97, 242, 1)",
-                            pointBorderColor: "rgba(0, 97, 242, 1)",
-                            pointHoverRadius: 3,
-                            pointHoverBackgroundColor: "rgba(0, 97, 242, 1)",
-                            pointHoverBorderColor: "rgba(0, 97, 242, 1)",
-                            pointHitRadius: 10,
-                            pointBorderWidth: 1,
-                            data: bookingCount
-                        }, {
-                            label: "Total Confirmed",
-                            lineTension: 0.3,
-                            backgroundColor: "rgba(0, 77, 242, 0.05)",
-                            borderColor: "#6900c7",
-                            pointRadius: 3,
-                            pointBackgroundColor: "#6900c7",
-                            pointBorderColor: "#6900c7",
-                            pointHoverRadius: 3,
-                            pointHoverBackgroundColor: "#6900c7",
-                            pointHoverBorderColor: "#6900c7",
-                            pointHitRadius: 10,
-                            pointBorderWidth: 1,
-                            data: confirmedCount
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        layout: {
-                            padding: {
-                                left: 10,
-                                right: 25,
-                                top: 25,
-                                bottom: 0
-                            }
-                        },
-                        legend: {
-                            display: false
-                        }
-                    }
-                });
-
-                $.each(response.data.result.overall_summary, function(i, e) {
-                    $(`div[data-count="${i}"]`).html(e);
-                });
+                populateUsersList(response.data.result);
             } else {
                 $(`div[class="form-content-loader"]`).css("display", "none");
             }
@@ -719,119 +876,9 @@ async function eventsChart() {
         error: function() {
             $(`div[class="form-content-loader"]`).css("display", "none");
         },
-        complete: function() {
-            $(`div[class="form-content-loader"]`).css("display", "none");
-        }
+        complete: function() {}
     });
 }
-if ($(`canvas[id="myAreaChart"`).length) {
-    eventsChart();
+if ($(`table[class~="usersList"]`).length) {
+    usersList();
 }
-
-$(`body[class~="nav-fixed"]`).on('click', `span[class~="view-user-activity"]`, function(evt) {
-
-    var payload = '{"user_id":"' + $(this).attr('data-user-id') + '"}';
-
-    $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "flex");
-    $(`[class~="default-content"]`).html(``);
-    $(`div[id="DefaultModalWindow"] h5[class="p-b-5"]`).html("User Activity History");
-
-    $.post(`${baseUrl}api/users/history`, payload, function(response) {
-
-        if (response.code != 200) {
-            Toast.fire({
-                type: "success",
-                title: "No results found at the moment."
-            });
-
-            return false;
-        }
-        $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
-        $(`div[id="DefaultModalWindow"]`).modal('show');
-
-        let e = response.data.result,
-            activityLogs = ``;
-
-        $.each(e, function(i, ee) {
-            i += 1;
-            activityLogs += `
-                <tr>
-                    <td>${i}</td>
-                    <td>${ee.page}</td>
-                    <td>${ee.description}</td>
-                    <td width="30%">${ee.user_agent}</td>
-                    <td width="20%">${ee.date_recorded}</td>
-                </tr>
-                `;
-        });
-
-        $(`div[id="DefaultModalWindow"] div[class="modal-body"]`).html(`
-        <div class="row">
-            <div class="col-lg-12">
-                <table class="table table-hover" id="activityLogs">
-                    <thead>
-                        <th>#</th>
-                        <th width="10%"><strong>Page</strong></th>
-                        <th><strong>Description</strong></th>
-                        <th width="30%"><strong>User Agent</strong></th>
-                        <th width="20%" style="text-align:left"><strong>Date Created</strong></th>
-                    </thead>
-                    <tbody>${activityLogs}</tbody>
-                </table>
-            </div>
-        </div>`);
-        $(`table[id="activityLogs"]`).dataTable();
-
-        $(`div[id="DefaultModalWindow"]`).css("z-index", "99999");
-
-    }, 'json').catch((err) => {
-        $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
-    });
-});
-
-$(`form[class="userManagerForm"]`).on('submit', function(evt) {
-    evt.preventDefault();
-    let myForm = document.getElementById('saveRecordWithAttachment');
-    let formData = new FormData(myForm);
-
-    $(`div[class="form-content-loader"]`).css("display", "flex");
-    $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop("disabled", true);
-
-    $.ajax({
-        type: `POST`,
-        url: $(this).attr('action'),
-        data: formData,
-        dataType: 'json',
-        contentType: false,
-        cache: false,
-        processData: false,
-        success: function(response) {
-            $(`div[class="form-content-loader"]`).css("display", "none");
-            Toast.fire({
-                title: response.data.result,
-                type: responseCode(response.code)
-            });
-
-            if (response.data.remote_request) {
-                if (response.data.remote_request.reload) {
-                    setTimeout(() => {
-                        window.location.href = response.data.remote_request.href;
-                    }, 1000);
-                }
-            }
-        },
-        complete: function(data) {
-            $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop('disabled', false);
-            $(`div[class="form-content-loader"]`).css("display", "none");
-        },
-        error: function(err) {
-            $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop('disabled', false);
-            $(`div[class="form-content-loader"]`).css("display", "none");
-            Toast.fire({
-                type: 'error',
-                title: 'Sorry! There was an error while processing the request.'
-            });
-        }
-    });
-
-});
