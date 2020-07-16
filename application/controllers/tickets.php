@@ -128,7 +128,7 @@ class Tickets extends Booking {
             /** Execute this section if the generated equals yes */
             if($generated == "yes") {
                 /** Insert Query */
-                $insertQuery = "INSERT INTO tickets_listing (`ticket_guid`, `ticket_serial`, `ticket_amount`) VALUES";
+                $insertQuery = "INSERT INTO tickets_listing (`client_guid`, `ticket_guid`, `ticket_serial`, `ticket_amount`) VALUES";
 
                 /** Tickets array */
                 $tickets = [];
@@ -140,7 +140,7 @@ class Tickets extends Booking {
                     $tickets[] = "{$initials}{$serial}";
 
                     /** Append to the insert query */ 
-                    $insertQuery .= "('{$ticket_guid}', '{$initials}{$serial}', '{$params->ticket_amount}'),";    
+                    $insertQuery .= "('{$params->clientId}', '{$ticket_guid}', '{$initials}{$serial}', '{$params->ticket_amount}'),";    
                 }
                 /** Remove comma at the end of the string and append a semi column */
                 $insertQuery = trim($insertQuery, ",").";";

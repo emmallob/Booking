@@ -100,7 +100,7 @@ class Events extends Booking {
                     } else {
                         $result->status = "<span class='badge badge-warning'>Past</span>";
                     }
-                    $action = "";
+                    $action = "<div class='text-center'>";
 
                     if($accessObject->hasAccess('update', 'events')) {
                         if(in_array($result->state, ["pending"])) {
@@ -122,7 +122,7 @@ class Events extends Booking {
                         }
                     }
 
-                    $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a>";
+                    $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
 
                     $result->event_details = "
                         <strong>Booking Starts:</strong> {$result->booking_start_time}<br>

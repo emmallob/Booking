@@ -616,12 +616,12 @@ async function bookedEventList() {
     let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
 
     $.ajax({
-        url: `${baseUrl}api/insight/report?event_guid=${event_guid}`,
+        url: `${baseUrl}api/insight/report?event_guid=${event_guid}&tree=detail,list`,
         type: "GET",
         dataType: "json",
         success: function(response) {
             if (response.code == 200) {
-                populateBookedEventsList(response.data.result[0]);
+                populateBookedEventsList(response.data.result.data[0]);
             } else {
                 $(`div[class="form-content-loader"]`).css("display", "none");
             }
@@ -641,17 +641,19 @@ async function eventsChart() {
     let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
 
     $.ajax({
-        url: `${baseUrl}api/insight/report?tree=booking_count&order=desc`,
+        url: `${baseUrl}api/insight/report?tree=booking_count,overall_summary&order=desc`,
         type: "GET",
         dataType: "json",
         success: function(response) {
             if (response.code == 200) {
                 let chartLabel = new Array(),
-                    chartData = new Array();
+                    bookingCount = new Array(),
+                    confirmedCount = new Array();
 
-                $.each(response.data.result, function(i, e) {
+                $.each(response.data.result.data, function(i, e) {
                     chartLabel.push(e.booking_count.event_title);
-                    chartData.push(e.booking_count.booked_count);
+                    bookingCount.push(e.booking_count.booked_count);
+                    confirmedCount.push(e.booking_count.confirmed_count);
                 });
 
                 // Area Chart Example
@@ -661,7 +663,7 @@ async function eventsChart() {
                     data: {
                         labels: chartLabel,
                         datasets: [{
-                            label: "Total Booking",
+                            label: "Total Booked",
                             lineTension: 0.3,
                             backgroundColor: "rgba(0, 97, 242, 0.05)",
                             borderColor: "rgba(0, 97, 242, 1)",
@@ -672,11 +674,26 @@ async function eventsChart() {
                             pointHoverBackgroundColor: "rgba(0, 97, 242, 1)",
                             pointHoverBorderColor: "rgba(0, 97, 242, 1)",
                             pointHitRadius: 10,
-                            pointBorderWidth: 2,
-                            data: chartData
+                            pointBorderWidth: 1,
+                            data: bookingCount
+                        }, {
+                            label: "Total Confirmed",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(0, 77, 242, 0.05)",
+                            borderColor: "#6900c7",
+                            pointRadius: 3,
+                            pointBackgroundColor: "#6900c7",
+                            pointBorderColor: "#6900c7",
+                            pointHoverRadius: 3,
+                            pointHoverBackgroundColor: "#6900c7",
+                            pointHoverBorderColor: "#6900c7",
+                            pointHitRadius: 10,
+                            pointBorderWidth: 1,
+                            data: confirmedCount
                         }]
                     },
                     options: {
+                        responsive: true,
                         maintainAspectRatio: false,
                         layout: {
                             padding: {
@@ -686,45 +703,8 @@ async function eventsChart() {
                                 bottom: 0
                             }
                         },
-                        scales: {
-                            xAxes: [{
-                                gridLines: {
-                                    display: false,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    maxTicksLimit: 7
-                                }
-                            }],
-                            yAxes: [{
-                                ticks: {},
-                                gridLines: {
-                                    color: "rgb(234, 236, 244)",
-                                    zeroLineColor: "rgb(234, 236, 244)",
-                                    drawBorder: false,
-                                    borderDash: [2],
-                                    zeroLineBorderDash: [2]
-                                }
-                            }]
-                        },
                         legend: {
                             display: false
-                        },
-                        tooltips: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyFontColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleFontColor: "#6e707e",
-                            titleFontSize: 14,
-                            borderColor: "#dddfeb",
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: "index",
-                            caretPadding: 10,
-                            callbacks: {}
                         }
                     }
                 });

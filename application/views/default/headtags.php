@@ -63,9 +63,6 @@ $accessObject->userId = $userId;
             background-attachment: fixed;
             background-size: cover;
         }
-		.footer .small {
-			/* color: #fff */
-        }
 	</style>
 </head>
 <body class="nav-fixed dashboard bg <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">

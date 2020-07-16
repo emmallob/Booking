@@ -19,7 +19,7 @@ class Insight extends Booking {
             $event_guid = !empty($params->event_guid) ? $this->inList($params->event_guid) : null;
             $condition = !empty($event_guid) ? "AND a.event_guid IN ". $event_guid : null;
 
-            $params->tree = (isset($params->tree)) ? $this->stringToArray($params->tree) : ["list", "booking_summary", "detail", "booking_count"];
+            $params->tree = (isset($params->tree)) ? $this->stringToArray($params->tree) : ["list", "booking_summary", "detail", "booking_count", "overall_summary"];
 
             $stmt = $this->db->prepare("
                 SELECT 
@@ -55,13 +55,14 @@ class Insight extends Booking {
                 }
 
                 if(in_array("booking_summary", $params->tree)) {
-                    $data[$i]['booking_summary'] = $this->summaryDetails($result->event_guid);
+                    $data[$i]['booking_summary'] = $this->summaryDetails($result->event_guid, $params->clientId);
                 }
                 
                 if(in_array("booking_count", $params->tree)) {
                     $data[$i]['booking_count'] = [
                         "event_title" => $result->event_title . " (". date("jS F", strtotime($result->event_date)) . ")",
-                        "booked_count" => $result->booked_count
+                        "booked_count" => $result->booked_count,
+                        "confirmed_count" => $result->confirmed_count
                     ];
                 }
                     
@@ -72,8 +73,16 @@ class Insight extends Booking {
                 $i++;
                 
             }
+            /** Set the result */
+            $results['data'] = $data;
 
-            return $data;
+            /** If the overall_summary is parsed */
+            if(in_array("overall_summary", $params->tree)) {
+                $results['overall_summary'] = $this->allInsight($params->clientId);
+            }
+
+            /** Return the data */
+            return $results;
 
         } catch(PDOException $e) {
             return $e->getMessage();
@@ -137,17 +146,18 @@ class Insight extends Booking {
      * 
      * @return Object
      */
-    public function summaryDetails($event_guid) {
+    public function summaryDetails($event_guid, $client_guid) {
 
         try {
 
             $stmt = $this->db->prepare("
                 SELECT
                     (
-                        SELECT SUM(ticket_amount) AS overall_funds_realised FROM tickets_listing WHERE status='used' AND sold_state = '1'
+                        SELECT SUM(ticket_amount) AS overall_funds_realised 
+                        FROM tickets_listing WHERE status='used' AND sold_state = '1' AND client_guid = '{$client_guid}'
                     ) AS overall_funds_realised,
                     (
-                        SELECT COUNT(*) FROM tickets_listing WHERE status='used' AND sold_state = '1'
+                        SELECT COUNT(*) FROM tickets_listing WHERE status='used' AND sold_state = '1' AND client_guid = '{$client_guid}'
                     ) AS overall_tickets_sold,
                     (
                         SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND sold_state = '1'
@@ -164,7 +174,7 @@ class Insight extends Booking {
                     (
                         SELECT SUM(ticket_amount) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND status = 'used' AND sold_state = '1'
                     ) AS tickets_funds_realised
-                FROM tickets_listing WHERE 1
+                FROM tickets_listing WHERE client_guid = '{$client_guid}'
             ");
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_OBJ);
@@ -247,8 +257,36 @@ class Insight extends Booking {
      * 
      * @return Array
      */
-    public function allInsight() {
-        
+    public function allInsight($client_guid) {
+        try {
+
+            $stmt = $this->db->prepare("
+                SELECT
+                    (
+                        SELECT COUNT(*) FROM events WHERE deleted='0' AND client_guid = '{$client_guid}'
+                    ) AS events_count,
+                    (
+                        SELECT COUNT(*) FROM halls WHERE deleted='0' AND client_guid = '{$client_guid}'
+                    ) AS halls_count,
+                    (
+                        SELECT COUNT(*) FROM tickets WHERE status='1' AND client_guid = '{$client_guid}'
+                    ) AS tickets_count,
+                    (
+                        SELECT COUNT(*) FROM users WHERE deleted='0' AND client_guid = '{$client_guid}'
+                    ) AS users_count,
+                    (
+                        SELECT COUNT(*) FROM departments WHERE status='1' AND client_guid = '{$client_guid}'
+                    ) AS departments_count
+                FROM users_accounts WHERE client_guid = '{$client_guid}'
+            ");
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_OBJ);
+
+            return $result;
+
+        } catch(PDOException $e) {
+
+        }
     } 
 
     /**
