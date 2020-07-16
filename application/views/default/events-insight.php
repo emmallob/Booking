@@ -64,7 +64,7 @@ if($eventsId) {
                     <div class="col-lg-8 col-md-8">
                         List of all members who have booked for the event
                     </div>
-                    <?php if($itemFound) { ?>
+                    <?php if($itemFound && $accessObject->hasAccess("insight", "events")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="javascript:void(0)" data-event-guid="<?= $eventsId ?>" class="btn btn-sm download-file btn-outline-danger"><i class="fa fa-file-pdf"></i></a>
                         <a href="javascript:void(0)" data-event-guid="<?= $eventsId ?>" class="btn btn-sm download-file btn-outline-success"><i class="fa fa-file-excel"></i></a>
@@ -73,7 +73,7 @@ if($eventsId) {
                 </div>
             </div>
             <div class="card-body">
-                <?php if(!$itemFound || !$accessObject->hasAccess("update", "events")) { ?>
+                <?php if(!$itemFound || !$accessObject->hasAccess("insight", "events")) { ?>
                     <?= pageNotFound($baseUrl) ?>
                 <?php } else { ?>
                     <?= form_loader() ?>

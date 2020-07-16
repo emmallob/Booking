@@ -52,6 +52,10 @@ class Events extends Booking {
             /** Halls class object */
             $hallObject = load_class("halls", "controllers");
 
+            $updateEvent = $accessObject->hasAccess('update', 'events');
+            $eventInsight = $accessObject->hasAccess('insight', 'events');
+            $deleteEvent = $accessObject->hasAccess('delete', 'events');
+
             /** Count the number of rows found */
             if($stmt->rowCount() > 0) {
                 
@@ -102,7 +106,7 @@ class Events extends Booking {
                     }
                     $action = "<div class='text-center'>";
 
-                    if($accessObject->hasAccess('update', 'events')) {
+                    if($updateEvent) {
                         if(in_array($result->state, ["pending"])) {
                             $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='Edit the details of this event' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
                         } else {
@@ -111,7 +115,7 @@ class Events extends Booking {
                     }
 
                     /** Access Permissions Check */
-                    if($accessObject->hasAccess('delete', 'events')) {
+                    if($deleteEvent) {
                         /** Cancel Event */
                         if(in_array($result->state, ["pending"])) {
                             $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" data-title=\"Cancel Event\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
@@ -122,7 +126,10 @@ class Events extends Booking {
                         }
                     }
 
-                    $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
+                    /** Event insight */
+                    if($eventInsight) {
+                        $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
+                    }
 
                     $result->event_details = "
                         <strong>Booking Starts:</strong> {$result->booking_start_time}<br>

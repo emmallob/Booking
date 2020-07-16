@@ -137,6 +137,14 @@ class Api {
                             "access_level" => "The access level id to load the permissions"
                         ]
                     ],
+                    "change_password" => [
+                        "description" => "Use this endpoint to change a users password",
+                        "params" => [
+                            "user_guid" => "required - This is the unique user id to change the password.",
+                            "password" => "required - Enter the password",
+                            "password_2" => "required - Reenter password to confirm"
+                        ]
+                    ],
                     "access_levels" => [
                         "description" => "Update the user access permissions",
                         "params" => [

@@ -120,7 +120,7 @@ if(!empty($thisUser)) {
                                                         // access level list
                                                         foreach ($thisAccessLevel as $key => $value) {
                                                             $header = ucwords(str_replace("_", " ", $key));
-                                                            print "<div class='col-lg-4 col-md-4' ".(($session->userId == $userId) ? "title='You cannot alter the number of permissions for your Account as An Administrator.'" : null).">";
+                                                            print "<div class='col-lg-4 mb-2 col-md-4' ".(($session->userId == $userId) ? "title='You cannot alter the number of permissions for your Account as An Administrator.'" : null).">";
                                                             print "<h6 style='font-weight:bolder; font-size:14px'>".$header."</h6>";
                                                             foreach($value as $nkey => $nvalue) {
                                                                 print "<div>";
@@ -149,9 +149,29 @@ if(!empty($thisUser)) {
                 </div>
                 <div id="liftSizing">
                     <div class="card mb-4">
-                        <div class="card-header">Password</div>
+                        <div class="card-header">Change Password</div>
                         <div class="card-body">
-                            
+                            <form action="<?= $baseUrl ?>api/users/change_password" class="appForm" method="POST">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="password">Password <span class="required">*</span></label>
+                                            <input type="password" name="password" id="password" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label for="password_2">Confirm Password <span class="required">*</span></label>
+                                            <input type="hidden" value="<?= $userId ?>" name="user_guid" id="user_guid" class="form-control">
+                                            <input type="password" name="password_2" id="password_2" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 border-top pt-3 border-default text-right mt-3">
+                                        <div class="clearfix"></div>
+                                        <button class="btn btn-sm btn-primary" type="submit" name="submit">Change Password</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

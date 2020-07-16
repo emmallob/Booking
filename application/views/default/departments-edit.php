@@ -11,7 +11,7 @@ $departmentId = (confirm_url_id(1)) ? xss_clean($SITEURL[1]) : null;
 if($departmentId) {
 
     // load the hall data
-    $departmentData = $bookingClass->pushQuery("*", "departments", "department_guid='{$departmentId}' && client_guid='{$session->clientId}' AND status='0'");
+    $departmentData = $bookingClass->pushQuery("*", "departments", "department_guid='{$departmentId}' && client_guid='{$session->clientId}' AND status='1'");
     
     // confirm that data was found
     if(!empty($departmentData)) {
