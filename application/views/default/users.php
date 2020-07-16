@@ -23,11 +23,11 @@ require "headtags.php";
             <div class="card-header">
                 <div class="row" style="width:100%">
                     <div class="col-lg-8 col-md-8">
-                        List of all Events
+                        List of all Users
                     </div>
                     <?php if($accessObject->hasAccess("manage", "users")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
-                        <a href="<?= $baseUrl ?>events-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
+                        <a href="<?= $baseUrl ?>users-add" class="btn btn-sm btn-outline-primary"><i class="fa fa-plus"></i>&nbsp;Add</a>
                     </div>
                     <?php } ?>
                 </div>

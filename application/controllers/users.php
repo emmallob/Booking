@@ -454,114 +454,157 @@ class Users extends Booking {
 	 * 
 	 * @return String
 	 */
-	public function addUserProfile(stdClass $userData) {
-		// global variable
-		global $accessObject;
-
-		// load the user session key to be used for all the queries
-		$accountInfo = $this->clientData($userData->clientId);
-		$cSubscribe = json_decode( $accountInfo->setup_info, true );
-
-		// sanitize the user email address
-		$userData->email = (!empty($userData->email)) ? filter_var($userData->email, FILTER_SANITIZE_EMAIL) : null;
+	public function addUserProfile(stdClass $params) {
 		
-		// confirm valid contact number
-		if(!preg_match("/^[0-9+]+$/", $userData->phone)) {
-			return "invalid-phone";
+		// load the user session key to be used for all the queries
+		$accountInfo = $this->clientData($params->clientId);
+		$cSubscribe = json_decode( $accountInfo->subscription, true );
+
+		// confirm that the user has not reached the subscription ratio
+		if($cSubscribe['users_created'] >= $cSubscribe['users']) {
+			return "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['users']} users";
 		}
 
-		// confirm valid email address
-		if(!filter_var($userData->email, FILTER_VALIDATE_EMAIL)) {
-			return "invalid-email";
+		// confirm a valid contact number
+		if(!empty($params->contact) && !preg_match("/^[0-9+]+$/", $params->contact)) {
+			// return error message
+			return "Sorry! Enter a valid contact number.";
 		}
 
+		// contact number should be at most 15 characters long
+		if(strlen($params->contact) > 15) {
+			// return error message
+			return "Sorry! The contact number must be at most 15 characters long.";
+		}
+
+		// confirm that the username is already existing
+		if(empty($params->email) || !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
+			// return error message
+			return "Sorry! Enter a valid email address.";
+		}
+
+		// confirm that the email address does not belong to this client already
+		if($this->check_existing("users", "email", $params->email, "AND clientId='{$params->clientId}' AND deleted='0'")) {
+			return "Sorry! This email address have already been linked to this Account.";
+		}
+
+		// get the username only from the email address
+		$params->username = explode("@", $params->email)[0];
+
+		// confirm username is not already taken
+		if($this->check_existing("users", "login", $params->username, "AND clientId='{$params->clientId}' AND deleted='0' AND user_type='user'")) {
+			return "Sorry! The username already exist.";
+		}
+
+		// confirm valid access levels list
+		if(empty($params->access_level) || !is_array($params->access_level)) {
+			return "An invalid Access Level Permissions were parsed";
+		}
+
+		// confirm valid access levels list
+		if(empty($params->access_level_id) || !preg_match("/^[0-9]+$/", $params->access_level_id)) {
+			return "An invalid Access Level Permission ID was parsed";
+		}
+
+		// initialiate
+		$accessLevel = [];
+
+		// clean the access permissions well
+		foreach($params->access_level as $eachKey => $eachValue) {
+			foreach($eachValue as $key => $value) {
+				foreach($value as $i => $e) {
+					$accessLevel[$eachKey][$key] = ($e == "on") ? 1 : 0;
+				}
+			}
+		}
+		$permissions["permissions"] = $accessLevel;
+
+		// lets move ahead and create some more variables
+		$params->userId = $this->generate_user_id();
+		$params->verifyToken = $this->generate_verification_code();
+		$params->created_by = $params->curUserId;
+		
 		try {
 
 			// begin transaction
-			$this->booking->beginTransaction();
+			$this->db->beginTransaction();
 
-			// Check Email Exists
-			$checkData = $this->pushQuery("COUNT(*) AS proceed", "users", "email='{$userData->email}' && status = '1'");
+			// insert the user account the user profile information
+			$stmt = $this->db->prepare("
+				INSERT INTO `users` SET
+				name = ?, email = ?, contact = ?, client_guid=?, created_on = now(), 
+				created_by = ?, verify_token = ?, username = ?".
+				(empty($params->image) ? '' : ", image = '{$params->image}'").
+				(empty($params->access_level_id) ? '' : ", access_level = '{$params->access_level_id}'").
+				", user_guid = ?, user_type = ?, password = ?
+			");
+			$stmt->execute([
+				$params->fullname, $params->email, $params->contact, $params->clientId,
+				$params->curUserId, $params->verifyToken, $params->username, 
+				$params->userId, "user", password_hash(random_string('alnum', 12), PASSWORD_DEFAULT)
+			]);
 
-			if ($checkData != false && $checkData[0]->proceed == '0') {
+			// insert the user access levels
+			$stmt = $this->db->prepare("INSERT INTO users_roles SET permissions = ?, client_guid=?, last_updated = now(), user_guid = ?");
+			$stmt->execute([json_encode($permissions), $params->clientId, $params->userId]);
+			
+			// insert the user activity
+			$this->userLogs("profile", $params->userId, "Added a new the Profile Account of {$params->fullname}.", $params->curUserId, $params->clientId);
 
-				// Add Record To Database
-				$getUserId   = random_string('alnum', mt_rand(20, 30));
-				$getPassword = random_string('alnum', mt_rand(8, 10));
-				$hashPassword= password_hash($getPassword, PASSWORD_DEFAULT);
-				$username = explode("@", $userData->email)[0];
-
-				$userData->verifyToken = random_string('alnum', mt_rand(50, 80));
-
-				$query = $this->addData(
-					"users" ,
-					"client_guid='{$userData->clientId}', user_guid='{$getUserId}', name='{$userData->fullname}', 
-					gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', 
-					verify_token='{$userData->verifyToken}', status='0', access_level='{$userData->access_level}', 
-					password='{$hashPassword}', username='{$username}'"
-				);
-
-				if ($query == true) {
-
-					// Record user activity
-					$this->userLogs('users', $getUserId, 'Added a new user.');
-					
-					// Assign Roles To User
-					$accessObject->assignUserRole($getUserId, $userData->access_level);
-					
-					// form the email message
-					$emailSubject = "Account Setup \[".config_item('site_name')."\]<br>";
-					$emailMessage = "Hello {$userData->fullname},<br>";
-					$emailMessage .= "You have been added as a user on <strong>{$accountInfo->client_name}</strong> to help manage the Account.<br><br>";
-					$emailMessage .= "Username: <strong>{$userData->email}</strong><br>";
-					$emailMessage .= "Password: <strong>{$getPassword}</strong><br>";
-					
-					// create the verification link
-					$emailMessage .= "Please <a href='".$this->config->base_url('verify/account?token='.$userData->verifyToken)."'><strong>Click Here</strong></a> to verify your Email Address.\n\n";
-
-					// set the email address
-					$userEmail = [
-						"recipients_list" => [
-							[
-								"fullname" => $userData->fullname,
-								"email" => $userData->email,
-								"customer_id" => $userData->userId
-							]
-						]
-					];
-					
-					// increment the number of brands created for the account subscription
-					$cSubscribe['users_created'] = (!isset($cSubscribe['users_created'])) ? 1 : ($cSubscribe['users_created']+1);
-
-					// update the client brands subscription count
-					$this->booking->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE client_guid='{$userData->clientId}'");
-
-					// set the new value for the subscription stored in session
-					$this->session->accountPackage = $cSubscribe;
-
-					// record the email sending to be processed by the cron job
-					$sms = $this->booking->prepare("
-						INSERT INTO email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
-					");
-					$sms->execute([
-						$userData->clientId, 'general', $userData->userId, json_encode($userEmail), $userData->curUserId, $emailMessage, $emailSubject
-					]);
-
-					$this->booking->commit();
-
-					return "account-created";
-				
-				} else {
-					return "Sorry! User Records Failed To Save.";
-				}
+			// form the email message
+			$emailSubject = "Account Setup \[".config_item('site_name')."\]\n";
+			$emailMessage = "Hello {$params->fullname},\n";
+			$emailMessage .= "You have been added as a user on <strong>{$accountInfo->name}</strong> to help manage the Account.\n\n";
+			$emailMessage .= "Your username to be used for login is <strong>{$params->username}</strong>\n";
+			
+			// They can use their old password to login into the system if they already have an active account
+			if($this->userAccountsCount($params->email) > 0) {
+				$emailMessage .= "You can use your previous password to continue to login.\n";
 			} else {
-				return "Sorry! Email Already Belongs To Another User.";
-			}
+				// check if the user already has an account if not then they will get the prompt to set a new password
+				$emailMessage .= "The Password would be set once you verify your email address.\n";
+			}		
+
+			// create the verification link
+			$emailMessage .= "Please <a href='".$this->config->base_url('verify/account?token='.$params->verifyToken)."'><strong>Click Here</strong></a> to verify your Email Address.\n\n";
+
+			// set the email address
+			$userEmail = [
+				"recipients_list" => [
+					[
+						"fullname" => $params->fullname,
+						"email" => $params->email,
+						"customer_id" => $params->userId
+					]
+				]
+			];
+			
+			// increment the number of brands created for the account subscription
+			$cSubscribe['users_created'] = (!isset($cSubscribe['users_created'])) ? 1 : ($cSubscribe['users_created']+1);
+
+			// update the client brands subscription count
+			$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE client_guid='{$params->clientId}'");
+
+			// set the new value for the subscription stored in session
+			$this->session->accountPackage = $cSubscribe;
+
+			// record the email sending to be processed by the cron job
+			$sms = $this->db->prepare("
+				INSERT INTO email_list SET client_guid = ?, template_type = ?, itemId = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
+			");
+			$sms->execute([
+				$params->clientId, 'general', $params->userId, json_encode($userEmail), $params->curUserId, $emailMessage, $emailSubject
+			]);
+			
+			$this->db->commit();
+
+			return "account-created";
+			
 		} catch(PDOException $e) {
-			$this->booking->rollBack();
+			$this->db->rollBack();
 			return $e->getMessage();
 		}
-
+		
 	}
 
 	/**
@@ -885,7 +928,7 @@ class Users extends Booking {
 					$level_data .= "<div class='col-lg-12 border-bottom border-default pb-2'><h6 style='font-weight:bolder'>".$header."</h6></div>";
 					foreach($value as $nkey => $nvalue) {
 						$level_data .= "<div class='col-lg-6 pt-2'>";
-						$level_data .= "<input checked='checked' type='checkbox' id='access_level[$key][$nkey]' class='brands-checkbox' name='access_level[$key][$nkey][]'>";
+						$level_data .= "<input checked='checked' type='checkbox' id='access_level[$key][$nkey]' class='custom-checkbox' name='access_level[$key][$nkey][]'>";
 						$level_data .= "<label class='cursor' for='access_level[$key][$nkey]'>".ucfirst($nkey)."</label>";
 						$level_data .= "</div>";
 					}
@@ -904,23 +947,13 @@ class Users extends Booking {
 	public function remove_user($user_id){
 		$stmt = $this->db->prepare("
 			UPDATE `users` SET
-			status = ? WHERE user_id = ? LIMIT 1");
+			status = ? WHERE user_guid = ? LIMIT 1");
 		return $stmt->execute([self::REMOVED_USER_STATUS, $user_id]);
 	}
 
 	public function generate_user_id(){
 		$userId = $this->user_id_prefix.random_string('nozero', 9);
-		return !$this->data_unique("users", "user_id", $userId) ? $this->generate_user_id() : $userId;
-	}
-
-	public function generate_brand_id(){
-		$brandId = $this->brand_id_prefix.random_string('nozero', 9);
-		return !$this->data_unique("brand", "brand_id", $brandId) ? $this->generate_brand_id() : $brandId;
-	}
-
-	public function generate_instance_id(){
-		$instanceId = $this->instance_id_prefix.random_string('nozero', 9);
-		return !$this->data_unique("instances", "instance_id", $instanceId) ? $this->generate_instance_id() : $instanceId;
+		return !$this->data_unique("users", "user_guid", $userId) ? $this->generate_user_id() : $userId;
 	}
 
 	private function generate_verification_code(){

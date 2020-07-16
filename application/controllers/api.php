@@ -96,11 +96,10 @@ class Api {
                         "params" => [
                             "fullname" => "required - The fullname of the user",
                             "access_level" => "required - The Access Level Permissions of this user",
-                            "gender" => "The gender",
                             'access_level_id' => "required - This is the user access level id",
                             'contact' => 'The contact number of the  Account Holder',
                             "email" => "required - The email address of the user",
-                            "user_id" => "not required",
+                            "username" => "The username must always be unique",
                             'user_image' => 'The user image for profile picture',
                         ]
                     ],
@@ -524,6 +523,9 @@ class Api {
         $params->userId = $this->userId;
         $params->remote = $remote;
 
+        // client information
+        $params->curUserId = $this->userId;
+
         if(empty($this->clientId) && (($this->outer_url !== "select" && $this->inner_url !== "account"))) {
             return $this->output($code, $result);
         }
@@ -563,8 +565,6 @@ class Api {
 
             // if the user is updating a user profile
             elseif( $this->outer_url == "update") {
-                // client information
-                $params->curUserId = $this->userId;
 
                 // if the user does not have access level access but tried to push it
                 if(!$this->accessCheck->hasAccess("accesslevel", "users")) {
@@ -630,8 +630,8 @@ class Api {
             elseif($this->outer_url == "access_levels_list") {
 
                 // parse the request to update the user profile information
-                if(isset($params["level_id"])) {
-                    $request = $usersClass->userAccessLevels($params["level_id"]);
+                if(isset($params->level_id)) {
+                    $request = $usersClass->userAccessLevels($params->level_id);
                 } else {
                     $request = null;
                 }
@@ -703,7 +703,7 @@ class Api {
                 $params->curUserId = $this->userId;
                 
                 // if the user does not have the required permissions
-                if(!$this->accessCheck->hasAccess("add", "users")) {
+                if(!$this->accessCheck->hasAccess("manage", "users")) {
                     // permission denied message
                     $result['result'] = self::PERMISSION_DENIED;
                 } else {
@@ -726,7 +726,7 @@ class Api {
                     // confirm the request processing
                     elseif($request === "account-created") {
                         $result['result'] = "User Account was successfully Created.";
-                        $result['remote_request']['function'] = "fetchUsersLists()";
+                        $result['remote_request']['function'] = "usersList()";
                         $result['remote_request']['clear'] = "clear()";
                         $code = 200;
                     }

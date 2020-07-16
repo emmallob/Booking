@@ -64,6 +64,7 @@ if(!empty($thisUser)) {
                         <div class="card-body">
                             <form id="saveRecordWithAttachment" class="userManagerForm" method="POST" role="form" autocomplete="off" enctype="multipart/form-data" novalidate="novalidate" action="<?= $baseUrl.'api/users/update'; ?>">
                                 <div class="row">
+                                    <?= form_loader(); ?>
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="fullname">Fullname <span class="required">*</span></label>

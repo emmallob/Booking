@@ -1074,5 +1074,26 @@ class Booking {
 		return $preOrder;
 	}
 
+	/**
+	 * Count the number of accounts that an email address is connected to
+	 * 
+	 * @param String $email 		The email address of the user
+	 * 
+	 * @return Int
+	 */
+	public function userAccountsCount($email) {
+
+		try {
+
+			$stmt = $this->db->prepare("SELECT COUNT(*) AS rows_count FROM users WHERE email= ? AND deleted='0'");
+			$stmt->execute([$email]);
+
+			return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ)->rows_count : 0;
+			
+		} catch(PDOException $e) {
+			return 0;
+		}
+	}
+
 }
 ?>

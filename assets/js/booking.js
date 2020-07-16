@@ -882,3 +882,14 @@ async function usersList() {
 if ($(`table[class~="usersList"]`).length) {
     usersList();
 }
+
+$(`select[name="access_level_id"]`).on('change', function() {
+    var payload = '{"level_id":"' + $(this).val() + '"}';
+    $.post(`${baseUrl}api/users/access_levels_list`, payload, function(resp) {
+        $(`div[class~="access_level_content"]`).html(resp.data.result);
+    }, 'json');
+});
+$(`input[name="email"]`).on('keyup', function() {
+    username = $(this).val().split("@")[0];
+    $(`input[name="username"]`).val(username);
+});
