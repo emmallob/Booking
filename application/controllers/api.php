@@ -726,8 +726,8 @@ class Api {
                     // confirm the request processing
                     elseif($request === "account-created") {
                         $result['result'] = "User Account was successfully Created.";
-                        $result['remote_request']['function'] = "usersList()";
-                        $result['remote_request']['clear'] = "clear()";
+                        $result['remote_request']['reload'] = true;
+                        $result['remote_request']['href'] = $this->session->current_url;
                         $code = 200;
                     }
                     else {

@@ -49,6 +49,7 @@ if(!empty($thisUser)) {
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="<?= $baseUrl ?>users">Users</a></li>
                     <li class="breadcrumb-item active"><?= $page_title ?></li>
                 </ol>
             </div>
@@ -56,12 +57,22 @@ if(!empty($thisUser)) {
     </div>
     
     <div class="container-fluid mt-n10">
+        <?php if(!$accessObject->hasAccess("manage", "users")) { ?>
+            <?= pageNotFound($baseUrl) ?>
+        <?php } else { ?>
         <form id="saveRecordWithAttachment" class="userManagerForm" method="POST" role="form" autocomplete="off" enctype="multipart/form-data" novalidate="novalidate" action="<?= $baseUrl.'api/users/add'; ?>">
             <div class="row">
                 <div class="col-lg-9 col-md-8">
                     <div id="lift">
                         <div class="card mb-4">
-                            <div class="card-header">Bio Information</div>
+                            <div class="card-header">
+                                <div class="row" style="width:100%">
+                                    <div class="col-lg-8 col-md-8">Bio Information</div>
+                                    <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
+                                        <a href="<?= $baseUrl ?>users" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Users</a>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card-body">
                                 <div class="row">
                                     <?= form_loader(); ?>
@@ -154,6 +165,7 @@ if(!empty($thisUser)) {
                 </div>
             </div>
         </form>
+        <?php } ?>
     </div>
 
 </main>

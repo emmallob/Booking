@@ -49,6 +49,7 @@ if(!empty($thisUser)) {
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="<?= $baseUrl ?>users">Users</a></li>
                     <li class="breadcrumb-item active"><?= $page_title ?></li>
                 </ol>
             </div>
@@ -60,7 +61,15 @@ if(!empty($thisUser)) {
             <div class="col-lg-9 col-md-8">
                 <div id="lift">
                     <div class="card mb-4">
-                        <div class="card-header">Bio Information</div>
+                        <div class="card-header">
+                            <div class="row" style="width:100%">
+                                <div class="col-lg-8 col-md-8">Bio Information</div>
+                                <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
+                                    <a href="<?= $baseUrl ?>users" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Users</a>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="card-body">
                             <form id="saveRecordWithAttachment" class="userManagerForm" method="POST" role="form" autocomplete="off" enctype="multipart/form-data" novalidate="novalidate" action="<?= $baseUrl.'api/users/update'; ?>">
                                 <div class="row">
@@ -93,8 +102,8 @@ if(!empty($thisUser)) {
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="access_level">Access Permissions <span class="required">*</span></label>
-                                            <select <?php if(!$accessObject->hasAccess('accesslevel', 'users') || ($manageUsers && ($session->userId == $userId))) { ?>disabled="disabled"<?php } else { ?> name="access_level_id"<?php } ?> class="cs-select cs-skin-slide cs-transparent form-control"  data-init-plugin="select2">
-                                            <option value="0" disabled <?= empty($thisUser->access_level) ? 'selected' : null; ?> class="text-muted"></option>
+                                            <select <?php if(!$accessObject->hasAccess('accesslevel', 'users') || ($manageUsers && ($session->userId == $userId))) { ?>disabled="disabled"<?php } else { ?> name="access_level_id"<?php } ?> class="selectpicker form-control">
+                                            <option value="null">Select Access Level</option>
                                             <?php
                                             if(!empty($access_levels)){
                                                 foreach ($access_levels as $level){
@@ -197,11 +206,12 @@ if(!empty($thisUser)) {
                                     <div class="col-lg-7 col-md-7"><h6>Access Level:</h6></div>
                                     <div class="col-lg-5 col-md-5 text-right"><h6><?= $thisUser->access_level_name; ?></h6></div>
                                 </div>
+                                <hr class="mb-3">
                                 <div class="row">
                                     <div class="col-lg-7 col-md-7"><h6>Username:</h6></div>
                                     <div class="col-lg-5 col-md-5 text-right"><h6><?= $thisUser->username; ?></h6></div>
                                 </div>
-                                <hr class="mb-0">
+                                <hr class="mb-3">
                                 <div class="row">
                                     <div class="col-lg-7 col-md-7"><h6>Date Created:</h6></div>
                                     <div class="col-lg-5 col-md-5 text-right"><h6><?= $thisUser->created_on ?></h6></div>
@@ -211,8 +221,8 @@ if(!empty($thisUser)) {
                                     <div class="col-lg-6 col-md-6 text-right"><h6> <?= $thisUser->last_login ?></h6></div>
                                 </div>
                                 <hr class="mb-0">
-                                <div class="row">
-                                    <div class="col-lg-12 col-md-12"><h6 class="mb-0"><?= ($session->userId == $userId) ? "Recent User Activities:" : "Recent Activities of {$thisUser->name}"; ?></h6></div>
+                                <div class="row mt-3">
+                                    <div class="col-lg-12 col-md-12"><h6 class="mb-0"><?= ($session->userId == $userId) ? "Activity Logs:" : "Activity Logs of {$thisUser->name}"; ?></h6></div>
                                     <table class="table">
                                         <tbody>
                                             <?php 
