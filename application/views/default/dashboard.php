@@ -31,8 +31,8 @@ require "headtags.php";
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <div class="small font-weight-bold text-blue mb-1">Events Held</div>
-                                <div class="h5">N/A</div>
-                                <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div>
+                                <div class="h5" data-count="events_count">N/A</div>
+                                <!-- <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div> -->
                             </div>
                             <div class="ml-2"><i class="fas fa-list fa-2x text-gray-200"></i></div>
                         </div>
@@ -45,8 +45,8 @@ require "headtags.php";
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <div class="small font-weight-bold text-purple mb-1">Halls</div>
-                                <div class="h5">N/A</div>
-                                <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div>
+                                <div class="h5" data-count="halls_count">N/A</div>
+                                <!-- <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div> -->
                             </div>
                             <div class="ml-2"><i class="fas fa-tag fa-2x text-gray-200"></i></div>
                         </div>
@@ -59,8 +59,8 @@ require "headtags.php";
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <div class="small font-weight-bold text-green mb-1">Unique Audience</div>
-                                <div class="h5">N/A</div>
-                                <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div>
+                                <div class="h5" data-count="audience_count">N/A</div>
+                                <!-- <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div> -->
                             </div>
                             <div class="ml-2"><i class="fas fa-mouse-pointer fa-2x text-gray-200"></i></div>
                         </div>
@@ -73,8 +73,8 @@ require "headtags.php";
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <div class="small font-weight-bold text-yellow mb-1">Funds Raised</div>
-                                <div class="h5">N/A</div>
-                                <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div>
+                                <div class="h5" data-count="overall_funds_realised">N/A</div>
+                                <!-- <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div> -->
                             </div>
                             <div class="ml-2"><i class="fas fa-percentage fa-2x text-gray-200"></i></div>
                         </div>

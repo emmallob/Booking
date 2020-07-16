@@ -708,6 +708,10 @@ async function eventsChart() {
                         }
                     }
                 });
+
+                $.each(response.data.result.overall_summary, function(i, e) {
+                    $(`div[data-count="${i}"]`).html(e);
+                });
             } else {
                 $(`div[class="form-content-loader"]`).css("display", "none");
             }
