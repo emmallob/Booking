@@ -263,6 +263,10 @@ class Insight extends Booking {
             $stmt = $this->db->prepare("
                 SELECT
                     (
+                        SELECT SUM(ticket_amount) AS overall_funds_realised 
+                        FROM tickets_listing WHERE status='used' AND sold_state = '1' AND client_guid = '{$client_guid}'
+                    ) AS overall_funds_realised,
+                    (
                         SELECT COUNT(*) FROM events WHERE deleted='0' AND client_guid = '{$client_guid}'
                     ) AS events_count,
                     (
@@ -275,9 +279,12 @@ class Insight extends Booking {
                         SELECT COUNT(*) FROM users WHERE deleted='0' AND client_guid = '{$client_guid}'
                     ) AS users_count,
                     (
+                        SELECT COUNT(DISTINCT b.created_by) FROM events_booking b WHERE b.deleted='0' AND b.client_guid = '{$client_guid}'
+                    ) AS audience_count,
+                    (
                         SELECT COUNT(*) FROM departments WHERE status='1' AND client_guid = '{$client_guid}'
                     ) AS departments_count
-                FROM users_accounts WHERE client_guid = '{$client_guid}'
+                FROM events a WHERE a.client_guid = '{$client_guid}' AND deleted='0'
             ");
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_OBJ);
@@ -285,7 +292,7 @@ class Insight extends Booking {
             return $result;
 
         } catch(PDOException $e) {
-
+            return $e->getMessage();
         }
     } 
 

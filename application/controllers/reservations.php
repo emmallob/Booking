@@ -246,12 +246,12 @@ public function reserveSeat(stdClass $parameters) {
 
                 /** Insert the booking record */
                 $stmt = $this->db->prepare("
-                    INSERT INTO events_booking SET event_guid = ?, hall_guid = ?, seat_guid = ?, seat_name = ?,
+                    INSERT INTO events_booking SET events_booking = ?, event_guid = ?, hall_guid = ?, seat_guid = ?, seat_name = ?,
                     ".(($eventData->is_payable) ? "ticket_guid = '{$this->session->eventTicketValidatedTicket}', ticket_serial = '{$this->session->eventTicketValidatedSerial}'," : null)."
                     fullname = ?, created_by = ?, address = ?, user_agent = ?
                     ".(!empty($this->session->loggedInUser) ? ", booked_by='{$this->session->loggedInUser}'" : null)."
                 ");
-                $stmt->execute([$parameters->event_guid, $parameters->hall_guid, $item[0], $seatName, $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
+                $stmt->execute([$parameters->clientId, $parameters->event_guid, $parameters->hall_guid, $item[0], $seatName, $item[1], $item[2], $item[3], "{$this->platform}|{$this->browser}"]);
 
                 /** 
                  * Commence the count for the halls configuration for this event
