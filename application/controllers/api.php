@@ -673,6 +673,30 @@ class Api {
                 }
             }
 
+            // change password
+            elseif($this->outer_url == "change_password") {
+
+                // if the user does not have access level access but tried to push it
+                // parse the request to update the user profile information
+                $request = $usersClass->changePassword($params);
+                
+                // get the response
+                if($request === "match-error") {
+                    // permission denied message
+                    $result['result'] = "Sorry! The passwords entered do not match";
+                } elseif($request == "strength-error") {
+                    $result['result'] = "Sorry! The password must be at least 8 characters long and contain an uppercase and lowercase characters and numeric integer.";
+                } elseif($request == "user-error") {
+                    $result['result'] = "Sorry! You have supplied an invalid user id.";
+                }else {
+                    $result['result'] = $request;
+                    $result['remote_request']['clear'] = "clear()";
+                    $code = 200;
+                }
+
+
+            }
+
             // if the user is updating a user profile
             elseif( $this->outer_url == "add") {
                 

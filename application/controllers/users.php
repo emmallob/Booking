@@ -585,7 +585,7 @@ class Users extends Booking {
 			return "invalid-email";
 		}
 
-		// CHeck If User ID Exists
+		// Check If User ID Exists
 		$checkData = $this->pushQuery("COUNT(*) AS userTotal, access_level", "users", "user_guid='{$userData->user_guid}'");
 
 		if ($checkData != false && $checkData[0]->userTotal == '1') {
@@ -638,6 +638,60 @@ class Users extends Booking {
 		} else {
 			return "invalid";
 		}
+	}
+
+	/**
+	 * Change a users password
+	 * Run basic check for a strong password supplied and confirm if they match
+	 * 
+	 * @param String $password 		The password
+	 * @param String $password_2 	The second password to match
+	 */
+	public function changePassword($params) {
+
+		/** Matching test */
+		if($params->password != $params->password_2) {
+			return "match-error";
+		}
+
+		/** Strength test */
+		if(!passwordTest($params->password)) {
+			return "strength-error";
+		}
+
+		// Check If User ID Exists
+		$checkData = $this->pushQuery("COUNT(*) AS userTotal, access_level", "users", "user_guid='{$params->user_guid}' AND client_guid='{$params->clientId}'");
+
+		/** Confirm that the count is 1 */
+		if ($checkData != false && $checkData[0]->userTotal == '1') {
+			/** Hash the password */
+			$password = password_hash($params->password, PASSWORD_DEFAULT);
+
+			/** Update the user profile information */
+			$this->db->query("UPDATE users SET password='{$password}' WHERE user_guid='{$params->user_guid}' AND client_guid='{$params->clientId}' LIMIT 1");
+
+			// Record user activity
+			$this->userLogs('users', $params->user_guid, 'Changed the password.', $params->user_guid, $params->clientId);
+
+			/** Logout if the user who changed the password is the same person logged in */
+			if($params->remote) {
+				return "User password successfully changed";
+			} else {
+				// the print the alert to logout
+				if($params->user_guid == $this->session->userId) {
+					// destroy the session
+					$this->session->destroy();
+
+					// return the success message
+					return "Your password successfully changed. You have been automatically logged out from the system.";
+				} else {
+					return "User password was successfully changed";
+				}
+			}
+		} else {
+			return "user-error";
+		}
+		
 	}
 
 	/**
