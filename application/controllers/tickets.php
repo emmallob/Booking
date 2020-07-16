@@ -166,7 +166,7 @@ class Tickets extends Booking {
             }
 
             /** Log the user activity */
-            $this->userLogs('tickets', $ticket_guid, "Generated {$quantity} tickets for an Event.");
+            $this->userLogs('tickets', $ticket_guid, "Generated {$quantity} tickets for an Event.", $params->userId, $params->clientId);
             
             /** Commit the statement */
             $this->db->commit();
@@ -206,6 +206,10 @@ class Tickets extends Booking {
             $stmt = $this->db->prepare("
                 UPDATE tickets SET activated = ? WHERE client_guid = ? AND ticket_guid = ?
             ");
+
+            /** Log the user activity */
+            $this->userLogs('tickets', $params->ticket_guid, "Activated the ticket.", $params->userId, $params->clientId);
+
             return $stmt->execute([1, $params->clientId, $params->ticket_guid]);
 
         } catch(\Exception $e) {

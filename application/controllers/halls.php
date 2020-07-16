@@ -501,7 +501,7 @@ class Halls extends Booking {
                 ");
 
                 /** Log the user activity */
-                $this->userLogs('halls', $params->hall_guid, 'Updated hall details.');
+                $this->userLogs('halls', $params->hall_guid, 'Updated the hall details.', $params->userId, $params->clientId);
                 
                 /** Format the response to parse */
                 return [

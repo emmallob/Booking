@@ -321,7 +321,7 @@ class Events extends Booking {
                 }
 
                 /** Log the user activity */
-                $this->userLogs('events', $guid, 'Created a new Event.');
+                $this->userLogs('events', $guid, 'Created a new Event.', $params->userId, $params->clientId);
 
                 /** Commit the transaction */
                 $this->db->commit();
@@ -517,7 +517,7 @@ class Events extends Booking {
                 }
 
                 /** Log the user activity */
-                $this->userLogs('events', $params->event_guid, 'Updated the event details.');
+                $this->userLogs('events', $params->event_guid, 'Updated the event details.', $params->userId, $params->clientId);
 
                 /** Commit the transaction */
                 $this->db->commit();

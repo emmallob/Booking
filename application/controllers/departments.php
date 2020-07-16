@@ -118,7 +118,7 @@ class Departments extends Booking {
             ])) {
 
                 /** Log the user activity */
-                $this->userLogs('departments', $guid, 'Created a new Department.');
+                $this->userLogs('departments', $guid, 'Created a new Department.', $params->userId, $params->clientId);
 
                 /** Format the response to parse */
                 return [
@@ -162,7 +162,7 @@ class Departments extends Booking {
             ])) {
 
                 /** Log the user activity */
-                $this->userLogs('departments', $params->department_guid, 'Updated the details of the department.');
+                $this->userLogs('departments', $params->department_guid, 'Updated the details of the department.', $params->userId, $params->clientId);
 
                 /** Format the response to parse */
                 return [
