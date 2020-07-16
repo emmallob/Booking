@@ -805,7 +805,7 @@ class Booking {
 					$this->db->query("UPDATE `users_accounts` SET `subscription`='".json_encode($cSubscribe)."' WHERE `client_guid`='{$params->clientId}'");
 
 					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted a hall.", $params->clientId, $params->userId);
+					$this->userLogs("remove", $params->item_id, "Deleted a hall.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();
@@ -833,7 +833,7 @@ class Booking {
 					$stmt->execute([0, $params->item_id, $params->clientId]);
 
 					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted a department.", $params->clientId, $params->userId);
+					$this->userLogs("remove", $params->item_id, "Deleted a department.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();
@@ -861,7 +861,7 @@ class Booking {
 					$stmt->execute([1, $params->item_id, $params->clientId]);
 
 					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted an Event from the System.", $params->clientId, $params->userId);
+					$this->userLogs("remove", $params->item_id, "Deleted an Event from the System.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();
@@ -889,7 +889,7 @@ class Booking {
 					$stmt->execute(["cancelled", $params->item_id, $params->clientId]);
 
 					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Cancelled an Event that is yet to be held.", $params->clientId, $params->userId);
+					$this->userLogs("remove", $params->item_id, "Cancelled an Event that is yet to be held.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();
@@ -986,7 +986,7 @@ class Booking {
 					$this->db->query("DELETE FROM `tickets_listing` WHERE `ticket_guid` = '{$params->item_id}'");
 
 					/** Log the user activity */
-					$this->userLogs("remove", $params->item_id, "Deleted a Ticket that was generated.", $params->clientId, $params->userId);
+					$this->userLogs("remove", $params->item_id, "Deleted a Ticket that was generated.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();
@@ -994,6 +994,40 @@ class Booking {
 					/** Return the success response */
 					return "great";
 				}
+			}
+
+			/** If the user wants to remove a user */
+			elseif($params->item == "user") {
+				
+				/** Confirm that user is not already deleted */
+				$itemActive = $this->db->prepare("SELECT id FROM users WHERE deleted=? AND user_guid = ? AND client_guid = ?");
+				$itemActive->execute([0, $params->item_id, $params->clientId]);
+
+				/** Count the number of rows */
+				if($itemActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					/** Remove the user from the list of users by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE users SET status=?, deleted=? WHERE user_guid = ? AND client_guid = ?");
+					$stmt->execute([0, 1, $params->item_id, $params->clientId]);
+
+					/** Reduce the number of brands created for this account */
+					$cSubscribe = json_decode( $clientData->subscription, true );
+					$cSubscribe['users_created'] = isset($cSubscribe['users_created']) ? ($cSubscribe['users_created'] - 1) : 2;
+
+					/** update the client brands subscription count */
+					$this->db->query("UPDATE users_accounts SET subscription='".json_encode($cSubscribe)."' WHERE client_guid='{$params->clientId}'");
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Deleted the User From the List of Users for this Account.", $params->userId, $params->clientId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
 			}
 
 		} catch(PDOException $e) {
@@ -1039,5 +1073,6 @@ class Booking {
 		$preOrder = str_pad($requestId, $number, '0', STR_PAD_LEFT);
 		return $preOrder;
 	}
+
 }
 ?>

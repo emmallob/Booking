@@ -84,31 +84,33 @@ class Users extends Booking {
 
 				if($manageUsers) {
 					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
-							$action .= "<button title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
+							$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
 							<i class=\"fa fa-edit\"></i>
-						</button> ";
+						</a> ";
 					} elseif(!in_array($data->access_level, [1, 2])) {
-						$action .= "<button title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
+						$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
 							<i class=\"fa fa-edit\"></i>
-						</button> ";
+						</a> ";
 					}
 				}
 
 				if($userAccessLevels) {
 					$action .= "<button title=\"Manage access permissions of {$data->name}\" class=\"btn btn-sm btn-outline-primary edit-access-level\" data-user-id=\"{$data->user_guid}\">
 							<i class=\"fa fa-sitemap\"></i>
-						</button> ";
+						</button>";
 				}
 
 				if($deleteUsers) {
 					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
-						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
-							<i class=\"fa fa-trash\"></i>
-						</button> ";
+						if($data->user_guid != $this->session->userId) {
+							$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+								<i class=\"fa fa-trash\"></i>
+							</a> ";
+						}
 					} elseif(!in_array($data->access_level, [1, 2])) {
-						$action .= "<button title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+						$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
 							<i class=\"fa fa-trash\"></i>
-						</button> ";
+						</a> ";
 					}
 				}
 
