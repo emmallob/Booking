@@ -1011,7 +1011,7 @@ class Booking {
 	 * @return Bool
 	 */
 	public function addData($table, $columnValues) {
-		$stmt = $this->evelyn->prepare("INSERT INTO {$table} SET {$columnValues}");
+		$stmt = $this->db->prepare("INSERT INTO {$table} SET {$columnValues}");
 		return $stmt->execute();
 	}
 
@@ -1024,7 +1024,7 @@ class Booking {
 	 * @return Bool
 	 */
 	public function updateData($table, $columnValues, $where_clause) {
-		$stmt = $this->evelyn->prepare("UPDATE {$table} SET {$columnValues} WHERE {$where_clause}");
+		$stmt = $this->db->prepare("UPDATE {$table} SET {$columnValues} WHERE {$where_clause}");
 		return $stmt->execute();
 	}
 

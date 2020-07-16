@@ -87,7 +87,7 @@ if( !empty($incomingData) ) {
     }
 }
 
-else if( empty($incomingData) && in_array($inner_url, ["halls", "events", "tickets", "reports", "reservations", "insight"]) && ($requestMethod == "GET") ) {
+else if( empty($incomingData) && in_array($inner_url, ["halls", "users", "events", "tickets", "reports", "reservations", "insight"]) && ($requestMethod == "GET") ) {
     // empty the parameters list
     $params = [];
 
@@ -107,6 +107,7 @@ else if( empty($incomingData) && in_array($inner_url, ["halls", "events", "ticke
 else if(
     empty($incomingData) && 
     (
+        (($inner_url == "users") && ($outer_url == "update") && ($requestMethod == "POST")) ||
         (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST")) ||
         (($inner_url == "events") && ($outer_url == "add") && ($requestMethod == "POST")) || 
         (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) ||

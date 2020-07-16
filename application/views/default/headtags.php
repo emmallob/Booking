@@ -235,6 +235,10 @@ $accessObject->userId = $userId;
 						</div>
 						<?php } ?>
 						<div class="sidenav-menu-heading">Addons</div>
+						<a class="nav-link" href="<?= $baseUrl ?>profile">
+							<div class="nav-link-icon"><i data-feather="user"></i></div>
+							Profile
+						</a>
 						<a class="nav-link" href="<?= $baseUrl ?>reports">
 							<div class="nav-link-icon"><i data-feather="bar-chart"></i></div>
 							Reports

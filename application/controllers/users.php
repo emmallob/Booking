@@ -576,7 +576,7 @@ class Users extends Booking {
 		$userData->email = (!empty($userData->email)) ? filter_var($userData->email, FILTER_SANITIZE_EMAIL) : null;
 
 		// confirm valid contact number
-		if(!preg_match("/^[0-9+]+$/", $userData->phone)) {
+		if(!preg_match("/^[0-9+]+$/", $userData->contact)) {
 			return "invalid-phone";
 		}
 
@@ -593,35 +593,41 @@ class Users extends Booking {
 			// update user data
 			$query = $this->updateData(
 				"users",
-				"name='{$userData->fullname}', gender='{$userData->gender}', email='{$userData->email}', phone='{$userData->phone}', access_level='{$userData->access_level}'",
+				"name='{$userData->fullname}',
+				email='{$userData->email}', contact='{$userData->contact}'
+				".(isset($userData->access_level) ? ",access_level='{$userData->access_level}'" : null)."	
+				",
 				"user_guid='{$userData->user_guid}' && client_guid='{$userData->clientId}'"
 			);
 
 			if ($query == true) {
 
 				// Record user activity
-				$this->userLogs('users', $userData->user_guid, 'Update the user details.');
+				$this->userLogs('users', $userData->user_guid, 'Update the user details.', $userData->userId, $userData->clientId);
 
-				// check if the user has the right permissions to perform this action
-				if($accessObject->hasAccess('accesslevel', 'users')) {
+				/** if the access level id was parsed */
+				if(isset($userData->access_level)) {
+					// check if the user has the right permissions to perform this action
+					if($accessObject->hasAccess('accesslevel', 'users')) {
 
-					// Check If User ID Exists
-					$userRole = $this->pushQuery("COUNT(*) AS userTotal, permissions", "users_roles", "user_guid='{$userData->user_guid}'");
+						// Check If User ID Exists
+						$userRole = $this->pushQuery("COUNT(*) AS userTotal, permissions", "users_roles", "user_guid='{$userData->user_guid}'");
 
-					// confirm if the user has no credentials
-					if($userRole[0]->userTotal == 0) {
-						// insert the permissions to this user
-						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
-						// assign these permissions to the user
-						$accessObject->assignUserRole($userData->user_guid, $userData->access_level);
-					}
+						// confirm if the user has no credentials
+						if($userRole[0]->userTotal == 0) {
+							// insert the permissions to this user
+							$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
+							// assign these permissions to the user
+							$accessObject->assignUserRole($userData->user_guid, $userData->access_level);
+						}
 
-					// Check Access Level
-					if ($userData->access_level != $checkData[0]->access_level) {
+						// Check Access Level
+						if ($userData->access_level != $checkData[0]->access_level) {
 
-						$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
+							$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
 
-						$accessObject->assignUserRole($userData->user_id, $userData->access_level, $getPermissions);
+							$accessObject->assignUserRole($userData->user_guid, $userData->access_level, $getPermissions);
+						}
 					}
 				}
 

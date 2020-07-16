@@ -52,6 +52,7 @@ class Api {
 
         // set the global variables
         $bookingClass->user_guid = $this->userId;
+        $bookingClass->client_guid = $this->clientId;
         $bookingClass->clientId = $this->clientId;
 
         /**
@@ -96,9 +97,24 @@ class Api {
                             "fullname" => "required - The fullname of the user",
                             "access_level" => "required - The Access Level Permissions of this user",
                             "gender" => "The gender",
-                            "contact" => "The phone number of the user",
+                            'access_level_id' => "required - This is the user access level id",
+                            'contact' => 'The contact number of the  Account Holder',
                             "email" => "required - The email address of the user",
-                            "user_id" => "no required"
+                            "user_id" => "not required",
+                            'user_image' => 'The user image for profile picture',
+                        ]
+                    ],
+                    "update" => [
+                        "description" => "This endpoint updates a user profile",
+                        "params" => [
+                            'user_image' => 'The user image for profile picture',
+                            'fullname' => 'required - Provide the lastname',
+                            'email' => 'required - This is the Email Address of the Account Holder',
+                            'user_guid' => 'required - The user id to update',
+                            'username' => 'required - The username of the user',
+                            'access_level_id' => "This is the user access level id",
+                            'contact' => 'The contact number of the  Account Holder',
+                            'access_level' => 'array - The access Level of the user'
                         ]
                     ],
                     "history" => [
@@ -549,7 +565,7 @@ class Api {
                     $params->access_level = (!empty($params->access_level)) ? null : null;
                     $params->access_level_id = (!empty($params->access_level_id)) ? null : null;
                 }
-                elseif(!$this->accessCheck->hasAccess("update", "users")) {
+                elseif(!$this->accessCheck->hasAccess("manage", "users")) {
                     // permission denied message
                     $result['result'] = self::PERMISSION_DENIED;
                 } else {

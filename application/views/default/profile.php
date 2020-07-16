@@ -62,36 +62,36 @@ if(!empty($thisUser)) {
                     <div class="card mb-4">
                         <div class="card-header">Bio Information</div>
                         <div class="card-body">
-                            <form autocomplete="Off" action="<?= $baseUrl ?>api/users/profile" class="appForm">
+                            <form id="saveRecordWithAttachment" class="userManagerForm" method="POST" role="form" autocomplete="off" enctype="multipart/form-data" novalidate="novalidate" action="<?= $baseUrl.'api/users/update'; ?>">
                                 <div class="row">
                                     <div class="col-lg-6">
                                         <div class="form-group">
-                                            <label for="fullname">Fullname</label>
+                                            <label for="fullname">Fullname <span class="required">*</span></label>
                                             <input type="text" value="<?= $thisUser->name ?? null ?>" name="fullname" id="fullname" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
                                         <div class="form-group">
-                                            <label for="username">Username</label>
+                                            <label for="username">Username <span class="required">*</span></label>
                                             <input type="text" value="<?= $thisUser->username ?? null ?>" name="username" id="username" readonly class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
                                         <div class="form-group">
-                                            <label for="email">Email Address</label>
+                                            <label for="email">Email Address <span class="required">*</span></label>
                                             <input type="email" value="<?= $thisUser->email ?? null ?>" name="email" id="email" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="contact">Contact Number</label>
-                                            <input type="hidden" value="<?= $thisUser->user_guid ?? null ?>" name="user_guid" id="user_guid" class="form-control">
+                                            <input type="hidden" value="<?= $userId ?>" name="user_guid" id="user_guid" class="form-control">
                                             <input type="text" name="contact" id="contact" value="<?= $thisUser->contact ?? null ?>" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
                                         <div class="form-group">
-                                            <label for="access_level">Access Permissions</label>
+                                            <label for="access_level">Access Permissions <span class="required">*</span></label>
                                             <select <?php if(!$accessObject->hasAccess('accesslevel', 'users') || ($manageUsers && ($session->userId == $userId))) { ?>disabled="disabled"<?php } else { ?> name="access_level_id"<?php } ?> class="cs-select cs-skin-slide cs-transparent form-control"  data-init-plugin="select2">
                                             <option value="0" disabled <?= empty($thisUser->access_level) ? 'selected' : null; ?> class="text-muted"></option>
                                             <?php
@@ -136,6 +136,12 @@ if(!empty($thisUser)) {
                                             <?php } ?>
                                         </div>
                                     </div>
+                                    <?php if($accessObject->hasAccess('manage', 'users') || ($session->userId == $userId)) { ?>
+                                    <div class="col-lg-12 border-top pt-3 border-default text-right mt-3">
+                                        <div class="clearfix"></div>
+                                        <button class="btn btn-sm btn-primary" type="submit" name="submit" id="save_settings_button">Update Profile</button>
+                                    </div>
+                                    <?php } ?>
                                 </div>
                             </form>
                         </div>

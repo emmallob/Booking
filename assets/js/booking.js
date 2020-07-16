@@ -788,3 +788,50 @@ $(`body[class~="nav-fixed"]`).on('click', `span[class~="view-user-activity"]`, f
         $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
     });
 });
+
+$(`form[class="userManagerForm"]`).on('submit', function(evt) {
+    evt.preventDefault();
+    let myForm = document.getElementById('saveRecordWithAttachment');
+    let formData = new FormData(myForm);
+
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop("disabled", true);
+
+    $.ajax({
+        type: `POST`,
+        url: $(this).attr('action'),
+        data: formData,
+        dataType: 'json',
+        contentType: false,
+        cache: false,
+        processData: false,
+        success: function(response) {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+            Toast.fire({
+                title: response.data.result,
+                type: responseCode(response.code)
+            });
+
+            if (response.data.remote_request) {
+                if (response.data.remote_request.reload) {
+                    setTimeout(() => {
+                        window.location.href = response.data.remote_request.href;
+                    }, 1000);
+                }
+            }
+        },
+        complete: function(data) {
+            $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop('disabled', false);
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
+        error: function(err) {
+            $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop('disabled', false);
+            $(`div[class="form-content-loader"]`).css("display", "none");
+            Toast.fire({
+                type: 'error',
+                title: 'Sorry! There was an error while processing the request.'
+            });
+        }
+    });
+
+});
