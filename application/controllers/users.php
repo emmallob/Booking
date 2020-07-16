@@ -203,14 +203,14 @@ class Users extends Booking {
 
 			$stmt = $this->db->prepare("
 				SELECT 
-					name, gender, email, login, brand_ids, permissions,
+					name, gender, email, username, permissions,
 					access_level, access_level_code, access_level_name, 
-					theme, phone_number, country, city, last_login, created_on,
+					theme, contact, last_login, created_on,
 					access_level_permissions, image, status
 				FROM `users` 
 				LEFT JOIN users_access_levels ON `users`.access_level = users_access_levels.access_level_code 
-				LEFT JOIN users_roles ON `users`.user_id = users_roles.user_id 
-				WHERE users.user_id = ? AND users.deleted = ? AND users.clientId = ? LIMIT 1");
+				LEFT JOIN users_roles ON `users`.user_guid = users_roles.user_guid 
+				WHERE users.user_guid = ? AND users.deleted = ? AND users.client_guid = ? LIMIT 1");
 			$stmt->execute([$userId, 0, $clientId]);
 
 			return $stmt->fetch(PDO::FETCH_OBJ);
@@ -754,7 +754,7 @@ class Users extends Booking {
     public function userActivityLogs(stdClass $params) {
         try {
             
-			$stmt = $this->db->prepare("SELECT page, date_recorded, description, user_agent FROM users_activity_logs WHERE clientId = ? AND userId = ? ORDER BY id DESC LIMIT {$params->limit}");
+			$stmt = $this->db->prepare("SELECT page, date_recorded, description, user_agent FROM users_activity_logs WHERE client_guid = ? AND user_guid = ? ORDER BY id DESC LIMIT {$params->limit}");
             $stmt->execute([$params->clientId, $params->user_id]);
 
             $results = $stmt->fetchAll(PDO::FETCH_OBJ);

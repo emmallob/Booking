@@ -727,3 +727,64 @@ async function eventsChart() {
 if ($(`canvas[id="myAreaChart"`).length) {
     eventsChart();
 }
+
+$(`body[class~="nav-fixed"]`).on('click', `span[class~="view-user-activity"]`, function(evt) {
+
+    var payload = '{"user_id":"' + $(this).attr('data-user-id') + '"}';
+
+    $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "flex");
+    $(`[class~="default-content"]`).html(``);
+    $(`div[id="DefaultModalWindow"] h5[class="p-b-5"]`).html("User Activity History");
+
+    $.post(`${baseUrl}api/users/history`, payload, function(response) {
+
+        if (response.code != 200) {
+            Toast.fire({
+                type: "success",
+                title: "No results found at the moment."
+            });
+
+            return false;
+        }
+        $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
+        $(`div[id="DefaultModalWindow"]`).modal('show');
+
+        let e = response.data.result,
+            activityLogs = ``;
+
+        $.each(e, function(i, ee) {
+            i += 1;
+            activityLogs += `
+                <tr>
+                    <td>${i}</td>
+                    <td>${ee.page}</td>
+                    <td>${ee.description}</td>
+                    <td width="30%">${ee.user_agent}</td>
+                    <td width="20%">${ee.date_recorded}</td>
+                </tr>
+                `;
+        });
+
+        $(`div[id="DefaultModalWindow"] div[class="modal-body"]`).html(`
+        <div class="row">
+            <div class="col-lg-12">
+                <table class="table table-hover" id="activityLogs">
+                    <thead>
+                        <th>#</th>
+                        <th width="10%"><strong>Page</strong></th>
+                        <th><strong>Description</strong></th>
+                        <th width="30%"><strong>User Agent</strong></th>
+                        <th width="20%" style="text-align:left"><strong>Date Created</strong></th>
+                    </thead>
+                    <tbody>${activityLogs}</tbody>
+                </table>
+            </div>
+        </div>`);
+        $(`table[id="activityLogs"]`).dataTable();
+
+        $(`div[id="DefaultModalWindow"]`).css("z-index", "99999");
+
+    }, 'json').catch((err) => {
+        $(`div[id="DefaultModalWindow"] div[class="form-content-loader"]`).css("display", "none");
+    });
+});

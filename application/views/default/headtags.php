@@ -142,12 +142,15 @@ $accessObject->userId = $userId;
 						</div>
 					</h6>
 					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" href="<?= $baseUrl ?>profile">
+						<div class="dropdown-item-icon"><i data-feather="user"></i></div> Profile
+					</a>
 					<a class="dropdown-item" href="<?= $baseUrl ?>configuration">
-						<div class="dropdown-item-icon"><i data-feather="settings"></i></div>
-						Account</a>
-						<a class="dropdown-item data-logout" href="javascript:void(0)">
-							<div class="dropdown-item-icon"><i data-feather="log-out"></i></div>Logout
-						</a>
+						<div class="dropdown-item-icon"><i data-feather="settings"></i></div> Settings
+					</a>
+					<a class="dropdown-item data-logout" href="javascript:void(0)">
+						<div class="dropdown-item-icon"><i data-feather="log-out"></i></div>Logout
+					</a>
 				</div>
 			</li>
 		</ul>

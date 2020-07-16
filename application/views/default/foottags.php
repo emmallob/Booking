@@ -26,6 +26,28 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="DefaultModalWindow" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="form-content-loader" style="display: none;">
+                    <div class="offline-content text-center">
+                        <p><i class="fa fa-spin fa-spinner fa-3x"></i></p>
+                    </div>
+                </div>
+                <div class="modal-header clearfix ">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close" style="font-size:12px"></i></button>
+                    <h5 class="p-b-5"><span class="semi-bold"></span></h5>
+                </div>
+                <div class="default-content text-center">
+                    Populating Data... <br><i class="fa fa-spin fa-spinner fa-1x"></i>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cons" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <?php global $rootDir, $SITEURL; ?>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>

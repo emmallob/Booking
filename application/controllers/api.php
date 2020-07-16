@@ -74,6 +74,19 @@ class Api {
                             "limit" => "This is the number to limit the results",
                             "user_id" => "This is applied when the user has parsed an ID. This will limit the result by the user id parsed."
                         ]
+                    ],
+                    "history" => [
+                        "description" => "This endpoint returns the list of user activity logs",
+                        "params" => [
+                            "user_id" => "required - The user id to load the activity logs",
+                            "limit" => "The number of rows to return"
+                        ]
+                    ],
+                    "access_levels" => [
+                        "description" => "This endpoint returns an arrayed list of access level parameters that are associated to that particular access level",
+                        "params" => [
+                            "level_id" => "The access level id parsed"
+                        ]
                     ]
                 ],
                 "POST" => [

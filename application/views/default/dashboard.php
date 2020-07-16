@@ -34,7 +34,7 @@ require "headtags.php";
                                 <div class="h5" data-count="events_count">N/A</div>
                                 <!-- <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div> -->
                             </div>
-                            <div class="ml-2"><i class="fas fa-list fa-2x text-gray-200"></i></div>
+                            <div class="ml-2"><i class="fas fa-home fa-2x text-gray-200"></i></div>
                         </div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@ require "headtags.php";
                                 <div class="h5" data-count="audience_count">N/A</div>
                                 <!-- <div class="text-xs font-weight-bold text-success d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-up"></i>N/A</div> -->
                             </div>
-                            <div class="ml-2"><i class="fas fa-mouse-pointer fa-2x text-gray-200"></i></div>
+                            <div class="ml-2"><i class="fas fa-users fa-2x text-gray-200"></i></div>
                         </div>
                     </div>
                 </div>
@@ -76,7 +76,7 @@ require "headtags.php";
                                 <div class="h5" data-count="overall_funds_realised">N/A</div>
                                 <!-- <div class="text-xs font-weight-bold text-danger d-inline-flex align-items-center"><i class="mr-1" data-feather="trending-down"></i>N/A</div> -->
                             </div>
-                            <div class="ml-2"><i class="fas fa-percentage fa-2x text-gray-200"></i></div>
+                            <div class="ml-2"><i class="fa fa-list fa-2x text-gray-200"></i></div>
                         </div>
                     </div>
                 </div>

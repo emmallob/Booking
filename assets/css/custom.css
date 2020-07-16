@@ -123,3 +123,22 @@ i .seats-table {
     display: block !important;
     margin: auto !important;
 }
+
+.custom-checkbox {
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid rgba(0, 0, 0, .07);
+    font-family: Arial, sans-serif;
+    color: #373e43;
+    outline: 0;
+    padding: 8px 12px;
+    line-height: normal;
+    font-size: 14px;
+    vertical-align: middle;
+    min-height: 18px;
+    width: 25px;
+}
+
+.cursor {
+    cursor: pointer;
+}
