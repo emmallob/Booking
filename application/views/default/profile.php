@@ -49,7 +49,9 @@ if(!empty($thisUser)) {
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>dashboard">Dashboard</a></li>
+                    <?php if($manageUsers) { ?>
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>users">Users</a></li>
+                    <?php } ?>
                     <li class="breadcrumb-item active"><?= $page_title ?></li>
                 </ol>
             </div>
@@ -64,9 +66,11 @@ if(!empty($thisUser)) {
                         <div class="card-header">
                             <div class="row" style="width:100%">
                                 <div class="col-lg-8 col-md-8">Bio Information</div>
+                                <?php if($manageUsers) { ?>
                                 <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                                     <a href="<?= $baseUrl ?>users" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Users</a>
                                 </div>
+                                <?php } ?>
                             </div>
                         </div>
                         

@@ -105,8 +105,8 @@ $ticketsManage = $accessObject->hasAccess("generate", "tickets");
                     </div>
                 </div>
             </div>
+            <?php if($accessObject->hasAccess("list", "events")) { ?>
             <div class="col-lg-12 mb-4">
-                
                 <div class="card">
                     <div class="card-header">Upcoming Events</div>
                     <div class="card-body">
@@ -127,8 +127,8 @@ $ticketsManage = $accessObject->hasAccess("generate", "tickets");
                         </div>
                     </div>
                 </div>
-
             </div>
+            <?php } ?>
         </div>
     </div>
 </main>

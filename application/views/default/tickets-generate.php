@@ -6,6 +6,8 @@ require "headtags.php";
 $hallId = null;
 
 $hallFound = true;
+
+$listTickets = $accessObject->hasAccess("list", "tickets");
 ?>
 <main>
     <div class="page-header pb-10 page-header-dark bg-gradient-primary-to-secondary">
@@ -17,7 +19,9 @@ $hallFound = true;
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>dashboard">Dashboard</a></li>
+                    <?php if($listTickets) { ?>
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>tickets">Tickets</a></li>
+                    <?php } ?>
                     <li class="breadcrumb-item active"><?= $page_title ?></li>
                 </ol>
             </div>
@@ -28,9 +32,11 @@ $hallFound = true;
             <div class="card-header">
                 <div class="row" style="width:100%">
                     <div class="col-lg-8 col-md-8"></div>
+                    <?php if($listTickets) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>tickets" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Tickets</a>
                     </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="card-body">
