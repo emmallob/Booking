@@ -196,7 +196,7 @@ $accessObject->userId = $userId;
 							</nav>
 						</div>
 						<?php } ?>
-						<?php if($accessObject->hasAccess("list", "tickets")) { ?>						
+						<?php if($accessObject->hasAccess("list", "tickets")) { ?>					
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseUtilities" aria-expanded="false" aria-controls="collapseUtilities">
 							<div class="nav-link-icon"><i data-feather="tool"></i></div>
 							Tickets
@@ -239,14 +239,22 @@ $accessObject->userId = $userId;
 							<div class="nav-link-icon"><i data-feather="user"></i></div>
 							Profile
 						</a>
+						<?php if($accessObject->hasAccess("manage", "users")) { ?>
+						<a class="nav-link" href="<?= $baseUrl ?>users">
+							<div class="nav-link-icon"><i data-feather="users"></i></div>
+							User Management
+						</a>
+						<?php } ?>
 						<a class="nav-link" href="<?= $baseUrl ?>reports">
 							<div class="nav-link-icon"><i data-feather="bar-chart"></i></div>
 							Reports
 						</a>
+						<?php if($accessObject->hasAccess("manage", "account")) { ?>
 						<a class="nav-link" href="<?= $baseUrl ?>configuration">
 							<div class="nav-link-icon"><i data-feather="filter"></i></div>
 							Settings
 						</a>
+						<?php } ?>
 					</div>
 				</div>
 				<div class="sidenav-footer p-2 bg-white">

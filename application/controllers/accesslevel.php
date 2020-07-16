@@ -123,8 +123,12 @@ class Accesslevel {
         $permissions = $this->getUserPermissions();
 
         if ($permissions != false) {
-
+            
             $permissions = json_decode($permissions[0]->permissions, true);
+
+            if(!is_array($permissions)) {
+                return;
+            }
 
             $i = 0;
             $permissions = $permissions['permissions'];

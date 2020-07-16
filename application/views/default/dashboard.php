@@ -2,6 +2,8 @@
 $page_title = "Dashboard";
 
 require "headtags.php";
+
+$ticketsManage = $accessObject->hasAccess("generate", "tickets");
 ?>
 <main>
     <div class="container-fluid mt-5">
@@ -83,6 +85,7 @@ require "headtags.php";
             </div>
         </div>
         <div class="row">
+            <?php if($ticketsManage) { ?>
             <div class="col-lg-4 col-xl-3 mb-4">
                 <div class="card bg-secondary o-visible mb-4">
                     <div class="card-body">
@@ -93,11 +96,12 @@ require "headtags.php";
                     <div class="card-footer bg-transparent pt-0 border-0 text-right"><a class="btn btn-primary" href="<?= $baseUrl ?>tickets">Continue</a></div>
                 </div>
             </div>
-            <div class="col-lg-9">
+            <?php } ?>
+            <div class="col-lg-<?= ($ticketsManage) ? 9 : 12; ?>">
                 <div class="card mb-4">
                     <div class="card-header">Events & Bookings <i title="Event as against the number of Bookings" data-toggle="tooltip" class="fa ml-3 fa-info"></i></div>
                     <div class="card-body">
-                        <div class="chart-area"><canvas id="myAreaChart" width="100%" height="30"></canvas></div>
+                        <div class="chart-area"><canvas id="myAreaChart" width="100%" height="300px"></canvas></div>
                     </div>
                 </div>
             </div>
