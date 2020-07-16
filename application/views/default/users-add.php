@@ -110,7 +110,7 @@ if(!empty($thisUser)) {
                                             <?php
                                             if(!empty($access_levels)){
                                                 foreach ($access_levels as $level){
-                                                    $accessId = $level["access_level_code"];
+                                                    $accessId = $level["access_level_id"];
                                                     $levelName = $level["access_level_name"];
                                                     echo "<option value='$accessId'>$levelName</option>";
                                                 }

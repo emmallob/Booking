@@ -18,6 +18,13 @@ $brandId = null;
 $userData = (Object) $usersClass->item_by_id("users", $userId);
 $clientData = $bookingClass->clientData($session->clientId);
 
+// if the userdata is empty the remove all sessions
+if(!isset($userData->name)) {
+	$session->destroy();
+	require "login.php";
+	exit(-1);
+}
+
 /* Make Database Query Here */
 if(empty($session->userPreferedTheme)) {
 
@@ -145,9 +152,11 @@ $accessObject->userId = $userId;
 					<a class="dropdown-item" href="<?= $baseUrl ?>profile">
 						<div class="dropdown-item-icon"><i data-feather="user"></i></div> Profile
 					</a>
+					<?php if($accessObject->hasAccess("manage", "account")) { ?>
 					<a class="dropdown-item" href="<?= $baseUrl ?>configuration">
 						<div class="dropdown-item-icon"><i data-feather="settings"></i></div> Settings
 					</a>
+					<?php } ?>
 					<a class="dropdown-item data-logout" href="javascript:void(0)">
 						<div class="dropdown-item-icon"><i data-feather="log-out"></i></div>Logout
 					</a>

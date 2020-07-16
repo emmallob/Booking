@@ -69,7 +69,6 @@ if(confirm_url_id(1)) {
 			if(!$forms->valid_email($email)) {
 				$response->result = "Sorry! We could not validate your email address!";
 			} else {
-
 				// continue to process the form
 				if($auth->sendPasswordResetToken($email)) {
 					$response->result = "Please check your email for steps to reset password.";

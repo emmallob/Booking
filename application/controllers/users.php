@@ -94,12 +94,6 @@ class Users extends Booking {
 					}
 				}
 
-				if($userAccessLevels) {
-					$action .= "<button title=\"Manage access permissions of {$data->name}\" class=\"btn btn-sm btn-outline-primary edit-access-level\" data-user-id=\"{$data->user_guid}\">
-							<i class=\"fa fa-sitemap\"></i>
-						</button>";
-				}
-
 				if($deleteUsers) {
 					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
 						if($data->user_guid != $this->session->userId) {
@@ -210,11 +204,11 @@ class Users extends Booking {
 			$stmt = $this->db->prepare("
 				SELECT 
 					name, gender, email, username, permissions,
-					access_level, access_level_code, access_level_name, 
+					access_level,users_access_levels.id AS access_level_id, access_level_name, 
 					theme, contact, last_login, created_on,
 					access_level_permissions, image, status
 				FROM `users` 
-				LEFT JOIN users_access_levels ON `users`.access_level = users_access_levels.access_level_code 
+				LEFT JOIN users_access_levels ON `users`.access_level = users_access_levels.id 
 				LEFT JOIN users_roles ON `users`.user_guid = users_roles.user_guid 
 				WHERE users.user_guid = ? AND users.deleted = ? AND users.client_guid = ? LIMIT 1");
 			$stmt->execute([$userId, 0, $clientId]);
@@ -276,8 +270,6 @@ class Users extends Booking {
 			if(empty($user)) return false;
 			
 			$user->userId = $this->generate_user_id();
-			$user->brandId 	= $this->generate_brand_id();
-			$user->instanceId = $this->generate_instance_id();
 			$user->clientId = random_string('nozero', 16);
 			$user->verifyToken = $this->generate_verification_code();
 
@@ -362,7 +354,7 @@ class Users extends Booking {
         // record the email sending to be processed by the cron job
         $sms = $this->db->prepare("
             INSERT INTO email_list 
-            SET clientId = ?, template_type = ?, itemId = ?, recipients_list = ?,
+            SET clientId = ?, template_type = ?, item_guid = ?, recipients_list = ?,
                 request_performed_by = ?, message = ?, subject = ?
         ");
         $sms->execute([
@@ -590,7 +582,7 @@ class Users extends Booking {
 
 			// record the email sending to be processed by the cron job
 			$sms = $this->db->prepare("
-				INSERT INTO email_list SET client_guid = ?, template_type = ?, itemId = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
+				INSERT INTO email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
 			");
 			$sms->execute([
 				$params->clientId, 'general', $params->userId, json_encode($userEmail), $params->curUserId, $emailMessage, $emailSubject
@@ -625,7 +617,7 @@ class Users extends Booking {
 		$userData->email = (!empty($userData->email)) ? filter_var($userData->email, FILTER_SANITIZE_EMAIL) : null;
 
 		// confirm valid contact number
-		if(!preg_match("/^[0-9+]+$/", $userData->contact)) {
+		if(isset($userData->contact) && !preg_match("/^[0-9+]+$/", $userData->contact)) {
 			return "invalid-phone";
 		}
 
@@ -643,8 +635,9 @@ class Users extends Booking {
 			$query = $this->updateData(
 				"users",
 				"name='{$userData->fullname}',
-				email='{$userData->email}', contact='{$userData->contact}'
-				".(isset($userData->access_level) ? ",access_level='{$userData->access_level}'" : null)."	
+				email='{$userData->email}'
+				".(isset($userData->contact) ? ",contact='{$userData->contact}'" : null)."	
+				".(isset($userData->access_level_id) ? ",access_level='{$userData->access_level_id}'" : null)."	
 				",
 				"user_guid='{$userData->user_guid}' && client_guid='{$userData->clientId}'"
 			);
@@ -655,7 +648,7 @@ class Users extends Booking {
 				$this->userLogs('users', $userData->user_guid, 'Update the user details.', $userData->userId, $userData->clientId);
 
 				/** if the access level id was parsed */
-				if(isset($userData->access_level)) {
+				if(isset($userData->access_level_id)) {
 					// check if the user has the right permissions to perform this action
 					if($accessObject->hasAccess('accesslevel', 'users')) {
 
@@ -665,17 +658,17 @@ class Users extends Booking {
 						// confirm if the user has no credentials
 						if($userRole[0]->userTotal == 0) {
 							// insert the permissions to this user
-							$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
+							$getPermissions = $accessObject->getPermissions($userData->access_level_id)[0]->access_level_permissions;
 							// assign these permissions to the user
-							$accessObject->assignUserRole($userData->user_guid, $userData->access_level);
+							$accessObject->assignUserRole($userData->user_guid, $userData->access_level_id);
 						}
 
 						// Check Access Level
-						if ($userData->access_level != $checkData[0]->access_level) {
+						if ($userData->access_level_id != $checkData[0]->access_level) {
 
-							$getPermissions = $accessObject->getPermissions($userData->access_level)[0]->access_level_permissions;
+							$getPermissions = $accessObject->getPermissions($userData->access_level_id)[0]->access_level_permissions;
 
-							$accessObject->assignUserRole($userData->user_guid, $userData->access_level, $getPermissions);
+							$accessObject->assignUserRole($userData->user_guid, $userData->access_level_id, $getPermissions);
 						}
 					}
 				}

@@ -17,14 +17,14 @@ $ticketsManage = $accessObject->hasAccess("generate", "tickets");
             <div class="position-relative">
                 <div class="row align-items-center justify-content-between">
                     <div class="col position-relative">
-                        <h2 class="text-primary">Welcome back, your dashboard is ready!</h2>
+                        <h2 class="text-primary">Welcome back <em><?= $userData->name ?></em>,</h2>
                         <p class="text-gray-700">Great job, your dashboard is ready to go! You can view events, make bookings, prepare tickets, and download reports using this dashboard.</p>
                         <a class="btn btn-teal" href="<?= $baseUrl ?>events">Get started<i class="ml-1" data-feather="arrow-right"></i></a>
                     </div>
                     <div class="col d-none d-md-block text-right pt-3"><img class="img-fluid mt-n5" src="<?= $baseUrl ?>assets/img/drawkit/color/drawkit-content-man-alt.svg" style="max-width: 25rem;" /></div>
                 </div>
             </div>
-            <span class="close-notice" data-notice="dashboard"><span title="Close Notification" data-toggle="tooltip" class="fa fa-times"></span></span>
+            <!-- <span class="close-notice" data-notice="dashboard"><span title="Close Notification" data-toggle="tooltip" class="fa fa-times"></span></span> -->
         </div>
         <div class="row">
             <div class="col-xl-3 col-md-6 mb-4">

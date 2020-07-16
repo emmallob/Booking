@@ -175,7 +175,7 @@ class Authenticate extends Booking {
         } catch(PDOException $e) {
             // rollback all transactions if at least one fails
             $this->db->rollBack();
-            return false;
+            return $e->getMessage();
         }
     }
 

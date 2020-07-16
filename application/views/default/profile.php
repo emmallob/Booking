@@ -105,13 +105,13 @@ if(!empty($thisUser)) {
                                     </div>
                                     <div class="col-lg-6">
                                         <div class="form-group">
-                                            <label for="access_level">Access Permissions <span class="required">*</span></label>
+                                            <label for="access_level_id">Access Permissions <span class="required">*</span></label>
                                             <select <?php if(!$accessObject->hasAccess('accesslevel', 'users') || ($manageUsers && ($session->userId == $userId))) { ?>disabled="disabled"<?php } else { ?> name="access_level_id"<?php } ?> class="selectpicker form-control">
                                             <option value="null">Select Access Level</option>
                                             <?php
                                             if(!empty($access_levels)){
                                                 foreach ($access_levels as $level){
-                                                    $accessId = $level["access_level_code"];
+                                                    $accessId = $level["access_level_id"];
                                                     $levelName = $level["access_level_name"];
                                                     $selected = $accessId == $thisUser->access_level ? 'selected' : '';
                                                     echo "<option value='$accessId' {$selected}>$levelName</option>";
