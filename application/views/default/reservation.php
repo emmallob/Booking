@@ -208,6 +208,17 @@ $session->set("current_url", current_url());
                                  */
                                 if($eventData->is_payable) {
                                     $showTicketForm = true;
+                                } else {
+                                    /** Unset sessions if it has been set */
+                                    if(!empty($session->remove("eventTicketValidated"))) {
+                                        // remove the session in array
+                                        $session->remove([
+                                            "eventTicketValidatedId",
+                                            "eventTicketValidatedTicket",
+                                            "eventTicketValidatedSerial",
+                                            "eventTicketValidated"
+                                        ]);
+                                    }
                                 }
                                 
                                 /** 
@@ -307,7 +318,7 @@ $session->set("current_url", current_url());
                                 print '</div>';
                             } else {
                                 // confirm that ticket has been supplied
-                                if(($eventData->is_payable && empty($session->eventTicketValidated) || ($session->eventTicketValidatedId != $eventId)) && !isset($_GET["history"])) {
+                                if(($eventData->is_payable && (empty($session->eventTicketValidated) || ($session->eventTicketValidatedId != $eventId)) && !isset($_GET["history"]))) {
                                     // show the error message for a page not found
                                     print '<div class="col-lg-5">';
                                     print validationError($baseUrl, "Sorry! The Ticket Serial could not be validated.");
@@ -392,7 +403,7 @@ $session->set("current_url", current_url());
 
                                                 <?php if($eventData->user_booking_count == $eventData->maximum_multiple_booking) { ?>
                                                 <a href="<?= $baseUrl ?>reservation/<?= $theId ?>">
-                                                    Change <?= ($eventData->is_payable) ? "Ticket" : "Contact" ?>
+                                                    Change <?= ($eventData->is_payable) ? "Contact Number & Ticket" : "Contact" ?>
                                                 </a>
                                                 <?php } else { ?>
                                                 <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
@@ -529,6 +540,7 @@ $session->set("current_url", current_url());
         <?php if(isset($settingsPassed)) { ?>
         <script>
             var abbr = "<?= $theId ?>",
+                loggedContact = "<?= $session->loggedInUser ?>",
                 maximumBooking = <?= $eventData->maximum_multiple_booking - $eventData->user_booking_count ?>,
                 event_guid = "<?= $eventId ?>",
                 hall_guid = "<?= $hallId ?>",

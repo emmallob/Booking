@@ -78,7 +78,9 @@ function appendToArray(itemLabel) {
         $(`div[class~="selected-seats"] div[class~="selected-seats-content"] div[data-seat="${itemLabel}"]`).remove();
         remove(bookingSelectedItems, itemLabel);
         $(`div[class~="selected-seats"] h4 span`).html(bookingSelectedItems.length);
-
+        $(`input[name="phone_number"]:first`)
+            .val(loggedContact)
+            .prop("disabled", true);
         (bookingSelectedItems.length) ? $(`button[class~="reserve-seat"]`).removeClass('hidden'): $(`button[class~="reserve-seat"]`).addClass('hidden');
 
         return false;
@@ -92,6 +94,11 @@ function appendToArray(itemLabel) {
     $(`div[class~="selected-seats"] h4 span`).html(bookingSelectedItems.length);
     $(`div[class~="selected-seats"] div[class~="selected-seats-content"]`).append(seatForm);
     $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div[data-label="${itemLabel}"]`).addClass("selected");
+
+    $(`input[name="phone_number"]:first`)
+        .val(loggedContact)
+        .prop("disabled", true);
+
 }
 
 $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div`).on("click", function() {

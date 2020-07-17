@@ -279,10 +279,12 @@ class Reservations extends Booking {
             $this->db->commit();
 
             /** remove the session for the ticket validation */
-            $this->session->remove("eventTicketValidated");
-            $this->session->remove("eventTicketValidatedId");
-            $this->session->remove("eventTicketValidatedTicket");
-            $this->session->remove("eventTicketValidatedSerial");
+            $this->session->remove([
+                "eventTicketValidatedId",
+                "eventTicketValidatedTicket",
+                "eventTicketValidatedSerial",
+                "eventTicketValidated"
+            ]);
             
             /** print a success message */
             return "perfect";

@@ -124,7 +124,7 @@ require "headtags.php";
                                     <div class="cards hidden">
                                         <div class="form-group">
                                             <label for="maximum_booking">Maximum Booking <i title="Maximum number of times that a user can use a single contact number to book" data-toggle="tooltip" class="fa fa-info"></i></label>
-                                            <input type="number" name="maximum_booking" value="3" id="maximum_booking" max="10" class="form-control">
+                                            <input type="number" name="maximum_booking" value="1" id="maximum_booking" max="10" class="form-control">
                                         </div>
                                     </div>
                                     <div class="cards">
