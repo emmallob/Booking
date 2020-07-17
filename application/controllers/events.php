@@ -218,6 +218,11 @@ class Events extends Booking {
             return "Sorry! The booking start date should not be before the Event Date";
         }
 
+        // if the booking start is lesser than current time
+        if(strtotime($book_start) < time()) {
+            return "Sorry! The booking start date should not be lower than current time";
+        }
+
         // if the booking end time is before the start time then an error should pop up
         if(strtotime($book_start) > strtotime($book_end)) {
             return "Sorry! The booking end date should be after the start date";
@@ -334,7 +339,7 @@ class Events extends Booking {
                 event_date = ?, start_time = ?, end_time = ?, booking_start_time = ?, booking_end_time = ?,
                 ".(!empty($params->event_is_payable) ? "is_payable='{$params->event_is_payable}'," : null)."
                 ".(!empty($params->department_guid) ? "department_guid='{$params->department_guid}'," : null)."
-                ".(!empty($params->multiple_booking) ? "allow_multiple_booking='{$params->multiple_booking}'," : null)."
+                ".(isset($params->multiple_booking) ? "allow_multiple_booking='{$params->multiple_booking}'," : null)."
                 ".(!empty($params->maximum_booking) ? "maximum_multiple_booking='{$params->maximum_booking}'," : null)."
                 ".(isset($attachment) ? "attachment='".json_encode($attachment)."'," : null)."
                 ".(!empty($params->description) ? "description='{$params->description}'," : null)."
@@ -430,9 +435,13 @@ class Events extends Booking {
         }
 
         // check if the event already exist using the name, date and start time
-        if(empty($this->pushQuery("id", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'"))) {
+        $eventData = $this->pushQuery("id, booking_start_time", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'");
+
+        // count the number of rows found
+        if(empty($eventData)) {
             return "Sorry! An invalid event guid has been supplied.";
         }
+        $eventData = $eventData[0];
 
         // check the start date
         if(strtotime($params->event_date) < strtotime(date("Y-m-d"))) {
@@ -446,6 +455,11 @@ class Events extends Booking {
         // if the booking start is lesser than the event date
         if(strtotime($book_start) > strtotime($params->event_date)) {
             return "Sorry! The booking start date should not be before the Event Date";
+        }
+
+        // if the booking start is lesser than current time
+        if(strtotime($params->booking_starttime) < strtotime($eventData->booking_start_time)) {
+            return "Sorry! The booking start date should not be lower than the previous start time.";
         }
 
         // if the booking end time is before the start time then an error should pop up
@@ -561,7 +575,7 @@ class Events extends Booking {
                 ,event_date = ?, start_time = ?, end_time = ?, booking_start_time = ?, booking_end_time = ?
                 ".(!empty($params->event_is_payable) ? ",is_payable='{$params->event_is_payable}'" : null)."
                 ".(!empty($params->department_guid) ? ",department_guid='{$params->department_guid}'" : null)."
-                ".(!empty($params->multiple_booking) ? ",allow_multiple_booking='{$params->multiple_booking}'" : null)."
+                ".(isset($params->multiple_booking) ? ",allow_multiple_booking='{$params->multiple_booking}'" : null)."
                 ".(!empty($params->maximum_booking) ? ",maximum_multiple_booking='{$params->maximum_booking}'" : null)."
                 ".(isset($attachment) ? ",attachment='".json_encode($attachment)."'" : null)."
                 ".(!empty($params->description) ? ",description='{$params->description}'" : null)."

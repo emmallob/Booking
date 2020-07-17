@@ -49,7 +49,7 @@ class Reservations extends Booking {
             }
 
             /** If the request is to bypass */
-            $bypass_query = !($bypass) ? "AND (TIMESTAMP(a.booking_end_time) > CURRENT_TIME()) AND a.state != 'past'" : null;
+            $bypass_query = !($bypass) ? "AND (TIMESTAMP(a.booking_start_time) < CURRENT_TIME()) AND (TIMESTAMP(a.booking_end_time) > CURRENT_TIME()) AND a.state != 'past'" : null;
 
             /** Make the query for the list of events */
             $stmt = $this->db->prepare("
