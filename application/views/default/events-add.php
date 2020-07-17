@@ -33,7 +33,7 @@ require "headtags.php";
             <?php if(!$accessObject->hasAccess("add", "events")) { ?>
                 <?= pageNotFound($baseUrl) ?>
             <?php } else { ?>
-                <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" class="appForm" enctype="multipart/form-data">
+                <form autocomplete="Off" action="<?= $baseUrl ?>api/events/add" method="POST" id="saveRecordWithAttachment" enctype="multipart/form-data">
                     <div class="row">
                         <?= form_loader() ?>
                         <div class="col-lg-8 col-md-8">

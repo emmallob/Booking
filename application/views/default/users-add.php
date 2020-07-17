@@ -64,7 +64,7 @@ $genders = $usersClass->get_user_genders();
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label>User Image</label>
-                                            <input type="file" name="user_image" id="user_image" class="form-control">
+                                            <input  accept="image/x-png,image/gif,image/jpeg" type="file" name="user_image" id="user_image" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-lg-6 text-right">

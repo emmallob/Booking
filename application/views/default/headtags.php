@@ -105,7 +105,7 @@ $accessObject->userId = $userId;
 			<li class="nav-item dropdown no-caret mr-3 dropdown-notifications">
 				<a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownAlerts" href="javascript:void(0);" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i data-feather="bell"></i></a>
 				<div class="dropdown-menu dropdown-menu-right border-0 shadow animated--fade-in-up" aria-labelledby="navbarDropdownAlerts">
-					<h6 class="dropdown-header dropdown-notifications-header"><i class="mr-2" data-feather="bell"></i>Alerts Center</h6>
+					<h6 class="dropdown-header dropdown-notifications-header"><i class="mr-2" data-feather="bell"></i>Activity Logs Center</h6>
 					<a class="dropdown-item dropdown-notifications-item" href="#!">
 					<div class="dropdown-notifications-item-icon bg-warning"><i data-feather="activity"></i></div>
 					<div class="dropdown-notifications-item-content">
@@ -133,7 +133,7 @@ $accessObject->userId = $userId;
 						<div class="dropdown-notifications-item-content-text">New user request. Woody has requested access to the organization.</div>
 						</div>
 					</a>
-					<a class="dropdown-item dropdown-notifications-footer" href="<?= $baseUrl ?>alerts">View All Alerts</a>
+					<a class="dropdown-item dropdown-notifications-footer" href="<?= $baseUrl ?>activity-logs">View All Activity Logs</a>
 				</div>
 			</li>
 			<li class="nav-item dropdown no-caret mr-3 dropdown-user">

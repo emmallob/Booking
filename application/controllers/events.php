@@ -179,6 +179,9 @@ class Events extends Booking {
      * @return Array
      */
     public function addItem(stdClass $params) {
+        
+        // update directory
+        $uploadDir = 'assets/events/';
 
         // ensure that new lines are replaced with breaks
         $params->description = !empty($params->description) ? nl2br($params->description) : null;
@@ -246,10 +249,14 @@ class Events extends Booking {
 
         // halls configuration
         if(!empty($params->halls_guid)) {
+
+            // convert to array
+            $params->halls_guid = $this->stringToArray($params->halls_guid);
+
             // get the first item in the array
             if(is_array($params->halls_guid)) {
                 // get the array item
-                $halls_guid = $params->halls_guid[0];
+                $halls_guid = $params->halls_guid;
                 $halls_list = [];
 
                 // loop through each item and check if the hall really exists
@@ -287,6 +294,33 @@ class Events extends Booking {
 
         try {
 
+            // confirm that a logo was parsed
+			if(isset($params->attachment)) {
+
+				// File path config 
+				$fileName = basename($params->attachment["name"]); 
+				$targetFilePath = $uploadDir . $fileName; 
+				$fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+				// Allow certain file formats 
+				$allowTypes = ['jpg', 'png', 'jpeg', 'mp4', 'mpeg'];
+				
+				// check if its a valid image
+				if(!empty($fileName) && in_array($fileType, $allowTypes)){
+					
+					// set a new filename
+					$fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+
+					// Upload file to the server 
+					if(move_uploaded_file($params->attachment["tmp_name"], $fileName)){ 
+						$attachment = [
+                            "asset" => $fileName,
+                            "type" => $fileType
+                        ];
+					}
+				}
+			}
+
             /** 32 random string for the guid */
             $guid = random_string("alnum", 32);
 
@@ -302,7 +336,7 @@ class Events extends Booking {
                 ".(!empty($params->department_guid) ? "department_guid='{$params->department_guid}'," : null)."
                 ".(!empty($params->multiple_booking) ? "allow_multiple_booking='{$params->multiple_booking}'," : null)."
                 ".(!empty($params->maximum_booking) ? "maximum_multiple_booking='{$params->maximum_booking}'," : null)."
-                ".(isset($attachment) ? "attachment='{$attachment}'," : null)."
+                ".(isset($attachment) ? "attachment='".json_encode($attachment)."'," : null)."
                 ".(!empty($params->description) ? "description='{$params->description}'," : null)."
                 ".(!empty($params->ticket_guid) ? "ticket_guid='{$params->ticket_guid}'," : null)."
                 created_by = ?, event_slug = ?
@@ -376,6 +410,9 @@ class Events extends Booking {
      */
     public function updateItem(stdClass $params) {
 
+        // update directory
+        $uploadDir = 'assets/events/';
+
         // ensure that new lines are replaced with breaks
         $params->description = !empty($params->description) ? nl2br($params->description) : null;
 
@@ -443,10 +480,13 @@ class Events extends Booking {
         // halls configuration
         if(!empty($params->halls_guid)) {
 
+            // convert to array
+            $params->halls_guid = $this->stringToArray($params->halls_guid);
+
             // get the first item in the array
             if(is_array($params->halls_guid)) {
                 // get the array item
-                $halls_guid = $params->halls_guid[0];
+                $halls_guid = $params->halls_guid;
                 $halls_list = [];
 
                 // loop through each item and check if the hall really exists
@@ -484,6 +524,33 @@ class Events extends Booking {
 
         try {
 
+            // confirm that a logo was parsed
+			if(isset($params->attachment)) {
+
+				// File path config 
+				$fileName = basename($params->attachment["name"]); 
+				$targetFilePath = $uploadDir . $fileName; 
+				$fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+				// Allow certain file formats 
+				$allowTypes = ['jpg', 'png', 'jpeg', 'mp4', 'mpeg'];
+				
+				// check if its a valid image
+				if(!empty($fileName) && in_array($fileType, $allowTypes)){
+					
+					// set a new filename
+					$fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+
+					// Upload file to the server 
+					if(move_uploaded_file($params->attachment["tmp_name"], $fileName)){ 
+						$attachment = [
+                            "asset" => $fileName,
+                            "type" => $fileType
+                        ];
+					}
+				}
+			}
+
             $this->db->beginTransaction();
 
             /** Execute the statement */
@@ -496,7 +563,7 @@ class Events extends Booking {
                 ".(!empty($params->department_guid) ? ",department_guid='{$params->department_guid}'" : null)."
                 ".(!empty($params->multiple_booking) ? ",allow_multiple_booking='{$params->multiple_booking}'" : null)."
                 ".(!empty($params->maximum_booking) ? ",maximum_multiple_booking='{$params->maximum_booking}'" : null)."
-                ".(isset($attachment) ? ",attachment='{$attachment}'" : null)."
+                ".(isset($attachment) ? ",attachment='".json_encode($attachment)."'" : null)."
                 ".(!empty($params->description) ? ",description='{$params->description}'" : null)."
                 ".(!empty($params->ticket_guid) ? ",ticket_guid='{$params->ticket_guid}'" : null)."
                 WHERE client_guid = ? AND event_guid = ?

@@ -74,7 +74,7 @@ if($eventsId) {
             <?php if(!$itemFound || !$accessObject->hasAccess("update", "events")) { ?>
                 <?= pageNotFound($baseUrl) ?>
             <?php } else { ?>
-                <form autocomplete="Off" action="<?= $baseUrl ?>api/events/update" method="POST" class="appForm" enctype="multipart/form-data">
+                <form autocomplete="Off" id="saveRecordWithAttachment" action="<?= $baseUrl ?>api/events/update" method="POST" enctype="multipart/form-data">
                     <div class="row">
                         <?= form_loader() ?>
                         <div class="col-lg-8 col-md-8">
@@ -192,6 +192,10 @@ if($eventsId) {
                                         <div class="form-group">
                                             <label for="attachment">Event Attachment <small><em>(Attach an image or video)</em></small></label>
                                             <input type="file" name="attachment" id="attachment" class="form-control" accept="image/x-png,image/gif,image/jpeg,video/*">
+
+                                            <?php
+                                            // event attachment
+                                            ?>
                                         </div>
                                     </div>
                                 </div>

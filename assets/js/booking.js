@@ -322,7 +322,6 @@ $("form[class~='appForm']").on("submit", function(e) {
 
         if ($(`select[name="halls_guid"]`).length) {
             data.halls_guid = serealizeSelects($(`select[name="halls_guid"]`));
-            console.log(data);
         }
 
         payload = JSON.stringify(data);
@@ -553,13 +552,20 @@ $(`body[class~="nav-fixed"]`).on('click', `span[class~="view-user-activity"]`, f
     });
 });
 
-$(`form[class="userManagerForm"]`).on('submit', function(evt) {
+$(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
     evt.preventDefault();
     let myForm = document.getElementById('saveRecordWithAttachment');
     let formData = new FormData(myForm);
 
     $(`div[class="form-content-loader"]`).css("display", "flex");
     $(`form[id="saveRecordWithAttachment"] button[type="submit"]`).prop("disabled", true);
+
+    if ($(`select[name="halls_guid"]`).length) {
+        formData.delete("halls_guid");
+
+        let halls_guid = serealizeSelects($(`select[name="halls_guid"]`));
+        formData.append("halls_guid", halls_guid);
+    }
 
     $.ajax({
         type: `POST`,

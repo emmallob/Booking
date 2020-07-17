@@ -164,7 +164,7 @@ class Reservations extends Booking {
      * 
      * @return Array
      */
-public function reserveSeat(stdClass $parameters) {
+    public function reserveSeat(stdClass $parameters) {
         
         try {
 
@@ -246,7 +246,7 @@ public function reserveSeat(stdClass $parameters) {
 
                 /** Insert the booking record */
                 $stmt = $this->db->prepare("
-                    INSERT INTO events_booking SET events_booking = ?, event_guid = ?, hall_guid = ?, seat_guid = ?, seat_name = ?,
+                    INSERT INTO events_booking SET client_guid = ?, event_guid = ?, hall_guid = ?, seat_guid = ?, seat_name = ?,
                     ".(($eventData->is_payable) ? "ticket_guid = '{$this->session->eventTicketValidatedTicket}', ticket_serial = '{$this->session->eventTicketValidatedSerial}'," : null)."
                     fullname = ?, created_by = ?, address = ?, user_agent = ?
                     ".(!empty($this->session->loggedInUser) ? ", booked_by='{$this->session->loggedInUser}'" : null)."
