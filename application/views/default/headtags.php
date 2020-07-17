@@ -138,7 +138,7 @@ $accessObject->userId = $userId;
 			</li>
 			<li class="nav-item dropdown no-caret mr-3 dropdown-user">
 				<a class="btn btn-icon btn-transpadrent-dark dropdown-toggle" id="navbarDropdownUserImage" href="javascript:void(0);" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<img width="70px" class="curve" src="<?= $baseUrl ?><?= $userData->image ?>"/>
+					<img width="60px" class="curve" src="<?= $baseUrl ?><?= $userData->image ?>"/>
 				</a>
 				<div class="dropdown-menu dropdown-menu-right border-0 shadow animated--fade-in-up" aria-labelledby="navbarDropdownUserImage">
 					<h6 class="dropdown-header d-flex align-items-center">
