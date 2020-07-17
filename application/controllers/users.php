@@ -677,8 +677,7 @@ class Users extends Booking {
 			// update user data
 			$query = $this->updateData(
 				"users",
-				"name='{$userData->fullname}',
-				email='{$userData->email}'
+				"name='{$userData->fullname}', email='{$userData->email}'
 				".(isset($userData->contact) ? ",contact='{$userData->contact}'" : null)."	
 				".(isset($userData->access_level_id) ? ",access_level='{$userData->access_level_id}'" : null)."	
 				",
@@ -690,11 +689,14 @@ class Users extends Booking {
 				// Record user activity
 				$this->userLogs('users', $userData->user_guid, 'Update the user details.', $userData->userId, $userData->clientId);
 
-				/** if the access level id was parsed */
-				if(isset($permissions) && !empty($permissions)) {
-					// update the user access levels
-					$stmt = $this->db->prepare("UPDATE users_roles SET permissions = ?, last_updated = now() WHERE user_guid = ? AND client_guid= ?");
-					$stmt->execute([json_encode($permissions), $userData->user_guid, $userData->clientId]);
+				// if the user has permission to perform this action
+				if($accessObject->hasAccess('accesslevel', 'users')) {
+					/** if the access level id was parsed */
+					if(isset($permissions) && !empty($permissions)) {
+						// update the user access levels
+						$stmt = $this->db->prepare("UPDATE users_roles SET permissions = ?, last_updated = now() WHERE user_guid = ? AND client_guid= ?");
+						$stmt->execute([json_encode($permissions), $userData->user_guid, $userData->clientId]);
+					}
 				}
 
 				return "User Details Have Been Successfully Updated.";

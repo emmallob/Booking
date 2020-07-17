@@ -570,40 +570,35 @@ class Api {
                 // if the user does not have access level access but tried to push it
                 if(!$this->accessCheck->hasAccess("accesslevel", "users")) {
                     // then remove it from the list of parameters
-                    $params->brand_ids = (!empty($params->brand_ids)) ? null : null;
                     $params->access_level = (!empty($params->access_level)) ? null : null;
                     $params->access_level_id = (!empty($params->access_level_id)) ? null : null;
                 }
-                elseif(!$this->accessCheck->hasAccess("manage", "users")) {
-                    // permission denied message
-                    $result['result'] = self::PERMISSION_DENIED;
-                } else {
-                    // parse the request to update the user profile information
-                    $request = $usersClass->updateUserProfile($params);
+                // parse the request to update the user profile information
+                $request = $usersClass->updateUserProfile($params);
 
-                    // confirm the request processing
-                    if($request === "invalid-phone") {
-                        $result['result'] = "Sorry please enter a valid Contact Number.";
-                    }
-                    elseif($request === "invalid-email") {
-                        $result['result'] = "Sorry please enter a valid Email Address.";
-                    }
-                    elseif($request === "invalid-access_levels") {
-                        $result['result'] = "Sorry the Access Level permissions must be an array.";
-                    }
-                    elseif($request === "unknown-error") {
-                        $result['result'] = "Sorry an unknown error occured. Please try again later";
-                    }
-                    elseif($request === "invalid") {
-                        $result['result'] = "Sorry an invalid user id was parsed for processing";
-                    }
-                    // if the request was successful
-                    else {
-                        $result['result'] = "Profile was successfully updated.";
-                        $result['remote_request']['function'] = "fetchUsersLists()";
-                        $code = 200;
-                    }
+                // confirm the request processing
+                if($request === "invalid-phone") {
+                    $result['result'] = "Sorry please enter a valid Contact Number.";
                 }
+                elseif($request === "invalid-email") {
+                    $result['result'] = "Sorry please enter a valid Email Address.";
+                }
+                elseif($request === "invalid-access_levels") {
+                    $result['result'] = "Sorry the Access Level permissions must be an array.";
+                }
+                elseif($request === "unknown-error") {
+                    $result['result'] = "Sorry an unknown error occured. Please try again later";
+                }
+                elseif($request === "invalid") {
+                    $result['result'] = "Sorry an invalid user id was parsed for processing";
+                }
+                // if the request was successful
+                else {
+                    $result['result'] = "Profile was successfully updated.";
+                    $result['remote_request']['function'] = "fetchUsersLists()";
+                    $code = 200;
+                }
+                
                 
             }
             

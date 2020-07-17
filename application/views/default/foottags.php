@@ -68,6 +68,12 @@
         $(`form[class~="appForm"] *`).prop("disabled", true);
         <?php } ?>
         <?php } ?>
+        <?php if(confirm_url_id(0, "users-add")) { ?>
+        $(`input[name="email"]`).on('keyup', function() {
+            username = $(this).val().split("@")[0];
+            $(`input[name="username"]`).val(username);
+        });
+        <?php } ?>
     </script>
 </body>
 </html>

@@ -153,6 +153,5 @@ $genders = $usersClass->get_user_genders();
         </form>
         <?php } ?>
     </div>
-
 </main>
 <?php require "foottags.php"; ?>

@@ -889,7 +889,3 @@ $(`select[name="access_level_id"]`).on('change', function() {
         $(`div[class~="access_level_content"]`).html(resp.data.result);
     }, 'json');
 });
-$(`input[name="email"]`).on('keyup', function() {
-    username = $(this).val().split("@")[0];
-    $(`input[name="username"]`).val(username);
-});
