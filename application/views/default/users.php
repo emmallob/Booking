@@ -1,5 +1,5 @@
 <?php 
-$page_title = "User Management";
+$page_title = "Users";
 
 require "headtags.php";
 ?>

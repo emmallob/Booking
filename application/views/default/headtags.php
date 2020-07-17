@@ -137,12 +137,12 @@ $accessObject->userId = $userId;
 				</div>
 			</li>
 			<li class="nav-item dropdown no-caret mr-3 dropdown-user">
-				<a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownUserImage" href="javascript:void(0);" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<img class="img-fluid" src="<?= $baseUrl ?>assets/img/avatar.png"/>
+				<a class="btn btn-icon btn-transpadrent-dark dropdown-toggle" id="navbarDropdownUserImage" href="javascript:void(0);" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<img width="70px" class="curve" src="<?= $baseUrl ?><?= $userData->image ?>"/>
 				</a>
 				<div class="dropdown-menu dropdown-menu-right border-0 shadow animated--fade-in-up" aria-labelledby="navbarDropdownUserImage">
 					<h6 class="dropdown-header d-flex align-items-center">
-						<img class="dropdown-user-img" src="<?= $baseUrl ?>assets/img/avatar.png" />
+						<img class="dropdown-user-img" src="<?= $baseUrl ?><?= $userData->image ?>" />
 						<div class="dropdown-user-details">
 							<div class="dropdown-user-details-name"><?= $userData->name ?></div>
 							<div class="dropdown-user-details-email"><?= $userData->email ?></div>
@@ -150,7 +150,7 @@ $accessObject->userId = $userId;
 					</h6>
 					<div class="dropdown-divider"></div>
 					<a class="dropdown-item" href="<?= $baseUrl ?>profile">
-						<div class="dropdown-item-icon"><i data-feather="user"></i></div> Profile
+						<div class="curve dropdown-item-icon"><i data-feather="user"></i></div> Profile
 					</a>
 					<?php if($accessObject->hasAccess("manage", "account")) { ?>
 					<a class="dropdown-item" href="<?= $baseUrl ?>configuration">

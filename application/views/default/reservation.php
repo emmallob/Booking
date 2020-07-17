@@ -115,7 +115,7 @@ $session->set("current_url", current_url());
                                 <div class="pt-2 col-lg-12 col-md-12">
                                     <table width="100%">
                                         <tr>
-                                            <td class="logo-td"><img class="header-logo" src="<?= $baseUrl ?><?= $thisAccount->logo ?>" alt=""></td>
+                                            <td class="logo-td"><img class="header-logo" src="<?= $baseUrl ?><?= $thisAccount->account_logo ?>" alt=""></td>
                                             <td>
                                                 <h1><a class="text-black-75" href="<?= $baseUrl ?>reservation/<?= $theId ?>"><?= $thisAccount->name ?></a></h1>
                                             </td>

@@ -460,6 +460,9 @@ class Users extends Booking {
 	 * @return String
 	 */
 	public function addUserProfile(stdClass $params) {
+
+		// update directory
+        $uploadDir = 'assets/img/profiles/';
 		
 		// load the user session key to be used for all the queries
 		$accountInfo = $this->clientData($params->clientId);
@@ -541,6 +544,30 @@ class Users extends Booking {
 
 		try {
 
+			// confirm that a logo was parsed
+			if(isset($params->user_image)) {
+
+				// File path config 
+				$fileName = basename($params->user_image["name"]); 
+				$targetFilePath = $uploadDir . $fileName; 
+				$fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+				// Allow certain file formats 
+				$allowTypes = array('jpg', 'png', 'jpeg'); 
+				
+				// check if its a valid image
+				if(!empty($fileName) && in_array($fileType, $allowTypes)){
+					
+					// set a new filename
+					$fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+
+					// Upload file to the server 
+					if(move_uploaded_file($params->user_image["tmp_name"], $fileName)){ 
+						$uploadedFile = $fileName;
+					}
+				}
+			}
+
 			// begin transaction
 			$this->db->beginTransaction();
 
@@ -549,7 +576,7 @@ class Users extends Booking {
 				INSERT INTO `users` SET
 				name = ?, email = ?, contact = ?, client_guid=?, created_on = now(), 
 				created_by = ?, verify_token = ?, username = ?".
-				(empty($params->image) ? '' : ", image = '{$params->image}'").
+				(empty($uploadedFile) ? '' : ", image = '{$uploadedFile}'").
 				(empty($params->access_level_id) ? '' : ", access_level = '{$params->access_level_id}'").
 				", user_guid = ?, user_type = ?, password = ?
 			");
@@ -633,6 +660,9 @@ class Users extends Booking {
 	 */
 	public function updateUserProfile(stdClass $userData){
 		
+		// update directory
+        $uploadDir = 'assets/img/profiles/';
+
 		// global variables
 		global $accessObject;
 
@@ -674,13 +704,37 @@ class Users extends Booking {
 
 		if ($checkData != false && $checkData[0]->userTotal == '1') {
 
+			// confirm that a logo was parsed
+			if(isset($userData->user_image)) {
+
+				// File path config 
+				$fileName = basename($userData->user_image["name"]); 
+				$targetFilePath = $uploadDir . $fileName; 
+				$fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+				// Allow certain file formats 
+				$allowTypes = array('jpg', 'png', 'jpeg'); 
+				
+				// check if its a valid image
+				if(!empty($fileName) && in_array($fileType, $allowTypes)){
+					
+					// set a new filename
+					$fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+
+					// Upload file to the server 
+					if(move_uploaded_file($userData->user_image["tmp_name"], $fileName)){ 
+						$uploadedFile = $fileName;
+					}
+				}
+			}
+			
 			// update user data
 			$query = $this->updateData(
 				"users",
 				"name='{$userData->fullname}', email='{$userData->email}'
-				".(isset($userData->contact) ? ",contact='{$userData->contact}'" : null)."	
-				".(isset($userData->access_level_id) ? ",access_level='{$userData->access_level_id}'" : null)."	
-				",
+				".(isset($userData->contact) ? ",contact='{$userData->contact}'" : null)."
+				".(isset($uploadedFile) ? ",image='{$uploadedFile}'" : null)."
+				".(isset($userData->access_level_id) ? ",access_level='{$userData->access_level_id}'" : null)."	",
 				"user_guid='{$userData->user_guid}' && client_guid='{$userData->clientId}'"
 			);
 

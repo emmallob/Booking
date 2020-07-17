@@ -80,6 +80,15 @@ if(!empty($thisUser)) {
                                     <?= form_loader(); ?>
                                     <div class="col-lg-6">
                                         <div class="form-group">
+                                            <label>User Image</label>
+                                            <input type="file" name="user_image" id="user_image" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 text-right">
+                                        <img class="curve" width="70px" src="<?= $baseUrl.$thisUser->image ?>" alt="">
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
                                             <label for="fullname">Fullname <span class="required">*</span></label>
                                             <input type="text" value="<?= $thisUser->name ?? null ?>" name="fullname" id="fullname" class="form-control">
                                         </div>
@@ -178,7 +187,7 @@ if(!empty($thisUser)) {
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="password_2">Confirm Password <span class="required">*</span></label>
-                                            <input type="hidden" value="<?= $userId ?>" name="user_guid" id="user_guid" class="form-control">
+                                            <input type="hidden" value="<?= $userId ?>" name="user_guid" id="pass_user_guid" class="form-control">
                                             <input type="password" name="password_2" id="password_2" class="form-control">
                                         </div>
                                     </div>

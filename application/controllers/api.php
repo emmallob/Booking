@@ -397,7 +397,40 @@ class Api {
                         ]
                     ]
                 ]
-            ]
+            ],
+            "account" => [
+                "POST" => [
+                    "select" => [
+                        "params" => [
+                            "accountId" => "required - This is the account that will be managed."
+                        ]
+                    ],
+                    "connect" => [
+                        "params" => [
+                            "channel" => "required - This is the channel name to add",
+                            "brand_id" => "required - This is the Brand Id to add",
+                            "page_image" => "The image of the page",
+                            "access_token" => "required - The access token",
+                            "page_id" => "required - The unique id of the page",
+                            "page_name" => "required - The name of the page.",
+                            "user_id" => "required - The user id of the account to be added."
+                        ]
+                    ],
+                    "update" => [
+                        "params" => [
+                            "logo" => "This is the logo of the firm",
+                            "name" => "required - This is the channel name to add",
+                            "account_type" => "This is the Brand Id to add",
+                            "account_industry" => "The industry where the account falls",
+                            "phone" => "required - The contact number of the account",
+                            "email" => "required - The default email of the account.",
+                            "country" => "The country of the registering user account.",
+                            "city" => "The city of the registering user account."
+                        ]
+                    ]
+                ]
+            ],
+            
         ];
     }
 
@@ -595,7 +628,8 @@ class Api {
                 // if the request was successful
                 else {
                     $result['result'] = "Profile was successfully updated.";
-                    $result['remote_request']['function'] = "fetchUsersLists()";
+                    $result['remote_request']['reload'] = true;
+                    $result['remote_request']['href'] = $this->session->current_url;
                     $code = 200;
                 }
                 
@@ -723,7 +757,7 @@ class Api {
                     elseif($request === "account-created") {
                         $result['result'] = "User Account was successfully Created.";
                         $result['remote_request']['reload'] = true;
-                        $result['remote_request']['href'] = $this->session->current_url;
+                        $result['remote_request']['href'] = $this->config->base_url("users");
                         $code = 200;
                     }
                     else {
@@ -984,6 +1018,109 @@ class Api {
                 $code = 200;
             }
             
+        }
+
+        // if the user is managing an account
+        elseif ( $this->inner_url == "account" ) {
+            
+            // require the class
+            global $usersClass;
+
+            // or you can do that straight forward from here
+            if( $this->outer_url == "select" ) {
+
+                // get the list of user brands
+                $request = $usersClass->selectAccount($params);
+
+                // if the request was successful
+                if($request) {
+                    $code = 200;
+                }
+            }
+
+            // connect an account
+            elseif( $this->outer_url == "connect" ) {
+
+                // create a new object
+                $accountClass = load_class('accounts', 'controllers');
+
+                // set additional values
+                $params = (Object) $params;
+                $params->userId = $this->userId;
+                $params->clientId = $this->clientId;
+
+                // if the user does not have the required permissions
+                if(!$this->accessCheck->hasAccess("connect", "channels")) {
+                    // permission denied message
+                    $result['result'] = self::PERMISSION_DENIED;
+                } else {
+
+                    // parse the request to connect an account
+                    $request = $accountClass->linkAccount($params);
+
+                    // if the query was successful
+                    if($request) {
+
+                        // unset all sessions
+                        $this->session->remove("facebookArray");
+                        $this->session->remove("facebook_access_token");
+                        $this->session->remove("facebook_user_id");
+                        $this->session->remove("FBRLH_state");
+                        $this->session->remove("expiresIn");
+                        $this->session->remove("youtubeAccessToken");
+                        $this->session->remove("userInformation");
+		                $this->session->remove("channelsList");
+
+                        // unset the brands list session data
+                        $this->session->remove("brandsListData");
+
+                        // parse the success response
+                        $code = 200;
+                        $result['remote_request']['reload'] = true;
+                        $result['remote_request']['href'] = $this->config->base_url('channels/'.$params->brand_id);
+                        $result['result'] = ucfirst($params->channel) . " was successfully connected.";
+                    }
+                }
+            }
+            
+            // update a account details
+            elseif( $this->outer_url == "update" ) {
+
+                // convert the array to object
+                $params = (Object) $params;
+                $params->userId = $this->userId;
+                $params->clientId = $this->clientId;
+
+                // create a new object
+                $accountClass = load_class('accounts', 'controllers');
+
+                // if the user does not have the required permissions
+                if(!$this->accessCheck->hasAccess("manage", "account")) {
+                    // permission denied message
+                    $result['result'] = self::PERMISSION_DENIED;
+                } else {
+                    // update the account details
+                    $request = $accountClass->updateAccount($params);
+                    
+                    // confirm the request processing
+                    if($request === "invalid-phone") {
+                        $result['result'] = "Sorry please enter a valid Contact Number.";
+                    }
+                    elseif($request === "invalid-email") {
+                        $result['result'] = "Sorry please enter a valid Email Number.";
+                    }
+                    // if the request was successful
+                    else {
+                        $result['result'] = "Account was successfully updated.";
+                        $code = 200;
+                        // refresh the page if a logo was submitted
+                        if($request == "refresh") {
+                            $result['remote_request']['reload'] = true;
+                            $result['remote_request']['href'] = $this->session->current_url;
+                        }
+                    }
+                }
+            }
         }
 
         // if the user want remove an item from the database

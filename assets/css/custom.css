@@ -142,3 +142,7 @@ i .seats-table {
 .cursor {
     cursor: pointer;
 }
+
+img.curve {
+    border-radius: 50%;
+}

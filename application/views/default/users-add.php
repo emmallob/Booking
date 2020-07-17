@@ -1,6 +1,6 @@
 <?php
 // set the page title
-$page_title = "Add Admin User";
+$page_title = "Add User";
 
 global $usersClass, $session, $bookingClass, $userId;
 
@@ -61,6 +61,14 @@ $genders = $usersClass->get_user_genders();
                             <div class="card-body">
                                 <div class="row">
                                     <?= form_loader(); ?>
+                                    <div class="col-lg-6">
+                                        <div class="form-group">
+                                            <label>User Image</label>
+                                            <input type="file" name="user_image" id="user_image" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 text-right">
+                                    </div>
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="fullname">Fullname <span class="required">*</span></label>
