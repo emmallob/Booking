@@ -10,34 +10,17 @@ require_once 'headtags.php';
 $userFound = false;
 $manageUsers = $accessObject->hasAccess('manage', 'users');
 
-// if the user id was parsed
-if(confirm_url_id(1)) {
-    $userId = xss_clean($SITEURL[1]);
-}
-
 // reset the userid if the user has admin privileges
 $userId = ($manageUsers) ? $userId : $session->userId;
 
 // create a new object of the industry class
 $thisUser = $usersClass->get_user_basic($userId, $session->clientId);
 
-// ensure that a user id was parsed
-if(!empty($thisUser)) {
-    // get the user found to true
-    $userFound = true;
-    
-    // create additional objects
-    $access_levels = $usersClass->get_access_levels();
+// create additional objects
+$access_levels = $usersClass->get_access_levels();
 
-    // get the suer brands
-    $genders = $usersClass->get_user_genders();
-
-    $thisUserAccess = json_decode($thisUser->permissions, true)["permissions"];
-    $thisAccessLevel = json_decode($thisUser->access_level_permissions, true)["permissions"];
-
-    // set the user id in a session
-    $session->currentUserId = $userId;
-}
+// get the suer brands
+$genders = $usersClass->get_user_genders();
 ?>
 <main>
     <div class="page-header pb-10 page-header-dark bg-gradient-primary-to-secondary">
@@ -110,7 +93,7 @@ if(!empty($thisUser)) {
                                             <?php
                                             if(!empty($access_levels)){
                                                 foreach ($access_levels as $level){
-                                                    $accessId = $level["access_level_id"];
+                                                    $accessId = $level["id"];
                                                     $levelName = $level["access_level_name"];
                                                     echo "<option value='$accessId'>$levelName</option>";
                                                 }
@@ -124,6 +107,7 @@ if(!empty($thisUser)) {
                                     <?php if($accessObject->hasAccess('manage', 'users') || ($session->userId == $userId)) { ?>
                                     <div class="col-lg-12 border-top pt-3 border-default text-right mt-3">
                                         <div class="clearfix"></div>
+                                        <input type="hidden" value="" name="user_guid" id="user_guid" class="form-control">
                                         <button class="btn btn-sm btn-primary" type="submit" name="submit" id="save_settings_button">Add User</button>
                                     </div>
                                     <?php } ?>

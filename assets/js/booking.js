@@ -884,7 +884,7 @@ if ($(`table[class~="usersList"]`).length) {
 }
 
 $(`select[name="access_level_id"]`).on('change', function() {
-    var payload = '{"level_id":"' + $(this).val() + '"}';
+    var payload = '{"level_id":"' + $(this).val() + '","user_guid":"' + $(`input[id="user_guid"]`).val() + '"}';
     $.post(`${baseUrl}api/users/access_levels_list`, payload, function(resp) {
         $(`div[class~="access_level_content"]`).html(resp.data.result);
     }, 'json');

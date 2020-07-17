@@ -16,7 +16,7 @@ class Users extends Booking {
 	protected $db;
 
 	# ID Prefixes
-	protected $user_id_prefix 	= "FW";
+	protected $user_id_prefix 	= "BK";
 	protected $brand_id_prefix 	= "FB";
 	protected $instance_id_prefix = "FI";
 
@@ -195,7 +195,7 @@ class Users extends Booking {
 	 * @param String $userId	The unique id of the user
 	 * @param String $clientId	This is the client id that have been parsed
 	 * 
-	 * @return Array Object
+	 * @return Object
 	 */
 	public function get_user_basic($userId, $clientId){
 		
@@ -305,6 +305,19 @@ class Users extends Booking {
 	public function get_access_levels($id = null){
 		$sql = "SELECT * FROM users_access_levels ".(!empty($id) ? " WHERE id != '{$id}'" : null);
 		return $this->db->query($sql);
+	}
+
+	/**
+	 * Get the list of access levels
+	 * @param Int $id		This is an Id to exempty from the query list
+	 * 
+	 * @return Object
+	 */
+	public function singleAccessLevel($id){
+		$sql = $this->db->prepare("SELECT * FROM users_access_levels WHERE id = '{$id}'");
+		$sql->execute();
+
+		return $sql->fetch(PDO::FETCH_OBJ);
 	}
 
 	/**
@@ -457,6 +470,17 @@ class Users extends Booking {
 			return "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['users']} users";
 		}
 
+		// confirm that the username is already existing
+		if(empty($params->email) || !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
+			// return error message
+			return "Sorry! Enter a valid email address.";
+		}
+
+		// confirm that the email address does not belong to this client already
+		if($this->check_existing("users", "email", $params->email, "AND client_guid='{$params->clientId}' AND deleted='0'")) {
+			return "Sorry! This email address have already been linked to this Account.";
+		}
+
 		// confirm a valid contact number
 		if(!empty($params->contact) && !preg_match("/^[0-9+]+$/", $params->contact)) {
 			// return error message
@@ -469,27 +493,23 @@ class Users extends Booking {
 			return "Sorry! The contact number must be at most 15 characters long.";
 		}
 
-		// confirm that the username is already existing
-		if(empty($params->email) || !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
-			// return error message
-			return "Sorry! Enter a valid email address.";
-		}
-
-		// confirm that the email address does not belong to this client already
-		if($this->check_existing("users", "email", $params->email, "AND clientId='{$params->clientId}' AND deleted='0'")) {
-			return "Sorry! This email address have already been linked to this Account.";
-		}
-
 		// get the username only from the email address
 		$params->username = explode("@", $params->email)[0];
 
 		// confirm username is not already taken
-		if($this->check_existing("users", "login", $params->username, "AND clientId='{$params->clientId}' AND deleted='0' AND user_type='user'")) {
+		if($this->check_existing("users", "login", $params->username, "AND client_guid='{$params->clientId}' AND deleted='0' AND user_type='user'")) {
 			return "Sorry! The username already exist.";
 		}
 
+		//** set the access level id */
+		if(!isset($params->access_level_id)) {
+			$params->access_level_id = 2;
+			$permits = $this->singleAccessLevel(2)->access_level_permissions;
+			$permissions = json_decode($permits, true);
+		}
+
 		// confirm valid access levels list
-		if(empty($params->access_level) || !is_array($params->access_level)) {
+		if(!empty($params->access_level) && !is_array($params->access_level)) {
 			return "An invalid Access Level Permissions were parsed";
 		}
 
@@ -502,20 +522,23 @@ class Users extends Booking {
 		$accessLevel = [];
 
 		// clean the access permissions well
-		foreach($params->access_level as $eachKey => $eachValue) {
-			foreach($eachValue as $key => $value) {
-				foreach($value as $i => $e) {
-					$accessLevel[$eachKey][$key] = ($e == "on") ? 1 : 0;
+		if(!isset($permissions)) {
+			// loop through the access permissions parsed
+			foreach($params->access_level as $eachKey => $eachValue) {
+				foreach($eachValue as $key => $value) {
+					foreach($value as $i => $e) {
+						$accessLevel[$eachKey][$key] = ($e == "on") ? 1 : 0;
+					}
 				}
 			}
+			$permissions["permissions"] = $accessLevel;
 		}
-		$permissions["permissions"] = $accessLevel;
 
 		// lets move ahead and create some more variables
 		$params->userId = $this->generate_user_id();
 		$params->verifyToken = $this->generate_verification_code();
 		$params->created_by = $params->curUserId;
-		
+
 		try {
 
 			// begin transaction
@@ -626,6 +649,26 @@ class Users extends Booking {
 			return "invalid-email";
 		}
 
+		// confirm valid access levels list
+		if(!empty($userData->access_level) && !is_array($userData->access_level)) {
+			return "invalid-access_levels";
+		}
+
+		// run this section if the access level permissions were parsed
+		if(!empty($userData->access_level)) {
+			// initialiate
+			$accessLevel = [];
+			// clean the access permissions well
+			foreach($userData->access_level as $eachKey => $eachValue) {
+				foreach($eachValue as $key => $value) {
+					foreach($value as $i => $e) {
+						$accessLevel[$eachKey][$key] = ($e == "on") ? 1 : 0;
+					}
+				}
+			}
+			$permissions["permissions"] = $accessLevel;
+		}
+
 		// Check If User ID Exists
 		$checkData = $this->pushQuery("COUNT(*) AS userTotal, access_level", "users", "user_guid='{$userData->user_guid}'");
 
@@ -648,29 +691,10 @@ class Users extends Booking {
 				$this->userLogs('users', $userData->user_guid, 'Update the user details.', $userData->userId, $userData->clientId);
 
 				/** if the access level id was parsed */
-				if(isset($userData->access_level_id)) {
-					// check if the user has the right permissions to perform this action
-					if($accessObject->hasAccess('accesslevel', 'users')) {
-
-						// Check If User ID Exists
-						$userRole = $this->pushQuery("COUNT(*) AS userTotal, permissions", "users_roles", "user_guid='{$userData->user_guid}'");
-
-						// confirm if the user has no credentials
-						if($userRole[0]->userTotal == 0) {
-							// insert the permissions to this user
-							$getPermissions = $accessObject->getPermissions($userData->access_level_id)[0]->access_level_permissions;
-							// assign these permissions to the user
-							$accessObject->assignUserRole($userData->user_guid, $userData->access_level_id);
-						}
-
-						// Check Access Level
-						if ($userData->access_level_id != $checkData[0]->access_level) {
-
-							$getPermissions = $accessObject->getPermissions($userData->access_level_id)[0]->access_level_permissions;
-
-							$accessObject->assignUserRole($userData->user_guid, $userData->access_level_id, $getPermissions);
-						}
-					}
+				if(isset($permissions) && !empty($permissions)) {
+					// update the user access levels
+					$stmt = $this->db->prepare("UPDATE users_roles SET permissions = ?, last_updated = now() WHERE user_guid = ? AND client_guid= ?");
+					$stmt->execute([json_encode($permissions), $userData->user_guid, $userData->clientId]);
 				}
 
 				return "User Details Have Been Successfully Updated.";
@@ -895,21 +919,31 @@ class Users extends Booking {
 	/**
 	 * Return the list of access level permissions for this id
 	 * 
-	 * @param Int $level_id 	This is the access level id
+	 * @param Int $params->level_id			 	The level id
+	 * @param String $params->user_guid			The id of the user
 	 * 
 	 * @return String
 	 */
-	public function userAccessLevels($level_id) {
+	public function userAccessLevels($params) {
 
 		try {
 
 			$stmt = $this->db->prepare("SELECT access_level_permissions, access_level_name FROM users_access_levels WHERE id=?");
-			$stmt->execute([$level_id]);
+			$stmt->execute([$params->level_id]);
 			$result = $stmt->fetch(PDO::FETCH_OBJ);
 
+			// if the access level exists
 			if ($stmt->rowCount()) {
+
 				// convert to an array
 				$item = json_decode($result->access_level_permissions, true);
+
+				// check if the user guid parameter was parsed
+				if(isset($params->user_guid)) {
+					// load the user current roles
+					$thisUser = $this->get_user_basic($params->user_guid, $params->clientId);
+					$thisUserAccess = json_decode($thisUser->permissions, true)["permissions"];
+				}
 
 				// get the first key
 				$item = $item["permissions"];
@@ -918,13 +952,31 @@ class Users extends Booking {
 				// loop through the list
 				foreach ($item as $key => $value) {
 					$header = ucwords(str_replace("_", " ", $key));
-					$level_data .= "<div class='col-lg-12 border-bottom border-default pb-2'><h6 style='font-weight:bolder'>".$header."</h6></div>";
-					foreach($value as $nkey => $nvalue) {
-						$level_data .= "<div class='col-lg-6 pt-2'>";
-						$level_data .= "<input checked='checked' type='checkbox' id='access_level[$key][$nkey]' class='custom-checkbox' name='access_level[$key][$nkey][]'>";
+					$level_data .= "<div class='".(isset($thisUserAccess) ? "col-lg-4 col-md-4" : "col-lg-12")." mb-2 border-bottom border-default'><h6 style='font-weight:bolder'>".$header."</h6>";
+					
+					if(!isset($thisUserAccess)) {
+						$level_data .= "<div class='row'>";
+					}
+					
+					foreach($value as $nkey => $nvalue) {						
+						
+						// if the user access was parsed
+						if(isset($thisUserAccess)) {
+							$level_data .= "<div class='col-lg-12'>";
+							$level_data .= "<input ".(isset($thisUserAccess[$key][$nkey]) && ($thisUserAccess[$key][$nkey] == 1) ? "checked" : null )." type='checkbox' id='access_level[$key][$nkey]' class='custom-checkbox' name='access_level[$key][$nkey][]'>";
+						} else {
+							$level_data .= "<div class='col-lg-6'>";
+							$level_data .= "<input checked='checked' type='checkbox' id='access_level[$key][$nkey]' class='custom-checkbox' name='access_level[$key][$nkey][]'>";
+						}
 						$level_data .= "<label class='cursor' for='access_level[$key][$nkey]'>".ucfirst($nkey)."</label>";
 						$level_data .= "</div>";
+						
 					}
+
+					if(!isset($thisUserAccess)) {
+						$level_data .= "</div>";
+					}
+					$level_data .= "</div>";
 				}
 				$level_data .= "</div>";
 
@@ -945,7 +997,7 @@ class Users extends Booking {
 	}
 
 	public function generate_user_id(){
-		$userId = $this->user_id_prefix.random_string('nozero', 9);
+		$userId = $this->user_id_prefix.random_string('nozero', 12);
 		return !$this->data_unique("users", "user_guid", $userId) ? $this->generate_user_id() : $userId;
 	}
 

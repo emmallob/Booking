@@ -95,8 +95,8 @@ class Api {
                         "description" => "This endpoint is used for creating a user account",
                         "params" => [
                             "fullname" => "required - The fullname of the user",
-                            "access_level" => "required - The Access Level Permissions of this user",
-                            'access_level_id' => "required - This is the user access level id",
+                            "access_level" => "The Access Level Permissions of this user",
+                            'access_level_id' => "This is the user access level id",
                             'contact' => 'The contact number of the  Account Holder',
                             "email" => "required - The email address of the user",
                             "username" => "The username must always be unique",
@@ -126,7 +126,8 @@ class Api {
                     "access_levels_list" => [
                         "description" => "This endpoint returns an arrayed list of access level parameters that are associated to that particular access level",
                         "params" => [
-                            "level_id" => "The access level id parsed"
+                            "level_id" => "required - The access level id parsed",
+                            "user_guid" => "The user id to update the access level permissions",
                         ]
                     ],
                     "permissions" => [
@@ -631,7 +632,7 @@ class Api {
 
                 // parse the request to update the user profile information
                 if(isset($params->level_id)) {
-                    $request = $usersClass->userAccessLevels($params->level_id);
+                    $request = $usersClass->userAccessLevels($params);
                 } else {
                     $request = null;
                 }

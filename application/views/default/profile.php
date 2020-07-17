@@ -111,7 +111,7 @@ if(!empty($thisUser)) {
                                             <?php
                                             if(!empty($access_levels)){
                                                 foreach ($access_levels as $level){
-                                                    $accessId = $level["access_level_id"];
+                                                    $accessId = $level["id"];
                                                     $levelName = $level["access_level_name"];
                                                     $selected = $accessId == $thisUser->access_level ? 'selected' : '';
                                                     echo "<option value='$accessId' {$selected}>$levelName</option>";
@@ -127,31 +127,33 @@ if(!empty($thisUser)) {
                                         <div class="row">
                                             <?php if($accessObject->hasAccess('accesslevel', 'users')) { ?>
                                                 <div class="col-lg-12"><hr></div>
-                                                <div class="col-lg-12 col-md-12">
+                                                    
+                                                <div class="col-lg-12"><h5>User Privileges Management</h5></div>
+                                                <div class="col-lg-12 mt-3 col-md-12 access_level_content">
                                                     <div class="row">
-                                                        <div class="col-lg-12"><h5>User Privileges Management</h5></div>
-                                                        <?php
-                                                        // access level list
-                                                        foreach ($thisAccessLevel as $key => $value) {
-                                                            $header = ucwords(str_replace("_", " ", $key));
-                                                            print "<div class='col-lg-4 mb-2 col-md-4' ".(($session->userId == $userId) ? "title='You cannot alter the number of permissions for your Account as An Administrator.'" : null).">";
-                                                            print "<h6 style='font-weight:bolder; font-size:14px'>".$header."</h6>";
-                                                            foreach($value as $nkey => $nvalue) {
-                                                                print "<div>";
-                                                                print "<input ".(isset($thisUserAccess[$key][$nkey]) && ($thisUserAccess[$key][$nkey] == 1) ? "checked" : null )." ".(($session->userId == $userId) ? "disabled='disabled'" : null)." type='checkbox' class='custom-checkbox' name='access_level[$key][$nkey][]'>";
-                                                                print "<label class='cursor' for='access_level[$key][$nkey]'>".ucfirst($nkey)."</label>";
-                                                                print "</div>";
-                                                            }
+                                                    <?php
+                                                    // access level list
+                                                    foreach ($thisAccessLevel as $key => $value) {
+                                                        $header = ucwords(str_replace("_", " ", $key));
+                                                        print "<div class='col-lg-4 mb-2 col-md-4' ".(($session->userId == $userId) ? "title='You cannot alter the number of permissions for your Account as An Administrator.'" : null).">";
+                                                        print "<h6 style='font-weight:bolder; font-size:14px'>".$header."</h6>";
+                                                        foreach($value as $nkey => $nvalue) {
+                                                            print "<div>";
+                                                            print "<input id='access_level[$key][$nkey]' ".(isset($thisUserAccess[$key][$nkey]) && ($thisUserAccess[$key][$nkey] == 1) ? "checked" : null )." ".(($session->userId == $userId) ? "disabled='disabled'" : null)." type='checkbox' class='custom-checkbox' name='access_level[$key][$nkey][]'>";
+                                                            print "<label class='cursor' for='access_level[$key][$nkey]'>".ucfirst($nkey)."</label>";
                                                             print "</div>";
                                                         }
-                                                        ?>
+                                                        print "</div>";
+                                                    }
+                                                    ?>
                                                     </div>
                                                 </div>
+                                            
                                             <?php } ?>
                                         </div>
                                     </div>
                                     <?php if($accessObject->hasAccess('manage', 'users') || ($session->userId == $userId)) { ?>
-                                    <div class="col-lg-12 border-top pt-3 border-default text-right mt-3">
+                                    <div class="col-lg-12 pt-3 border-default text-right mt-3">
                                         <div class="clearfix"></div>
                                         <button class="btn btn-sm btn-primary" type="submit" name="submit" id="save_settings_button">Update Profile</button>
                                     </div>
