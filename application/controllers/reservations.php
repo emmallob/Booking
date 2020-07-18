@@ -167,7 +167,10 @@ class Reservations extends Booking {
     public function reserveSeat(stdClass $parameters) {
         
         try {
-
+            
+            // set the client id
+            $parameters->clientId = $this->session->clientGUID;
+            
             /** load the event details */ 
             $eventData = $this->listItems($parameters);
 

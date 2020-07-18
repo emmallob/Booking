@@ -24,7 +24,7 @@ class Insight extends Booking {
             $stmt = $this->db->prepare("
                 SELECT 
                     a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
-                    a.is_payable, a.allow_multiple_booking, a.maximum_multiple_booking, a.attachment, a.description,
+                    a.is_payable, a.allow_multiple_booking, a.maximum_multiple_booking, a.description,
                     (SELECT b.ticket_title FROM tickets b WHERE b.ticket_guid = a.ticket_guid) AS ticket_applicable,
                     a.state, a.created_on, 
                     (

@@ -405,8 +405,6 @@ $("form[class~='appForm']").on("submit", function(e) {
     });
 });
 
-
-
 async function eventsChart() {
     $(`div[class="form-content-loader"]`).css("display", "flex");
     let event_guid = $(`div[class~="event-guid"]`).attr("data-event-guid");
@@ -591,7 +589,12 @@ $(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
             });
 
             if (response.code == 200) {
-                $(`input[id="attachment"]`).val('');
+                if ($(`input[id="attachment"]`).val().length) {
+                    setTimeout(() => {
+                        window.location.href = current_url;
+                    }, 1000);
+                    $(`input[id="attachment"]`).val('');
+                }
             }
 
             if (response.data.remote_request) {

@@ -565,7 +565,7 @@ class Api {
         // client information
         $params->curUserId = $this->userId;
 
-        if(empty($this->clientId) && (($this->outer_url !== "select" && $this->inner_url !== "account"))) {
+        if(empty($this->clientId) && (($this->outer_url !== "select" && $this->inner_url !== "account")) && (($this->inner_url !== "reservations"))) {
             return $this->output($code, $result);
         }
 

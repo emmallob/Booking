@@ -37,7 +37,7 @@ if(confirm_url_id(1)) {
         // append more information
         $params = [];
         $params["clientId"] = $thisAccount->client_guid;
-        $session->clientId = $thisAccount->client_guid;
+        $session->clientGUID = $thisAccount->client_guid;
         
         /** Parse the user id if it has been set in the cookie */
         $params["loggedInUser"] = $userId;
@@ -67,6 +67,9 @@ if(confirm_url_id(1)) {
         if(!empty($eventData) && !empty($eventId)) {
             $eventFound = true;
             $eventData = $eventData[0];
+
+            // event attachments
+            $eventAttachments = $bookingClass->pushQuery("a.*", "events_media a", "a.event_guid='{$eventId}' && a.client_guid='{$session->clientGUID}' AND a.status='1'");
         }
         
     }
@@ -138,6 +141,8 @@ $session->set("current_url", current_url());
                                 <?php } else {
                                 // get the list of events
                                 foreach($eventData as $eachEvent) {
+                                    // event attachement
+                                    $eventAttachments = $bookingClass->pushQuery("a.*", "events_media a", "a.event_guid='{$eachEvent->event_guid}' AND a.status='1'");
                                     ?>
                                     <div data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" title="Click to book the Event <?= $eachEvent->event_title ?>" class="col-lg-3 col-md-6 mb-2 event-selector">
                                         <div class="card cursor">
