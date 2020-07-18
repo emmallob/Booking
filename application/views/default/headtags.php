@@ -245,10 +245,17 @@ $accessObject->userId = $userId;
 						<?php } ?>
 						<div class="sidenav-menu-heading">Addons</div>
 						<?php if($accessObject->hasAccess("manage", "communications")) { ?>
-						<a class="nav-link" href="<?= $baseUrl ?>communications">
-							<div class="nav-link-icon"><i class="fa fa-comments"></i></div>
+						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseCommunication" aria-expanded="false" aria-controls="collapseCommunication">
+							<div class="nav-link-icon"><i class="fas fa-comments"></i></div>
 							Communications
+							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
+						<div class="collapse <?= in_array($SITEURL[0], ["sms-list", "emails-list"]) ? "show" : null ?>" id="collapseCommunication" data-parent="#accordionSidenav">
+							<nav class="sidenav-menu-nested nav">
+								<a class="nav-link" href="<?= $baseUrl ?>sms-list"> SMS List</a>
+								<a class="nav-link" href="<?= $baseUrl ?>emails-list">Emails List</a>
+							</nav>
+						</div>
 						<?php } ?>
 						<a class="nav-link" href="<?= $baseUrl ?>profile">
 							<div class="nav-link-icon"><i data-feather="user"></i></div>

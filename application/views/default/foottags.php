@@ -61,6 +61,9 @@
     <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
+    <?php if(in_array($SITEURL[0], ["sms-list", "emails-list"])) { ?>
+    <script src="<?= $rootDir ?>assets/js/communication.js"></script>
+    <?php } ?>
     <script>
         confirmNotice("dashboard");
         <?php if(confirm_url_id(0, "events-edit") && isset($eventData)) { ?>

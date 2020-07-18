@@ -68,12 +68,15 @@ if(confirm_url_id(1, "event")) {
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F6', 'SEAT NUMBER')->getStyle('F6')->applyFromArray($exportsObj->styleArray);
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G6', 'DATE BOOKED')->getStyle('G6')->applyFromArray($exportsObj->styleArray);
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H6', 'STATUS')->getStyle('H6')->applyFromArray($exportsObj->styleArray);
+        
         // auto fit all the columns
         foreach(range('A','H') as $columnID) {
             $objPHPExcel->getActiveSheet(0)->getColumnDimension($columnID)->setAutoSize(true);
         }
+        
         // get the results
         $i = 0;
+
         // Initialise the Excel row number
         $rowCount = 8;
 
@@ -89,6 +92,7 @@ if(confirm_url_id(1, "event")) {
             $objPHPExcel->getActiveSheet()->SetCellValue('F'.$rowCount, $result->seat_name);
             $objPHPExcel->getActiveSheet()->SetCellValue('G'.$rowCount, $result->created_on);
             $objPHPExcel->getActiveSheet()->SetCellValue('H'.$rowCount, $result->status ? "Confirmed" : "Booked");
+            
             // Increment the Excel row counter
             $rowCount++; 
         }
@@ -105,6 +109,7 @@ if(confirm_url_id(1, "event")) {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="'.$file_name.'"');
         header('Cache-Control: max-age=0');
+
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
 
