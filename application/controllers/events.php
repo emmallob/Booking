@@ -299,31 +299,40 @@ class Events extends Booking {
 
         try {
 
+            // empty attachment list
+            $attachment = [];
+
             // confirm that a logo was parsed
-			if(isset($params->attachment)) {
+			if(isset($params->attachment) && is_array($params->attachment)) {
 
-				// File path config 
-				$fileName = basename($params->attachment["name"]); 
-				$targetFilePath = $uploadDir . $fileName; 
-				$fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+                // loop through the attachments list
+				foreach($params->attachment["name"] as $key => $value) {
 
-				// Allow certain file formats 
-				$allowTypes = ['jpg', 'png', 'jpeg', 'mp4', 'mpeg'];
-				
-				// check if its a valid image
-				if(!empty($fileName) && in_array($fileType, $allowTypes)){
-					
-					// set a new filename
-					$fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+                    // File path config 
+                    $fileName = basename($params->attachment["name"][$key]); 
+                    $targetFilePath = $uploadDir . $fileName; 
+                    $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
 
-					// Upload file to the server 
-					if(move_uploaded_file($params->attachment["tmp_name"], $fileName)){ 
-						$attachment = [
-                            "asset" => $fileName,
-                            "type" => $fileType
-                        ];
-					}
-				}
+                    // Allow certain file formats 
+                    $allowTypes = ['jpg', 'png', 'jpeg', 'mp4', 'mpeg'];
+                    
+                    // check if its a valid image
+                    if(!empty($fileName) && in_array($fileType, $allowTypes)){
+                        
+                        // set a new filename
+                        $fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+
+                        // Upload file to the server 
+                        if(move_uploaded_file($params->attachment["tmp_name"][$key], $fileName)){ 
+                            $attachment[$key] = [
+                                "asset" => $fileName,
+                                "type" => $params->attachment["type"][$key],
+                                "size" => $params->attachment["size"][$key],
+                                "state" => "uploaded"
+                            ];
+                        }
+                    }
+                }
 			}
 
             /** 32 random string for the guid */
@@ -341,7 +350,6 @@ class Events extends Booking {
                 ".(!empty($params->department_guid) ? "department_guid='{$params->department_guid}'," : null)."
                 ".(isset($params->multiple_booking) ? "allow_multiple_booking='{$params->multiple_booking}'," : null)."
                 ".(!empty($params->maximum_booking) ? "maximum_multiple_booking='{$params->maximum_booking}'," : null)."
-                ".(isset($attachment) ? "attachment='".json_encode($attachment)."'," : null)."
                 ".(!empty($params->description) ? "description='{$params->description}'," : null)."
                 ".(!empty($params->ticket_guid) ? "ticket_guid='{$params->ticket_guid}'," : null)."
                 created_by = ?, event_slug = ?
@@ -363,6 +371,17 @@ class Events extends Booking {
                             SET event_guid = '{$guid}',hall_guid = '{$key}', `configuration` = '{$value["conf"]}',
                             `hall_name` = '{$value["name"]}', `rows` = '{$value["rows"]}', `columns` = '{$value["columns"]}'
                         ");
+                    }
+                }
+
+                /** Insert the event media */
+                if(!empty($attachment)) {
+                    foreach($attachment as $eachAttachment) {
+                        $stmt = $this->db->prepare("
+                            INSERT INTO events_media SET
+                            client_guid = ?, event_guid = ?, media_data = ?, media_type = ?
+                        ");
+                        $stmt->execute([$params->clientId, $params->event_guid, json_encode($eachAttachment), $eachAttachment["type"]]);
                     }
                 }
 
@@ -435,7 +454,7 @@ class Events extends Booking {
         }
 
         // check if the event already exist using the name, date and start time
-        $eventData = $this->pushQuery("id, booking_start_time", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'");
+        $eventData = $this->pushQuery("id, booking_start_time, halls_guid", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'");
 
         // count the number of rows found
         if(empty($eventData)) {
@@ -497,6 +516,9 @@ class Events extends Booking {
             // convert to array
             $params->halls_guid = $this->stringToArray($params->halls_guid);
 
+            // exisiting halls
+            $existingHalls = $this->stringToArray($eventData->halls_guid);
+
             // get the first item in the array
             if(is_array($params->halls_guid)) {
                 // get the array item
@@ -537,32 +559,41 @@ class Events extends Booking {
         }
 
         try {
+            
+            // empty attachment list
+            $attachment = [];
 
             // confirm that a logo was parsed
-			if(isset($params->attachment)) {
+			if(isset($params->attachment) && is_array($params->attachment)) {
 
-				// File path config 
-				$fileName = basename($params->attachment["name"]); 
-				$targetFilePath = $uploadDir . $fileName; 
-				$fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+                // loop through the attachments list
+				foreach($params->attachment["name"] as $key => $value) {
 
-				// Allow certain file formats 
-				$allowTypes = ['jpg', 'png', 'jpeg', 'mp4', 'mpeg'];
-				
-				// check if its a valid image
-				if(!empty($fileName) && in_array($fileType, $allowTypes)){
-					
-					// set a new filename
-					$fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+                    // File path config 
+                    $fileName = basename($params->attachment["name"][$key]); 
+                    $targetFilePath = $uploadDir . $fileName; 
+                    $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
 
-					// Upload file to the server 
-					if(move_uploaded_file($params->attachment["tmp_name"], $fileName)){ 
-						$attachment = [
-                            "asset" => $fileName,
-                            "type" => $fileType
-                        ];
-					}
-				}
+                    // Allow certain file formats 
+                    $allowTypes = ['jpg', 'png', 'jpeg', 'mp4', 'mpeg'];
+                    
+                    // check if its a valid image
+                    if(!empty($fileName) && in_array($fileType, $allowTypes)){
+                        
+                        // set a new filename
+                        $fileName = $uploadDir . random_string('alnum', 25).'.'.$fileType;
+
+                        // Upload file to the server 
+                        if(move_uploaded_file($params->attachment["tmp_name"][$key], $fileName)){ 
+                            $attachment[$key] = [
+                                "asset" => $fileName,
+                                "type" => $params->attachment["type"][$key],
+                                "size" => $params->attachment["size"][$key],
+                                "state" => "uploaded"
+                            ];
+                        }
+                    }
+                }
 			}
 
             $this->db->beginTransaction();
@@ -577,7 +608,6 @@ class Events extends Booking {
                 ".(!empty($params->department_guid) ? ",department_guid='{$params->department_guid}'" : null)."
                 ".(isset($params->multiple_booking) ? ",allow_multiple_booking='{$params->multiple_booking}'" : null)."
                 ".(!empty($params->maximum_booking) ? ",maximum_multiple_booking='{$params->maximum_booking}'" : null)."
-                ".(isset($attachment) ? ",attachment='".json_encode($attachment)."'" : null)."
                 ".(!empty($params->description) ? ",description='{$params->description}'" : null)."
                 ".(!empty($params->ticket_guid) ? ",ticket_guid='{$params->ticket_guid}'" : null)."
                 WHERE client_guid = ? AND event_guid = ?
@@ -604,6 +634,17 @@ class Events extends Booking {
                     }
                 }
 
+                /** Insert the event media */
+                if(!empty($attachment)) {
+                    foreach($attachment as $eachAttachment) {
+                        $stmt = $this->db->prepare("
+                            INSERT INTO events_media SET
+                            client_guid = ?, event_guid = ?, media_data = ?, media_type = ?
+                        ");
+                        $stmt->execute([$params->clientId, $params->event_guid, json_encode($eachAttachment), $eachAttachment["type"]]);
+                    }
+                }
+
                 /** Log the user activity */
                 $this->userLogs('events', $params->event_guid, 'Updated the event details.', $params->userId, $params->clientId);
 
@@ -622,6 +663,38 @@ class Events extends Booking {
             return $e->getMessage();
         }
 
+    }
+
+    /**
+     * Remove an event attachment
+     * And replace with the default event image.
+     * 
+     * @param stdClass  $params
+     * @param String    $params->event_guid
+     * 
+     * @return Bool
+     */
+    public function removeAttachment(stdClass $params) {
+
+        try {
+            
+            $defaultImg = '{"asset":"assets/events/default.png","type":"png","state":"default"}';
+
+            // check if the event already exist using the name, date and start time
+            $eventData = $this->pushQuery("id, booking_start_time", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'");
+
+            // count the number of rows found
+            if(empty($eventData)) {
+                return "Sorry! An invalid event guid has been supplied.";
+            }
+            
+            // update the event attachment
+            // $stmt = $this->db->prepare("UPDATE events SET attachment = ? WHERE event_guid = ? AND client_guid = ? LIMIT 1");
+            // return $stmt->execute([$defaultImg, $params->event_guid, $params->clientId]);
+
+        } catch(PDOException $e) {
+            return false;
+        }
     }
 
 }

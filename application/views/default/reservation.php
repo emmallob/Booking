@@ -138,15 +138,11 @@ $session->set("current_url", current_url());
                                 <?php } else {
                                 // get the list of events
                                 foreach($eventData as $eachEvent) {
-                                    $eventAttachment = json_decode($eachEvent->attachment);
                                     ?>
                                     <div data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" title="Click to book the Event <?= $eachEvent->event_title ?>" class="col-lg-3 col-md-6 mb-2 event-selector">
                                         <div class="card cursor">
                                             <div class="card-header text-success"><?= date("l jS F, Y", strtotime($eachEvent->event_date)) ?></div>
                                             <div class="card-body mouse-hover">
-                                                <?php if(in_array($eventAttachment->type, ["jpg","jpeg","png"])) { ?>
-                                                <img width="100%" height="220px" src="<?= $baseUrl.$eventAttachment->asset ?>" alt="">
-                                                <?php } ?>
                                                 <div class="border-bottom pb-2">
                                                     <strong><?= $eachEvent->event_title ?></strong>
                                                     <?php if(isset($eachEvent->user_booking_count) && ($eachEvent->user_booking_count > 0)) { ?>

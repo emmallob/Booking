@@ -354,6 +354,11 @@ class Api {
                             "description" => "Sample description or information about this event.",
                             "event_guid"=> "required - The unique guid of the hall",
                         ]
+                    ],
+                    "remove-attachment" => [
+                        "params" => [
+                            "event_guid" => "required - The event guid to delete."
+                        ]
                     ]
                 ]
             ],
@@ -790,7 +795,6 @@ class Api {
                         $result['result'] = $request;
                         $code = 200;
                     }
-                    
                 }
             }
 
@@ -938,6 +942,25 @@ class Api {
                 if($request) {
                     $result['result'] = "The hall was successfully resetted";
                     $code = 200;
+                }
+            }
+
+            // remove event attachment
+            elseif(($this->inner_url == "events") && ($this->outer_url == "remove-attachment")) {
+                // if the user does not have access level access but tried to push it
+                if(!$this->accessCheck->hasAccess("update", "events")) {
+                    // then remove it from the list of parameters
+                    $result['result'] = self::PERMISSION_DENIED;
+                }
+                else {
+                    // parse the request to update the user profile information
+                    $request = $objectClass->removeAttachment($params);
+                    
+                    // get the response
+                    if($request) {
+                        $result['result'] = "Event attachment successfully removed";
+                        $code = 200;
+                    }
                 }
             }
 

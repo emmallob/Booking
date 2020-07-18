@@ -37,6 +37,8 @@ if($eventsId) {
 
         $eventData->booking_start_time = date("Y-m-d\TH:i:s", strtotime($eventData->booking_start_time));
         $eventData->booking_end_time = date("Y-m-d\TH:i:s", strtotime($eventData->booking_end_time));
+
+        // $eventAttachment = json_decode($eventData->attachment);
     }
 
 }
@@ -148,7 +150,7 @@ if($eventsId) {
                         </div>
                         <div class="col-lg-12">
                             <div class="row">
-                                <div class="col-lg-4">
+                                <div class="col-lg-4 col-md-6">
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="event_is_payable">Is Payable</label>
@@ -191,15 +193,15 @@ if($eventsId) {
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="attachment">Event Attachment <small><em>(Attach an image or video)</em></small></label>
-                                            <input type="file" name="attachment" id="attachment" class="form-control" accept="image/x-png,image/gif,image/jpeg,video/*">
+                                            <input type="file" name="attachment[]" multiple id="attachment" class="form-control" accept="image/x-png,image/gif,image/jpeg,video/*">
 
-                                            <?php
-                                            // event attachment
-                                            ?>
+                                            <div class="col-lg-12 text-center attachment">
+                                                
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-8">
+                                <div class="col-lg-8 col-md-6">
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="description">Event Description</label>

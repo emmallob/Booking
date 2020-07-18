@@ -895,3 +895,15 @@ $(`select[name="access_level_id"]`).on('change', function() {
         $(`div[class~="access_level_content"]`).html(resp.data.result);
     }, 'json');
 });
+
+$(`button[data-function="remove-attachment"]`).on("click", function() {
+    let $that = $(this);
+    var payload = '{"event_guid":"' + $that.data("value") + '"}';
+    $.post(`${baseUrl}api/events/remove-attachment`, payload, function(resp) {
+        if (resp.code == 200) {
+            $(`img[class="attachment"]`).attr("src", `${baseUrl}assets/events/default.png`);
+        } else {
+            $(`img[class="attachment"]`).parents("div:first").remove();
+        }
+    }, 'json');
+});

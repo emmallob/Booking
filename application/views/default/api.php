@@ -149,6 +149,7 @@ $Api = load_class('api', 'controllers',
     ["userId" => $userId, "clientId" => $clientId]
 );
 
+// echo json_encode($params);exit; 
 /**
  * Test examples using the inner url of users
  */
