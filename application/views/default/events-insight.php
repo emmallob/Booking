@@ -67,7 +67,7 @@ if($eventsId) {
                     <?php if($itemFound && $accessObject->hasAccess("insight", "events")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="javascript:void(0)" data-event-guid="<?= $eventsId ?>" class="btn btn-sm download-file btn-outline-danger"><i class="fa fa-file-pdf"></i></a>
-                        <a href="javascript:void(0)" data-event-guid="<?= $eventsId ?>" class="btn btn-sm download-file btn-outline-success"><i class="fa fa-file-excel"></i></a>
+                        <a href="<?= $baseUrl ?>excel/event?event_guid=<?= $eventsId ?>" target="" data-event-guid="<?= $eventsId ?>" class="btn btn-sm download-file btn-outline-success"><i class="fa fa-file-excel"></i></a>
                     </div>
                     <?php } ?>
                 </div>

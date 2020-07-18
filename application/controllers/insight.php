@@ -107,7 +107,7 @@ class Insight extends Booking {
                     CASE WHEN a.status IS NULL THEN 'booked' ELSE 'confirmed' END AS booked_state, a.status
                 FROM events_booking a
                 LEFT JOIN halls b ON b.hall_guid = a.hall_guid
-                WHERE event_guid = '{$event_guid}' AND a.deleted = ?
+                WHERE event_guid = '{$event_guid}' AND a.deleted = ? ORDER BY seat_guid
             ");
             $stmt->execute([0]);
 
@@ -125,7 +125,7 @@ class Insight extends Booking {
                             <a href='javascript:void(0)' class='delete-item btn btn-sm btn-outline-danger' title='Click to unbook seat' data-title='Unbook Seat' data-item=\"remove-booking\" data-item-id='{$event_guid}_{$result->id}'><i class=\"fa fa-trash\"></i></a>
                         ";
                     } else {
-                        $result->action = $result->booked_state;
+                        $result->action = "<span class='text-success'>{$result->booked_state}</span>";
                     }
                 }
 

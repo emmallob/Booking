@@ -244,6 +244,12 @@ $accessObject->userId = $userId;
 						</div>
 						<?php } ?>
 						<div class="sidenav-menu-heading">Addons</div>
+						<?php if($accessObject->hasAccess("manage", "communications")) { ?>
+						<a class="nav-link" href="<?= $baseUrl ?>communications">
+							<div class="nav-link-icon"><i class="fa fa-comments"></i></div>
+							Communications
+						</a>
+						<?php } ?>
 						<a class="nav-link" href="<?= $baseUrl ?>profile">
 							<div class="nav-link-icon"><i data-feather="user"></i></div>
 							Profile
