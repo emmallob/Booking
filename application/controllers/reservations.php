@@ -56,7 +56,7 @@ class Reservations extends Booking {
                 SELECT 
                     a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, 
                     a.booking_start_time, a.booking_end_time, a.is_payable, a.allow_multiple_booking,
-                    a.maximum_multiple_booking, a.attachment, a.description, a.state,
+                    a.maximum_multiple_booking, a.description, a.state,
                     (
                         SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0'
                     ) AS booked_count,

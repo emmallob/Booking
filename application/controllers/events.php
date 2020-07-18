@@ -325,7 +325,7 @@ class Events extends Booking {
                         // Upload file to the server 
                         if(move_uploaded_file($params->attachment["tmp_name"][$key], $fileName)){ 
                             $attachment[$key] = [
-                                "asset" => $fileName,
+                                "media" => $fileName,
                                 "type" => $params->attachment["type"][$key],
                                 "size" => $params->attachment["size"][$key],
                                 "state" => "uploaded"
@@ -333,6 +333,7 @@ class Events extends Booking {
                         }
                     }
                 }
+                
 			}
 
             /** 32 random string for the guid */
@@ -516,38 +517,45 @@ class Events extends Booking {
             // convert to array
             $params->halls_guid = $this->stringToArray($params->halls_guid);
 
-            // exisiting halls
+            // existing halls
             $existingHalls = $this->stringToArray($eventData->halls_guid);
+            
+            // array diff
+            $arrayDiff = array_diff($params->halls_guid, $existingHalls);
 
             // get the first item in the array
-            if(is_array($params->halls_guid)) {
-                // get the array item
-                $halls_guid = $params->halls_guid;
-                $halls_list = [];
+            if(!empty($arrayDiff)) {
 
-                // loop through each item and check if the hall really exists
-                foreach($halls_guid as $eachHall) {
-                    
-                    // query the database for the information on this hall
-                    $query = $this->pushQuery("configuration, `rows`,`columns`, hall_name", "halls", "hall_guid='{$eachHall}' AND client_guid='{$params->clientId}' AND deleted='0'");
+                // get the halls guid
+                if(is_array($params->halls_guid)) {
+                    // get the array item
+                    $halls_guid = $params->halls_guid;
+                    $halls_list = [];
 
-                    // confirm that the query did not return an error
-                    if(empty($query)) {
-                        $hall_bug = true;
-                        break;
-                    } else {
-                        // append to the halls list
-                        $halls_list[$eachHall] = [
-                            "name" => $query[0]->hall_name,
-                            "conf" => $query[0]->configuration,
-                            "rows" => $query[0]->rows,
-                            "columns" => $query[0]->columns
-                        ];
+                    // loop through each item and check if the hall really exists
+                    foreach($halls_guid as $eachHall) {
+                        
+                        // query the database for the information on this hall
+                        $query = $this->pushQuery("configuration, `rows`,`columns`, hall_name", "halls", "hall_guid='{$eachHall}' AND client_guid='{$params->clientId}' AND deleted='0'");
+
+                        // confirm that the query did not return an error
+                        if(empty($query)) {
+                            $hall_bug = true;
+                            break;
+                        } else {
+                            // append to the halls list
+                            $halls_list[$eachHall] = [
+                                "name" => $query[0]->hall_name,
+                                "conf" => $query[0]->configuration,
+                                "rows" => $query[0]->rows,
+                                "columns" => $query[0]->columns
+                            ];
+                        }
                     }
-                }
-                // return error
-                if(isset($hall_bug)) {
-                    return "Sorry! An invalid hall guid was parsed.";
+                    // return error
+                    if(isset($hall_bug)) {
+                        return "Sorry! An invalid hall guid was parsed.";
+                    }
                 }
             }
         }
@@ -586,7 +594,7 @@ class Events extends Booking {
                         // Upload file to the server 
                         if(move_uploaded_file($params->attachment["tmp_name"][$key], $fileName)){ 
                             $attachment[$key] = [
-                                "asset" => $fileName,
+                                "media" => $fileName,
                                 "type" => $params->attachment["type"][$key],
                                 "size" => $params->attachment["size"][$key],
                                 "state" => "uploaded"

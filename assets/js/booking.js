@@ -242,7 +242,11 @@ $(`div[id="layoutSidenav_content"]`).on("click", `button[class~="reset-hall"]`, 
 
 function confirmDelete() {
     $(`div[id="deleteModal"] button[type="submit"]`).on("click", function() {
-        var payload = '{"item":"' + $(this).attr('data-item') + '","item_id":"' + $(this).attr('data-item-id') + '"}';
+        let item = $(this).attr('data-item');
+        let item_id = $(this).attr('data-item-id');
+
+        var payload = '{"item":"' + item + '","item_id":"' + item_id + '"}';
+
         $.ajax({
             type: "DELETE",
             url: `${baseUrl}api/remove/confirm`,
@@ -255,9 +259,13 @@ function confirmDelete() {
                 });
 
                 if (response.code == 200) {
-                    setTimeout((res) => {
-                        window.location.href = current_url;
-                    }, 1000);
+                    if (item != "event-media") {
+                        setTimeout((res) => {
+                            window.location.href = current_url;
+                        }, 1000);
+                    } else {
+                        $(`div[data-item-id='${item_id}']`).remove();
+                    }
                 }
             },
             complete: function() {
@@ -581,6 +589,10 @@ $(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
                 title: response.data.result,
                 type: responseCode(response.code)
             });
+
+            if (response.code == 200) {
+                $(`input[id="attachment"]`).val('');
+            }
 
             if (response.data.remote_request) {
                 if (response.data.remote_request.reload) {

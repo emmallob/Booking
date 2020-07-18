@@ -966,6 +966,35 @@ class Booking {
 
 			}
 
+			/** Unbook a seat */
+			elseif($params->item == "event-media") {
+				/** Split the event and the row id */
+				$event = explode("_", $params->item_id);
+
+				/** If there is not a second item */
+				if(!isset($event[1])) {
+					return "denied";
+				}
+				
+				/** Confirm that events is not already deleted */
+				$userActive = $this->db->prepare("SELECT `id` FROM `events` WHERE `event_guid` = ? AND `deleted`=? AND client_guid = ?");
+				$userActive->execute([$event[0], 0, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					// remove the media
+					$this->db->query("UPDATE events_media SET status = '0' WHERE event_guid='{$event[0]}' AND id='{$event[1]}'");
+					
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					return "great";
+				}
+
+			}
+
 			/** remove ticket  */
 			elseif($params->item == "ticket") {
 

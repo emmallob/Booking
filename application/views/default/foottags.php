@@ -65,7 +65,11 @@
         confirmNotice("dashboard");
         <?php if(confirm_url_id(0, "events-edit") && isset($eventData)) { ?>
         <?php if(!in_array($eventData->state, ["pending"])) { ?>
-        $(`form[id="saveRecordWithAttachment"] *`).prop("disabled", true);
+        $(function() {
+            $(`form[id="saveRecordWithAttachment"] *`).prop("disabled", true);
+        })
+        <?php } else { ?>
+        deleteItem();
         <?php } ?>
         <?php } ?>
         <?php if(confirm_url_id(0, "users-add")) { ?>

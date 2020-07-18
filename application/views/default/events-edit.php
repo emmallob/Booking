@@ -38,7 +38,7 @@ if($eventsId) {
         $eventData->booking_start_time = date("Y-m-d\TH:i:s", strtotime($eventData->booking_start_time));
         $eventData->booking_end_time = date("Y-m-d\TH:i:s", strtotime($eventData->booking_end_time));
 
-        // $eventAttachment = json_decode($eventData->attachment);
+        $eventAttachments = $bookingClass->pushQuery("a.*", "events_media a", "a.event_guid='{$eventsId}' && a.client_guid='{$session->clientId}' AND a.status='1'");
     }
 
 }
@@ -148,9 +148,31 @@ if($eventsId) {
                         <div class="col-lg-12">
                             <hr>
                         </div>
+                        <div class="col-lg-12 col-md-12">
+                            <div class="cards">
+                                <div class="form-group">
+                                    <label for="description">Event Description</label>
+                                    <textarea name="description" id="description" class="form-control" cols="30" rows="3"><?= $eventData->description ?></textarea>
+                                </div>
+                                <div class="form-group text-right">
+                                    <?php 
+                                    // event state configuration
+                                    if($eventData->state == "pending") {
+                                        print "<span class='badge badge-primary'>Event is Pending</span>";
+                                    } elseif($eventData->state == "in-progress") {
+                                        print "<span class='badge badge-success'>Event is In Progress</span>";
+                                    } elseif($eventData->state == "cancelled") {
+                                        print "<span class='badge badge-danger'>Event has been Cancelled</span>";
+                                    } else {
+                                        print "<span class='badge badge-warning'>Event is Past</span>";
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-lg-12">
                             <div class="row">
-                                <div class="col-lg-4 col-md-6">
+                                <div class="col-lg-4 col-md-4">
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="event_is_payable">Is Payable</label>
@@ -192,35 +214,36 @@ if($eventsId) {
                                     </div>
                                     <div class="cards">
                                         <div class="form-group">
-                                            <label for="attachment">Event Attachment <small><em>(Attach an image or video)</em></small></label>
+                                            <label for="attachment">Event Attachment <small><em>(Attach multiple images or video)</em></small></label>
                                             <input type="file" name="attachment[]" multiple id="attachment" class="form-control" accept="image/x-png,image/gif,image/jpeg,video/*">
-
-                                            <div class="col-lg-12 text-center attachment">
-                                                
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-8 col-md-6">
-                                    <div class="cards">
-                                        <div class="form-group">
-                                            <label for="description">Event Description</label>
-                                            <textarea name="description" id="description" class="form-control" cols="30" rows="7"><?= $eventData->description ?></textarea>
-                                        </div>
-                                        <div class="form-group text-right">
-                                            <?php 
-                                            // event state configuration
-                                            if($eventData->state == "pending") {
-                                                print "<span class='badge badge-primary'>Event is Pending</span>";
-                                            } elseif($eventData->state == "in-progress") {
-                                                print "<span class='badge badge-success'>Event is In Progress</span>";
-                                            } elseif($eventData->state == "cancelled") {
-                                                print "<span class='badge badge-danger'>Event has been Cancelled</span>";
-                                            } else {
-                                                print "<span class='badge badge-warning'>Event is Past</span>";
+                                <div class="col-lg-8 col-md-8">
+                                    <div class="row text-center attachment">
+                                        <?php 
+                                        if(!empty($eventAttachments)) {
+                                            // loop through each item
+                                            foreach($eventAttachments as $eachMedia) {
+                                                // convert to an object
+                                                $media = json_decode($eachMedia->media_data);
+                                                // get the media and display
+                                                $media_content = "<div data-item-id='{$eventsId}_{$eachMedia->id}' class='col-lg-4 mb-3 col-md-6'>";
+                                                if(in_array($media->type, ["video/mp4"])) {
+                                                    $media_content .= "<video height='200px' class='border' width='100%' src='{$baseUrl}{$media->media}' controls='true'></video>";
+                                                } else {
+                                                    $media_content .= "<img height='200px' class='border' width='100%' src='{$baseUrl}{$media->media}'>";
+                                                }
+                                                $media_content .= "<div>
+                                                    <a href='javascript:void(0)' data-title='Delete Event Media' data-item='event-media' data-item-id='{$eventsId}_{$eachMedia->id}' class='btn btn-outline-danger delete-item'><i class='fa fa-trash'></i></a>
+                                                </div>";
+                                                $media_content .= "</div>";
+
+                                                // print the media item
+                                                print $media_content;
                                             }
-                                            ?>
-                                        </div>
+                                        }
+                                        ?>
                                     </div>
                                 </div>
                             </div>
@@ -238,6 +261,5 @@ if($eventsId) {
             </div>
         </div>
     </div>
-
 </main>
 <?php require "foottags.php"; ?>

@@ -146,3 +146,7 @@ i .seats-table {
 img.curve {
     border-radius: 50%;
 }
+
+.border {
+    border-radius: 8px;
+}
