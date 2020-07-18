@@ -87,7 +87,7 @@ if( !empty($incomingData) ) {
     }
 }
 
-else if( empty($incomingData) && in_array($inner_url, ["halls", "users", "events", "tickets", "reports", "reservations", "insight"]) && ($requestMethod == "GET") ) {
+else if( empty($incomingData) && in_array($inner_url, ["halls", "users", "events", "tickets", "reports", "reservations", "insight", "sms", "emails"]) && ($requestMethod == "GET") ) {
     // empty the parameters list
     $params = [];
 

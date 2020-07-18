@@ -435,7 +435,19 @@ class Api {
                     ]
                 ]
             ],
-            
+            "sms" => [
+                "GET" => [
+                    "check-balance" => [
+                        "description" => "Check the SMS Unit balance for this account"
+                    ],
+                    "history" => [
+                        "description" => "Get the SMS History sent from this account",
+                        "params" => [
+                            "group" => "Could either be bulk or single"
+                        ]
+                    ]
+                ]
+            ]
         ];
     }
 
@@ -1142,6 +1154,22 @@ class Api {
                             $result['remote_request']['href'] = $this->session->current_url;
                         }
                     }
+                }
+            }
+        }
+
+        // communication handler
+        elseif(in_array($this->inner_url, ["sms", "emails"])) {
+
+            // create a new communcation class
+            $commObj = load_class('communication', 'controllers');
+
+            if($this->outer_url == "check-balance") {
+                $request = $commObj->checkBalance($params);
+
+                if($request) {
+                    $code = 200;
+                    $result['result'] = $request;
                 }
             }
         }
