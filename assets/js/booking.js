@@ -45,6 +45,14 @@ var hideNotice = (noticeName) => {
     $(`div[data-notice="${noticeName}"]`).html(``);
 }
 
+/*========= Summernote Editor Script ==========*/
+if ($(`textarea[data-editor="summernote"]`).length) {
+    $(`textarea[data-editor="summernote"]`).summernote({
+        height: 200,
+        tabsize: 2
+    });
+}
+
 var pushIntoOptions = async(selectField, dataSet, selectTitle) => {
     $(`select[name="${selectField}"]`).find('option').remove().end();
     $(`select[name="${selectField}"]`).append(`<option value="">${selectTitle}</option>`);

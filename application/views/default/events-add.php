@@ -138,7 +138,7 @@ require "headtags.php";
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="description">Event Description</label>
-                                            <textarea name="description" id="description" class="form-control" cols="30" rows="7"></textarea>
+                                            <textarea data-editor="summernote" name="description" id="description" class="form-control" cols="30" rows="7"></textarea>
                                         </div>
                                     </div>
                                 </div>

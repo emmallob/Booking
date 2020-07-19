@@ -66,13 +66,13 @@ require "headtags.php";
                                                                 <option label="-- Select Category --" value="null">-- Select Category --</option>
                                                                 <option value="allContacts">All Contacts</option>
                                                                 <option value="specificContact">Specific Contacts</option>
-                                                                <option value="specificCompany">Specific Company</option>
+                                                                <option value="specificEvent">Specific Event</option>
                                                         </select>
                                                         <br>
                                                         </div>
                                                     </div>
                                                     <div class="form-group">
-                                                    <div class="col-sm-12 show-recipient-cat"></div>
+                                                        <div class="col-sm-12 show-recipient-cat"></div>
                                                         <input type="hidden" name="msg_type" value="sms">
                                                     </div>
                                                 </form>

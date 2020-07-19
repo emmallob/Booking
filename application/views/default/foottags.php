@@ -51,12 +51,17 @@
     <?php global $rootDir, $SITEURL; ?>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <?php if(in_array($SITEURL[0], ["dashboard", "reports"])) { ?>
     <script src="<?= $rootDir ?>assets/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <?php } ?>
     <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.min.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/select/select.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
+    <?php if(in_array($SITEURL[0], ["events-add", "events-edit", "halls-add", "halls-edit"])) { ?>
+    <script src="<?= $rootDir ?>assets/libs/summernote/dist/summernote-bs4.min.js"></script>
+    <?php } ?>
     <script>var baseUrl = "<?= $rootDir ?>";</script>
     <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>

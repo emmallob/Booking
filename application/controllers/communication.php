@@ -109,5 +109,93 @@ class Communication extends Booking {
 
     }
 
+    /**
+     * Get the recipient category
+     */
+    public function recipientCategory(stdClass $params) {
+        
+        switch ($params->recipient) {
+
+            case "allContacts":
+
+                $link = "SELECT COUNT(DISTINCT b.created_by) AS total_count,
+                    GROUP_CONCAT(DISTINCT b.created_by separator ',') AS recipients
+                    FROM events_booking b WHERE b.deleted='0' AND b.client_guid = '{$params->clientId}'";
+
+                $stmt = $this->db->prepare("{$link}");
+
+                if ($stmt->execute()) {
+
+                    $data = $stmt->fetch(PDO::FETCH_OBJ);
+
+                    $message = '
+                    <div class="input-group mt-4">
+                        <div class="input-group-prepend append-lists" data-total-contacts="'.$data->total_count.'" data-recipient-lists="'.$data->recipients.'">
+                            <span class="input-group-text">Total Contacts</span>
+                        </div>
+                        <input type="text" value="'.$data->total_count.' Contacts" readonly class="form-control">
+                    </div>';
+                }
+
+                break;
+
+            case "specificContact":
+
+                $link = ($params->msg_type == "sms") ? 
+                "SELECT phone_1 AS recipient, CONCAT(firstname,' ',lastname) AS fullName FROM customers WHERE (phone_1 != '' || phone_1 IS NOT NULL) AND (clientId = '{$params->clientId}')" :
+                "SELECT email AS recipient, CONCAT(firstname,' ',lastname) AS fullName FROM customers WHERE (email != '' || email IS NOT NULL) AND (clientId = '{$params->clientId}')";
+
+                $stmt = $this->db->prepare("{$link}");
+
+                if ($stmt->execute()) {
+
+                    $message = "
+                        <label>Select Recipient</label>
+                        <select class=\"form-control select2\" multiple=\"multiple\" data-placeholder=\"Select Recipient\" name=\"recipient-lists\">
+                            <option label=\"-- Select Recipient --\"></option>";
+
+                    while ($data = $stmt->fetch(PDO::FETCH_OBJ)) {
+
+                        $message .= "<option value=\"{$data->recipient}\">{$data->fullName}</option>";
+
+                    }
+
+                    $message .= "</select>";
+                    $status = 200;
+                }
+
+                break;
+
+            case "specificEvent":
+
+                $link = "SELECT event_guid, event_title, event_date FROM events WHERE deleted='0' AND client_guid = '{$params->clientId}'";
+
+                $stmt = $this->db->prepare("{$link}");
+
+                if ($stmt->execute()) {
+
+                    $message = "
+                        <label>Select Event - <small><em>Bookers / Confirmed to Receive Mail</em></small></label>
+                        <select class=\"form-control pqSelect\" multiple=\"multiple\" data-placeholder=\"Select Event\" name=\"recipient-lists\">
+                            <option label=\"-- Select  Event--\"></option>";
+
+                    while ($data = $stmt->fetch(PDO::FETCH_OBJ)) {
+
+                        $message .= "<option value=\"{$data->event_guid}\">{$data->event_title}</option>";
+
+                    }
+
+                    $message .= "</select>";
+                    $status = 200;
+                }
+
+                break;
+
+            default:
+                break;
+        }
+
+        return $message;
+    }
 }
 ?>

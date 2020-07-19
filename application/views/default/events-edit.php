@@ -152,7 +152,7 @@ if($eventsId) {
                             <div class="cards">
                                 <div class="form-group">
                                     <label for="description">Event Description</label>
-                                    <textarea name="description" id="description" class="form-control" cols="30" rows="3"><?= $eventData->description ?></textarea>
+                                    <textarea data-editor="summernote" name="description" id="description" class="form-control" cols="30" rows="3"><?= $eventData->description ?></textarea>
                                 </div>
                                 <div class="form-group text-right">
                                     <?php 

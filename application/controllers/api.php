@@ -445,6 +445,12 @@ class Api {
                         "params" => [
                             "group" => "Could either be bulk or single"
                         ]
+                    ],
+                    "category" => [
+                        "params" => [
+                            "msg_type" => "required - This is the type of message to send",
+                            "recipient" => "required - The receipient group to receive the message."
+                        ]
                     ]
                 ]
             ]
@@ -1166,6 +1172,16 @@ class Api {
 
             if($this->outer_url == "check-balance") {
                 $request = $commObj->checkBalance($params);
+
+                if($request) {
+                    $code = 200;
+                    $result['result'] = $request;
+                }
+            }
+
+            // list sms category listing
+            elseif($this->outer_url == "category") {
+                $request = $commObj->recipientCategory($params);
 
                 if($request) {
                     $code = 200;

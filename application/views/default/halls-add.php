@@ -66,7 +66,7 @@ require "headtags.php";
                                     <div class="cards">
                                         <div class="form-group">
                                             <label for="description">Hall Facilities</label>
-                                            <textarea name="description" id="description" class="form-control" cols="30" rows="4"></textarea>
+                                            <textarea name="description" id="description" class="form-control" data-editor="summernote" cols="30" rows="4"></textarea>
                                         </div>
                                     </div>
                                 </div>

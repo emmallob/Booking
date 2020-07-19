@@ -61,6 +61,7 @@ $accessObject->userId = $userId;
 	<link href='<?= "{$baseUrl}assets/libs/select/select.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/libs/sweetalert/sweetalert.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/css/custom.css" ?>' rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="<?= $baseUrl ?>assets/libs/summernote/dist/summernote-bs4.css">
 	<script data-search-pseudo-elements defer src="<?= $baseUrl ?>assets/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
 	<script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
 	<style>
