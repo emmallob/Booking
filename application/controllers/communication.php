@@ -312,7 +312,8 @@ class Communication extends Booking {
                 $fulldate = date('jS F Y \a\t H:iA', strtotime($data->created_on));
                 $list = json_decode($data->recipient_list, true);
                 $status = $this->stringToArray($data->recipient_status);
-                
+                $category = ($data->related_item == "event") ? "specificEvent" : "specificContact";
+
                 $eachRecipient = [];
                 for($i = 0; $i < count($list); $i++) {
                     $eachRecipient[] = [
@@ -326,10 +327,10 @@ class Communication extends Booking {
                     "recipientName" => $data->subject,
                     "recipients" => !empty($data->related_guid) ? $data->related_guid : array_column($list, "contact"),
                     "unique_guid" => $data->unique_guid,
+                    "category" => $category,
                     "date_sent" => $date,
                     "full_date" => $fulldate,
-                    "list" => "
-                    <a style='text-decoration:none' data-recipients-info='".json_encode($eachRecipient)."' href=\"javascript:void(0)\" data-message=\"{$data->message}\" class=\"media\" data-bulk-history-id=\"{$data->unique_guid}\">
+                    "list" => "<a style='text-decoration:none' data-recipients-info='".json_encode($eachRecipient)."' href=\"javascript:void(0)\" data-message=\"{$data->message}\" class=\"media\" data-bulk-history-id=\"{$data->unique_guid}\">
                         <div class=\"media-left\">
                             <div class=\"avatar-box thumb-md align-self-center mr-2\">
                                 <span class=\"avatar-title bg-primary rounded-circle\">
@@ -363,11 +364,17 @@ class Communication extends Booking {
         
         $logMessage = 'Sent messages to some contacts';
 
-        if (!empty($params->recipients) && !empty($params->message)) {
+        if (!empty($params->message)) {
             //: Recipients list
             $recipient_list = [];
 
+            // send message to specific audience for a specific event
             if (($params->category == "specificEvent")) {
+
+                // ensure that the recipient list is not empty
+                if(!isset($params->recipients)) {
+                    return "Sorry! The event guid cannot be empty.";
+                }
 
                 // the people to receive the message
                 $recipient_group = (isset($params->data)) ? $this->stringToArray($params->data) : ["booked_list", "confirmed_list"];
@@ -384,6 +391,7 @@ class Communication extends Booking {
                 if(in_array("booked_list", $recipient_group)) {
                     $usersList = $this->pushQuery("fullname, created_by AS contact", "events_booking", "event_guid='{$params->recipients}' AND client_guid='{$params->clientId}' AND deleted='0' AND status='0'");
                     foreach($usersList as $eachUser) {
+                        $eachUser->category = 'Booked';
                         $recipient_list[] = $eachUser;
                     }
                 }
@@ -391,6 +399,7 @@ class Communication extends Booking {
                 if(in_array("confirmed_list", $recipient_group)) {
                     $usersList = $this->pushQuery("fullname, created_by AS contact", "events_booking", "event_guid='{$params->recipients}' AND client_guid='{$params->clientId}' AND deleted='0' AND status='1'");
                     foreach($usersList as $eachUser) {
+                        $eachUser->category = 'Confirmed';
                         $recipient_list[] = $eachUser;
                     }
                 }
@@ -403,11 +412,56 @@ class Communication extends Booking {
 
                 // count the number of rows found
                 if(!empty($commonData)) {
-                    $commonID = ($commonData[0]->recipient_count == count($recipient_list)) ? $commonData[0]->unique_guid : $commonID;
+                    // $commonID = ($commonData[0]->recipient_count == count($recipient_list)) ? $commonData[0]->unique_guid : $commonID;
                 }
-
-                $logMessage = "Sent out an SMS to ".count($recipient_list)." contacts for the event ".$eventData[0]->event_title;
+                $related_item = 'event';
+                $logMessage = "Send out an SMS to ".count($recipient_list)." contacts for the event: ".$eventData[0]->event_title;
             }
+
+            // send messages to all contacts 
+            elseif (($params->category == "allContacts")) {
+
+                // the people to receive the message
+                $recipient_group = (isset($params->data)) ? $this->stringToArray($params->data) : ["booked_list", "confirmed_list"];
+
+                // confirm that the event exist
+                $usersList = $this->pushQuery("CONCAT(created_by,'|',fullname,'|',event_guid,'|',status) AS recipient", "events_booking", "deleted='0' AND client_guid='{$params->clientId}'");
+
+                // count the number of rows found
+                if(empty($usersList)) {
+                    return "Sorry! No recipients were found for the selected category.";
+                }
+                // contacts list
+                $contacts_list = [];
+
+                // get the list of contacts depending on the data parsed
+                foreach($usersList as $eachUser) {
+                    // explode the text
+                    $expl = explode('|', $eachUser->recipient);
+
+                    // dealing with duplicates
+                    // confirm if the contact number has not already been added to a list
+                    if(!in_array($expl[0], $contacts_list)) {
+                        $recipient_list[] = [
+                            'fullname' => $expl[1],
+                            'contact' => $expl[0],
+                            'category' => ($expl[3] == 0) ? 'Booked' : 'Confirmed',
+                            'event_guid' => $expl[2]
+                        ];
+                        $contacts_list[] = $expl[0];
+                    }
+                }
+                
+                // generate a common id
+                $commonID = random_string('alnum', 32);
+
+                $related_item = 'contacts';
+                $params->recipients = null;
+                $logMessage = "Send out an SMS to all ".count($recipient_list)." contacts in the database.";
+            }
+
+
+            return $recipient_list;
 
             $recipientCount = count($recipient_list);
 
@@ -437,8 +491,8 @@ class Communication extends Booking {
             ");
 
             if ($stmt->execute([
-                $params->clientId, $commonID, 'event', $params->recipients, 'sms', $recipientCount, 
-                json_encode($recipient_list), $params->message, "Send Messages to {$recipientCount} contacts", 
+                $params->clientId, $commonID, $related_item, $params->recipients, 'sms', $recipientCount, 
+                json_encode($recipient_list), $params->message, $logMessage, 
                 $params->userId, $totalUnitInvolved
             ])) {
 
@@ -455,7 +509,7 @@ class Communication extends Booking {
             }
 
         } else {
-            return "Please Check All Required Fields.";
+            return "Error processing request.";
         }
 
     }

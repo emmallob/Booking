@@ -94,14 +94,13 @@ require "headtags.php";
                                                     </span>
                                                 </div>
                                                 <div class="media-body justify-content-between row">
-                                                    <div class="col-lg-4 read-message d-none">
+                                                    <div class="col-lg-8 read-message d-none">
                                                         <h6 class="mb-1 mt-0 chat-recipient-title">
                                                         Please Select A Message</h6>
                                                         <p class="mb-0 chat-date"></p>
                                                     </div>
-                                                    <p class="type-message d-none badge badge-soft-dark text-left col-3 font-13 p-2">SMS Cost: <span id="showSMSCost">0 Unit(s)</span></p>
-                                                    
-                                                    <button class="col-lg-3 btn btn-sm d-none btn-primary top-up-sms top-up-sms-activate" style="height: 25px;margin-top: 5px;padding-top: 0px;padding-bottom: 0;">
+                                                    <p class="type-message d-none badge badge-soft-dark text-left col-2 font-13 p-2">SMS Cost: <span id="showSMSCost">0 Unit(s)</span></p>
+                                                    <button class="col-lg-2 btn btn-sm d-none btn-primary top-up-sms top-up-sms-activate" style="height: 25px;margin-top: 5px;padding-top: 0px;padding-bottom: 0;">
                                                         Top Up <span class="mdi mdi-coins"></span>
                                                     </button>
                                                 </div><!-- end media-body -->

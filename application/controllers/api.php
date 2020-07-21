@@ -457,7 +457,7 @@ class Api {
                     "send" => [
                         "params" => [
                             "message" => "required - The message to send",
-                            "recipients" => "required - The recipients to receive the message",
+                            "recipients" => "The recipients to receive the message",
                             "category" => "required - The category of messages to receive",
                             "data" => "This is an additional data to parse together with the recipient category",
                             "unit" => "The unit of messages to send out to the uses."

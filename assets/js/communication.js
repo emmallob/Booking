@@ -95,7 +95,7 @@ $(".select-rec-category").on("change", function() {
     var msg_type = $(this).data("message-type");
 
     if (recipient == "null") {
-        $(".show-recipient-cat:visible").html('');
+        $(".show-recipient-cat").html('');
         return false;
     }
 
@@ -188,7 +188,11 @@ var loadBulkMessageHistory = (historyId) => {
         sentList += `${e.fullname} (${e.contact}) ${status} | `;
     });
 
-    $(`div[class~="sms-message-sent"]`).html(`<p class='border alert alert-info-soft m-2'>${sentList}</p><hr class='pt-0 mt-0'><p style="margin-bottom: 5px">${messageContent}</p><br>`);
+    $(`div[class~="sms-message-sent"]`).html(`
+        <p class='border alert alert-info-soft m-2'>${sentList}</p>
+        <hr class='pt-0 mt-0'>
+        <p style="margin-bottom: 5px; padding: 10px">${messageContent}</p><br>
+    `);
 }
 
 var checkSMSBalance = () => {
@@ -248,13 +252,14 @@ var fetchHistoryOfSMS = () => {
 
                             $(`a[data-bulk-history-id='${i}']`, display).on("click", function() {
                                 $(`div[class~="sms-message-sent"]`).html(``);
-                                $(`span[class="current-viewer"]`).attr('data-contact-id', i);
+                                $(`span[class="current-viewer"]`).attr('data-contact-id', response.data.result[i].category);
                                 $(".recipient-icon, .get-sms-detail").removeClass("d-none");
                                 $(".chat-recipient-title").html(response.data.result[i].recipientName);
                                 $(`p[class~="chat-date"]`).html(response.data.result[i].full_date);
                                 $(`[name="selectedrecipients"]`).val(response.data.result[i].recipients);
-                                $(`[name="messageDirection"]`).val("process_2");
+                                $(`[name="messageDirection"]`).val("process_1");
                                 $(`.read-message`).removeClass("d-none");
+                                $(".select-rec-category").val('null').change();
                                 loadBulkMessageHistory(i);
                             });
                         });
@@ -349,12 +354,13 @@ $(`button[class~="send-message"]`).on("click", function() {
 
 $("#general_chat, #single_chat").on("click", function(e) {
     e.preventDefault();
-    $(`[name="messageDirection"]`).val("process_2");
+    // $(`[name="messageDirection"]`).val("process_2");
 });
 
 $(`a[id="group_chat_tab"]`).on('click', function() {
     $(`div[class~="sms-message-sent"]`).html(``);
     $(".chat-recipient-title").html(``);
+    $(`span[class="current-viewer"]`).attr('data-contact-id', null);
     $(".recipient-icon, .get-sms-detail").addClass("d-none");
 });
 
@@ -377,12 +383,18 @@ var sendBulkMessage = () => {
             smsMsg = $(`textarea[name="directMessage"]`).val(),
             unit = $("#smsCount").html();
 
+        var category = $(`select[name="recipientCategory"]`).val();
+
         if (msgDirection == "process_1") {
-            var category = $(`[name="recipientCategory"]`).val();
-            var mySelections1 = ['allContacts'];
+
+            if ($(`span[class="current-viewer"]`).attr('data-contact-id')) {
+                category = $(`span[class="current-viewer"]`).attr('data-contact-id');
+            }
 
             if (category == "specificEvent") {
                 recipients = $(`select[name="recipient-lists"]`).val();
+
+                recipients = recipients == undefined ? $(`[name="selectedrecipients"]`).val() : recipients;
 
                 $('input[name^="category_list"]').each(function() {
                     additional_data += $(this).val() + ",";

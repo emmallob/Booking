@@ -262,3 +262,32 @@ img.curve {
     max-width: 80%;
     margin-bottom: 5px;
 }
+
+.chat-box-left .chat-list .media .media-body>div:last-child span:nth-child(2) {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    background-color: #1ecab8;
+    color: #ffffff;
+    border-radius: 50%;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    margin-top: 8px;
+}
+
+.chat-box-left .chat-list .media {
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.chat-box-left .chat-list .media:hover,
+.chat-box-left .chat-list .media:focus {
+    background-color: rgba(239, 242, 249, 0.5);
+}
