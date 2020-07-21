@@ -225,6 +225,8 @@ class Communication extends Booking {
 
         // fetch the user messages history
         if($params->group == "single") {
+            
+            return;
 
             $singleMsgs = $this->db->prepare("
                 SELECT DISTINCT a.contact_id, a.sms_status,
@@ -253,7 +255,7 @@ class Communication extends Booking {
 
                 $date = date('d M', strtotime($data->date_sent));
 
-                $messagesHistory = $smsClass->getAllRows(
+                $messagesHistory = $this->pushQuery(
                     "messages_history",
                     "message, date_sent, sms_status",
                     "contact_id = '{$data->contact_id}'"
@@ -284,8 +286,8 @@ class Communication extends Booking {
                     </a> <!--end media-->"
                 ];
             }
-            $message = $message;
-            $status = 200;
+
+            return $message;
 
         }
 
@@ -295,7 +297,7 @@ class Communication extends Booking {
             $multipleMsgs = $this->db->prepare("
                 SELECT a.*
                 FROM messages a
-                WHERE a.clientId = ? AND a.message_type = 'sms'
+                WHERE a.client_guid = ? AND a.message_type = 'sms'
                 ORDER BY a.id DESC
             ");
             $multipleMsgs->execute([$params->clientId]);
@@ -320,14 +322,14 @@ class Communication extends Booking {
                     ];
                 }
 
-                $message[$data->history_id] = [
-                    "recipientName" => $data->recipient_group,
-                    "recipients" => $data->recipientIds,
-                    "history_id" => $data->history_id,
+                $message[$data->unique_guid] = [
+                    "recipientName" => $data->subject,
+                    "recipients" => !empty($data->related_guid) ? $data->related_guid : array_column($list, "contact"),
+                    "unique_guid" => $data->unique_guid,
                     "date_sent" => $date,
                     "full_date" => $fulldate,
                     "list" => "
-                    <a data-recipients-info='".json_encode($eachRecipient)."' href=\"javascript:void(0)\" data-message=\"{$data->sms_message}\" class=\"media\" data-bulk-history-id=\"{$data->history_id}\">
+                    <a style='text-decoration:none' data-recipients-info='".json_encode($eachRecipient)."' href=\"javascript:void(0)\" data-message=\"{$data->message}\" class=\"media\" data-bulk-history-id=\"{$data->unique_guid}\">
                         <div class=\"media-left\">
                             <div class=\"avatar-box thumb-md align-self-center mr-2\">
                                 <span class=\"avatar-title bg-primary rounded-circle\">
@@ -337,22 +339,20 @@ class Communication extends Booking {
                         </div><!-- media-left -->
                         <div class=\"media-body\">
                             <div>
-                                <h6>{$data->recipient_group}</h6>
+                                <h6>{$data->subject}</h6>
                                 <p>Message sent to...</p>
                             </div>
                             <div>
                                 <span>{$date}</span>
-                                <span>{$data->total_contacts}</span>
+                                <span>{$data->recipient_count}</span>
                             </div>
-                        </div><!-- end media-body -->
-                    </a> <!--end media-->"
+                        </div>
+                    </a>"
                 ];
             }
-            $message = $message;
-            $status = 200;
 
+            return $message;
         }
-
 
     }
 
@@ -364,7 +364,9 @@ class Communication extends Booking {
         $logMessage = 'Sent messages to some contacts';
 
         if (!empty($params->recipients) && !empty($params->message)) {
-            
+            //: Recipients list
+            $recipient_list = [];
+
             if (($params->category == "specificEvent")) {
 
                 // the people to receive the message
@@ -377,9 +379,6 @@ class Communication extends Booking {
                 if(empty($eventData)) {
                     return "Sorry! An invalid event guid has been supplied.";
                 }
-
-                //: Recipients list
-                $recipient_list = [];
 
                 // get the list of contacts depending on the data parsed
                 if(in_array("booked_list", $recipient_group)) {
@@ -433,13 +432,13 @@ class Communication extends Booking {
             
             // Prepare Message & Recipient Details In Database
             $stmt = $this->db->prepare("
-                INSERT INTO messages SET unique_guid = ?, related_item = ?, related_guid = ?, message_type = ?, 
+                INSERT INTO messages SET client_guid = ?, unique_guid = ?, related_item = ?, related_guid = ?, message_type = ?, 
                 recipient_count = ?, recipient_list = ?, message = ?, subject = ?, created_by = ?, sms_units = ?
             ");
 
             if ($stmt->execute([
-                $commonID, 'event', $params->recipients, 'sms', $recipientCount, 
-                json_encode($recipient_list), $params->message, "Send Messages to {$recipientCount}", 
+                $params->clientId, $commonID, 'event', $params->recipients, 'sms', $recipientCount, 
+                json_encode($recipient_list), $params->message, "Send Messages to {$recipientCount} contacts", 
                 $params->userId, $totalUnitInvolved
             ])) {
 

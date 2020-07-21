@@ -229,3 +229,36 @@ img.curve {
     -ms-flex-pack: center;
     justify-content: center;
 }
+
+.chat-box-left .chat-list .media .media-body {
+    margin-left: 15px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: start;
+    -ms-flex-align: start;
+    align-items: flex-start;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+}
+
+.chat-box-left .chat-list .media .media-body a:hover {
+    text-decoration: none;
+}
+
+.chat-box-left .chat-list .media .media-left {
+    position: relative;
+}
+
+.thumb-md {
+    height: 48px;
+    width: 48px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.chat-box-right .chat-body .chat-detail .media .media-body .chat-msg {
+    max-width: 80%;
+    margin-bottom: 5px;
+}

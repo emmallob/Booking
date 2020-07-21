@@ -146,11 +146,11 @@ var loadMessageHistory = (contactId) => {
         status = ``;
 
     $.each(jsonMessages, function(i, e) {
-        if (e.sms_status == 'Sent') {
+        if (e.sms_status == 'sent') {
             status = `<span class="badge badge-success">Sent</span>`;
-        } else if (e.sms_status == 'Failed') {
+        } else if (e.sms_status == 'failed') {
             status = `<span class="badge badge-danger">Failed</span>`;
-        } else if (e.sms_status == 'Pending') {
+        } else if (e.sms_status == 'pending') {
             status = `<span class="badge badge-primary">Pending</span>`;
         }
         msgList += `
@@ -178,17 +178,17 @@ var loadBulkMessageHistory = (historyId) => {
         sentList = ``;
 
     $.each(jsonContacts, function(i, e) {
-        if (e.message_status == 'Sent') {
+        if (e.message_status == 'sent') {
             status = `<span class="badge badge-success">Sent</span>`;
-        } else if (e.message_status == 'Failed') {
+        } else if (e.message_status == 'failed') {
             status = `<span class="badge badge-danger">Failed</span>`;
-        } else if (e.message_status == 'Pending') {
+        } else if (e.message_status == 'pending') {
             status = `<span class="badge badge-primary">Pending</span>`;
         }
-        sentList += `${e.fullname} ${status} | `;
+        sentList += `${e.fullname} (${e.contact}) ${status} | `;
     });
 
-    $(`div[class~="sms-message-sent"]`).html(`<p>${sentList}</p><br><hr><p style="margin-bottom: 5px">${messageContent}</p><br>`);
+    $(`div[class~="sms-message-sent"]`).html(`<p class='border alert alert-info-soft m-2'>${sentList}</p><hr class='pt-0 mt-0'><p style="margin-bottom: 5px">${messageContent}</p><br>`);
 }
 
 var checkSMSBalance = () => {
@@ -248,7 +248,7 @@ var fetchHistoryOfSMS = () => {
 
                             $(`a[data-bulk-history-id='${i}']`, display).on("click", function() {
                                 $(`div[class~="sms-message-sent"]`).html(``);
-                                $(`span[class="current-viewer"]`).attr('data-contact-id', response.data.result[i].recipients);
+                                $(`span[class="current-viewer"]`).attr('data-contact-id', i);
                                 $(".recipient-icon, .get-sms-detail").removeClass("d-none");
                                 $(".chat-recipient-title").html(response.data.result[i].recipientName);
                                 $(`p[class~="chat-date"]`).html(response.data.result[i].full_date);

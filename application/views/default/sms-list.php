@@ -137,7 +137,7 @@ require "headtags.php";
                                             </div><!-- end row -->
                                         </div><!-- end chat-footer -->
                                     </div><!--end chat-box-right --> 
-                                                        
+                                    <span class="current-viewer" data-contact-id></span>   
                                 </div><!-- end row -->
                             </div><!--end education detail-->
                         </div>
