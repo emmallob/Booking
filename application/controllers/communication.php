@@ -137,28 +137,47 @@ class Communication extends Booking {
 
             case "specificContact":
 
-                $link = ($params->msg_type == "sms") ? 
-                "SELECT phone_1 AS recipient, CONCAT(firstname,' ',lastname) AS fullName FROM customers WHERE (phone_1 != '' || phone_1 IS NOT NULL) AND (clientId = '{$params->clientId}')" :
-                "SELECT email AS recipient, CONCAT(firstname,' ',lastname) AS fullName FROM customers WHERE (email != '' || email IS NOT NULL) AND (clientId = '{$params->clientId}')";
+                // confirm that the event exist
+                $usersList = $this->pushQuery("CONCAT(created_by,'|',fullname,'|',event_guid,'|',status) AS recipient", "events_booking", "deleted='0' AND client_guid='{$params->clientId}'");
 
-                $stmt = $this->db->prepare("{$link}");
-
-                if ($stmt->execute()) {
-
-                    $message = "
-                        <label>Select Recipient</label>
-                        <select class=\"form-control select2\" multiple=\"multiple\" data-placeholder=\"Select Recipient\" name=\"recipient-lists\">
-                            <option label=\"-- Select Recipient --\"></option>";
-
-                    while ($data = $stmt->fetch(PDO::FETCH_OBJ)) {
-
-                        $message .= "<option value=\"{$data->recipient}\">{$data->fullName}</option>";
-
-                    }
-
-                    $message .= "</select>";
-                    $status = 200;
+                // count the number of rows found
+                if(empty($usersList)) {
+                    return "Sorry! No recipients were found for the selected category.";
                 }
+                // contacts list
+                $contacts_list = [];
+
+                // get the list of contacts depending on the data parsed
+                foreach($usersList as $eachUser) {
+                    // explode the text
+                    $expl = explode('|', $eachUser->recipient);
+
+                    // dealing with duplicates
+                    // confirm if the contact number has not already been added to a list
+                    if(!in_array($expl[0], $contacts_list)) {
+                        $recipient_list[] = [
+                            'fullname' => $expl[1],
+                            'contact' => $expl[0],
+                            'category' => ($expl[3] == 0) ? 'Booked' : 'Confirmed',
+                            'event_guid' => $expl[2]
+                        ];
+                        $contacts_list[] = $expl[0];
+                    }
+                }
+
+                $message = "
+                    <label>Select Recipient</label>
+                    <select class=\"form-control select2\" multiple=\"multiple\" data-placeholder=\"Select Recipient\" name=\"recipient-lists\">
+                        <option label=\"-- Select Recipient --\"></option>";
+
+                foreach($recipient_list as $data) {
+
+                    $message .= "<option value=\"{$data['contact']}\">{$data['fullname']} ({$data['contact']})</option>";
+
+                }
+
+                $message .= "</select>";
+                $status = 200;
 
                 break;
 
@@ -459,9 +478,6 @@ class Communication extends Booking {
                 $params->recipients = null;
                 $logMessage = "Send out an SMS to all ".count($recipient_list)." contacts in the database.";
             }
-
-
-            return $recipient_list;
 
             $recipientCount = count($recipient_list);
 
