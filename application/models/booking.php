@@ -966,7 +966,7 @@ class Booking {
 
 			}
 
-			/** Unbook a seat */
+			/** remove event media */
 			elseif($params->item == "event-media") {
 				/** Split the event and the row id */
 				$event = explode("_", $params->item_id);

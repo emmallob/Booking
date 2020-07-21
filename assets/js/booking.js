@@ -19,7 +19,7 @@ var responseCode = (code) => {
     }
 }
 
-var serealizeSelects = (select) => {
+var serializeSelect = (select) => {
     var array = [];
     select.each(function() {
         array.push($(this).val())
@@ -337,7 +337,7 @@ $("form[class~='appForm']").on("submit", function(e) {
         data = $("form[class~='appForm']").formToJson();
 
         if ($(`select[name="halls_guid"]`).length) {
-            data.halls_guid = serealizeSelects($(`select[name="halls_guid"]`));
+            data.halls_guid = serializeSelect($(`select[name="halls_guid"]`));
         }
 
         payload = JSON.stringify(data);
@@ -577,7 +577,7 @@ $(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
     if ($(`select[name="halls_guid"]`).length) {
         formData.delete("halls_guid");
 
-        let halls_guid = serealizeSelects($(`select[name="halls_guid"]`));
+        let halls_guid = serializeSelect($(`select[name="halls_guid"]`));
         formData.append("halls_guid", halls_guid);
     }
 

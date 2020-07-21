@@ -673,36 +673,4 @@ class Events extends Booking {
 
     }
 
-    /**
-     * Remove an event attachment
-     * And replace with the default event image.
-     * 
-     * @param stdClass  $params
-     * @param String    $params->event_guid
-     * 
-     * @return Bool
-     */
-    public function removeAttachment(stdClass $params) {
-
-        try {
-            
-            $defaultImg = '{"asset":"assets/events/default.png","type":"png","state":"default"}';
-
-            // check if the event already exist using the name, date and start time
-            $eventData = $this->pushQuery("id, booking_start_time", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'");
-
-            // count the number of rows found
-            if(empty($eventData)) {
-                return "Sorry! An invalid event guid has been supplied.";
-            }
-            
-            // update the event attachment
-            // $stmt = $this->db->prepare("UPDATE events SET attachment = ? WHERE event_guid = ? AND client_guid = ? LIMIT 1");
-            // return $stmt->execute([$defaultImg, $params->event_guid, $params->clientId]);
-
-        } catch(PDOException $e) {
-            return false;
-        }
-    }
-
 }

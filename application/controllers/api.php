@@ -452,6 +452,17 @@ class Api {
                             "recipient" => "required - The receipient group to receive the message."
                         ]
                     ]
+                ],
+                "POST" => [
+                    "send" => [
+                        "params" => [
+                            "message" => "required - The message to send",
+                            "recipients" => "required - The recipients to receive the message",
+                            "category" => "required - The category of messages to receive",
+                            "data" => "This is an additional data to parse together with the recipient category",
+                            "unit" => "The unit of messages to send out to the uses."
+                        ]
+                    ]
                 ]
             ]
         ];
@@ -1170,9 +1181,9 @@ class Api {
             // create a new communcation class
             $commObj = load_class('communication', 'controllers');
 
+            // check the balance of the sms units
             if($this->outer_url == "check-balance") {
                 $request = $commObj->checkBalance($params);
-
                 if($request) {
                     $code = 200;
                     $result['result'] = $request;
@@ -1182,10 +1193,37 @@ class Api {
             // list sms category listing
             elseif($this->outer_url == "category") {
                 $request = $commObj->recipientCategory($params);
-
                 if($request) {
                     $code = 200;
                     $result['result'] = $request;
+                }
+            }
+            
+            // list the history of the messages
+            elseif($this->outer_url == "history") {
+                $request = $commObj->smsHistory($params);
+                if($request) {
+                    $code = 200;
+                    $result['result'] = $request;
+                }
+            }
+
+            // send the message out
+            elseif($this->inner_url == "sms" && $this->outer_url == "send") {
+
+                // Check Access Level
+                if(!$this->accessCheck->hasAccess('manage', 'communications')) {
+                    // permission denied message
+                    $result['result'] = self::PERMISSION_DENIED;
+                } else {
+                    $request = $commObj->smsSend($params);
+
+                    if(is_array($request)) {
+                        $code = 200;
+                        $result['result'] = $request;
+                    } else {
+                        $result['result'] = $request;
+                    }
                 }
             }
         }

@@ -11,6 +11,23 @@
         </div>
     </footer>
     </div>
+    <?php if(in_array($SITEURL[0], ["sms-list", "emails-list"])) { ?>
+    <div class="modal fade" id="sendMessageModal" data-backdrop="static" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="p-b-5 semi-bold">Send Message</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">Do you want to proceed in sending this message?</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php } ?>
     <div class="modal fade" id="deleteModal" data-backdrop="static" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">

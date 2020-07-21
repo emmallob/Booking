@@ -44,12 +44,10 @@
                     case "€":
                         smsLength += 2;
                         break;
-
                     default:
                         smsLength += 1;
                 }
 
-                //!isUnicode && text.charCodeAt(charPos) > 127 && text[charPos] != "€" && (isUnicode = true)
                 if (text.charCodeAt(charPos) > 127 && text[charPos] != "€")
                     isUnicode = true;
             }
@@ -87,8 +85,6 @@
     }
 }(jQuery));
 
-
-//Start
 $(function() {
     $('#smsText').smsArea({ maxSmsNum: 3 });
 })
@@ -98,33 +94,27 @@ $(".select-rec-category").on("change", function() {
     var recipient = $(this).val();
     var msg_type = $(this).data("message-type");
 
+    if (recipient == "null") {
+        $(".show-recipient-cat:visible").html('');
+        return false;
+    }
+
     $.ajax({
         url: `${baseUrl}api/sms/category?msg_type=${msg_type}&recipient=${recipient}`,
         type: "GET",
         dataType: "json",
         beforeSend: function() {
-            $(".show-recipient-cat:visible").html(`
-                <p class="text-center">
-                    <span class="fa fa-spin fa-spinner"></span>
-                </p>
-            `);
+            $(".show-recipient-cat:visible").html(`<p class="text-center"><span class="fa fa-spin fa-spinner"></span></p>`);
         },
         success: function(response) {
-
             $(".show-recipient-cat:visible").html(response.data.result);
-
             if (msg_type == 'sms') {
                 calculateSMSUnitCost();
                 getMultiSelectValues();
             }
-
         },
         error: function() {
-            $(".show-recipient-cat:visible").html(`
-                <p class="text-center alert alert-danger">
-                    Error Occurred.
-                </p>
-            `);
+            $(".show-recipient-cat:visible").html(`<p class="text-center alert alert-danger">Error Occurred.</p>`);
             setTimeout(function() {
                 $(".show-recipient-cat:visible").fadeOut(1200);
             }, 3000);
@@ -137,7 +127,6 @@ $(".select-rec-category").on("change", function() {
     });
 
 });
-
 
 var loadMessageHistory = (contactId) => {
 
@@ -165,13 +154,11 @@ var loadMessageHistory = (contactId) => {
             status = `<span class="badge badge-primary">Pending</span>`;
         }
         msgList += `
-			<p style="margin-bottom: 5px">
-	         	${e.message}
-	         	<br>
+            <p style="margin-bottom: 5px">
+	         	${e.message}<br>
 	         	<strong>Date: </strong>${e.date_sent} | 
 	         	<strong>Status: </strong>${status}
-	         </p><br>
-		`;
+	        </p><br>`;
     });
 
     $(`div[class~="sms-message-sent"]`).html(msgList);
@@ -198,18 +185,10 @@ var loadBulkMessageHistory = (historyId) => {
         } else if (e.message_status == 'Pending') {
             status = `<span class="badge badge-primary">Pending</span>`;
         }
-
         sentList += `${e.fullname} ${status} | `;
     });
 
-    msgList = `
-        <p>${sentList}</p><br><hr>
-        <p style="margin-bottom: 5px">
-            ${messageContent}
-         </p><br>
-    `;
-
-    $(`div[class~="sms-message-sent"]`).html(msgList);
+    $(`div[class~="sms-message-sent"]`).html(`<p>${sentList}</p><br><hr><p style="margin-bottom: 5px">${messageContent}</p><br>`);
 }
 
 var checkSMSBalance = () => {
@@ -299,33 +278,23 @@ var fetchHistoryOfSMS = () => {
 fetchHistoryOfSMS();
 
 var calculateSMSUnitCost = () => {
-
     if ($("#showSMSCost").length) {
-
         var totalCost = 0;
         var unit = $("#smsCount").html();
         var totalContact = 0;
-
         if ($(`[name="messageDirection"]`).val() == "process_1") {
             if ($(".append-lists").length) {
-
                 totalContact = $(".append-lists").data("total-contacts");
-
             } else if ($(`[name="recipient-lists"]`).length) {
-
                 totalContact = $(`[name="recipient-lists"]`).val();
-
                 totalContact = totalContact.length;
-
             }
         } else {
             if ($(`[name="selectedrecipients"]`).val().length) {
                 totalContact = $(`[name="selectedrecipients"]`).val().split(",").length;
             }
         }
-
         totalCost = (totalContact > 0 && unit > 0) ? (totalContact * unit) : 0;
-
         if (totalCost > $("[data-sms-balance]").data("sms-balance")) {
             $(".top-up-sms-activate").removeClass("d-none");
             $(".send-message:visible").attr("disabled", "disabled");
@@ -333,26 +302,20 @@ var calculateSMSUnitCost = () => {
             $(".top-up-sms-activate").addClass("d-none");
             $(".send-message:visible").prop("disabled", false);
         }
-
         $("#showSMSCost").html(totalCost + " Unit(s)");
-
     }
 }
 calculateSMSUnitCost();
 
 var getMultiSelectValues = () => {
-
     $(`select[name="recipient-lists"] > option`).on('click', function(e) {
         calculateSMSUnitCost();
     });
-
 }
 
 var topUpSMSUnit = () => {
-
     $(".top-up-sms").on("click", function(e) {
         e.preventDefault();
-
         $.ajax({
             url: `${baseUrl}api/sms/topup-form`,
             type: "GET",
@@ -360,24 +323,122 @@ var topUpSMSUnit = () => {
             beforeSend: function() {
                 $(`.launchModal`).modal("show");
                 $(".show-modal-title").html(`<span class="mdi mdi-coins"></span> SMS Top Up`);
-                $(".show-modal-body").html(`
-                    <p class="text-center mt-2 mb-2"><span class="fa fa-spinner fa-spin"></span></p>
-                `);
+                $(".show-modal-body").html(`<p class="text-center mt-2 mb-2"><span class="fa fa-spinner fa-spin"></span></p>`);
             },
             success: function(response) {
                 $(".show-modal-body").html(response.data.result);
             },
             error: function() {
-                $(".show-modal-body").html(`
-                    <p class="text-center alert alert-danger mt-2 mb-2">
-                        Error Processing Request.
-                    </p>
-                `);
+                $(".show-modal-body").html(`<p class="text-center alert alert-danger mt-2 mb-2">Error Processing Request.</p>`);
+            }
+        });
+    });
+}
+topUpSMSUnit();
+
+$("button[class~='cancel-message']").on("click", function(e) {
+    $("#smsText").val("");
+    $("button[class~='cancel-message']").addClass("d-none");
+    $(".type-message").addClass("d-none");
+    $(`[id="smsLength"]`).html(145)
+});
+
+$(`button[class~="send-message"]`).on("click", function() {
+    $(`div[id="sendMessageModal"]`).modal('show');
+});
+
+$("#general_chat, #single_chat").on("click", function(e) {
+    e.preventDefault();
+    $(`[name="messageDirection"]`).val("process_2");
+});
+
+$(`a[id="group_chat_tab"]`).on('click', function() {
+    $(`div[class~="sms-message-sent"]`).html(``);
+    $(".chat-recipient-title").html(``);
+    $(".recipient-icon, .get-sms-detail").addClass("d-none");
+});
+
+$("#compose").on("click", function(e) {
+    $(`[name="messageDirection"]`).val("process_1");
+    $(".read-message, .recipient-icon").addClass("d-none");
+    $(".sms-message-sent").empty();
+});
+
+var sendBulkMessage = () => {
+
+    $(`div[id="sendMessageModal"] button[type="submit"]`).on("click", function(e) {
+        e.preventDefault();
+
+        // Get Message Direction
+        var recipients = "",
+            additional_data = "",
+            category = "unknown",
+            msgDirection = $(`input[name="messageDirection"]`).val(),
+            smsMsg = $(`textarea[name="directMessage"]`).val(),
+            unit = $("#smsCount").html();
+
+        if (msgDirection == "process_1") {
+            var category = $(`[name="recipientCategory"]`).val();
+            var mySelections1 = ['allContacts'];
+
+            if (category == "specificEvent") {
+                recipients = $(`select[name="recipient-lists"]`).val();
+
+                $('input[name^="category_list"]').each(function() {
+                    additional_data += $(this).val() + ",";
+                });
             }
 
+        } else if (msgDirection == "process_2") {
+            recipients = $(`[name="selectedrecipients"]`).val();
+        }
+
+        let payload = `{"message":"${smsMsg}","unit":"${unit}","recipients":"${recipients}","category":"${category}","data":"${additional_data}"}`;
+
+        $.ajax({
+            url: baseUrl + "api/sms/send",
+            type: "POST",
+            data: payload,
+            dataType: "json",
+            beforeSend: function() {
+                $(".content-loader").css("display", "flex");
+            },
+            success: function(response) {
+                if (response.code == 200) {
+                    Toast.fire({
+                        type: "success",
+                        title: response.data.result.result
+                    });
+                    $(`[id="smsLength"]`).html(145);
+                    $(`div[id="sendMessageModal"]`).modal('hide');
+                    $(`textarea[name="directMessage"]`).val("");
+                    $(`[name="recipientCategory"]`).val("null").change();
+
+                    checkSMSBalance();
+                    fetchHistoryOfSMS();
+                    setTimeout(function() {
+                        loadMessageHistory(response.data.result.recipient_id);
+                    }, 2000);
+                } else {
+                    Toast.fire({
+                        type: "error",
+                        title: response.data.result
+                    });
+                }
+            },
+            error: function() {
+                Toast.fire({
+                    type: "error",
+                    title: "An error occured while trying to send the message"
+                });
+                $(".content-loader").css("display", "none");
+            },
+            complete: function() {
+                $(".content-loader").css("display", "none");
+            }
         });
 
     });
 
 }
-topUpSMSUnit();
+sendBulkMessage();

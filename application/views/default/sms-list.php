@@ -123,19 +123,15 @@ require "headtags.php";
                                                 <div class="col-12 col-md-12 mb-2">
                                                     <textarea class="form-control" id="smsText" form="send-bulk-message-form" style="min-height: 90px;border-radius: 20px;padding: 10px;" name="directMessage"></textarea>
                                                 </div>
-                                                <div class="col-12 row align-items-center">
-                                                    <p style="color: dimgray; font-size: 12px;" class="col-7">
+                                                <div class="col-12 pr-0 mr-0 row align-items-center">
+                                                    <p style="color: dimgray; font-size: 12px;" class="col-lg-7 col-md-7">
                                                     (<b id="smsLength"></b>) Characters left - <b id="smsCount"></b> SMS Unit
-                                                </p>
-                                                <p class="col-5 text-right">
-                                                        <input type="hidden" name="messageDirection" value="process_1">
+                                                    </p>
+                                                    <p class="col-lg-5 col-md-5 text-right">
                                                         <input type="hidden" name="selectedrecipients" value="null">
-                                                        <button class="btn btn-primary send-message">
-                                                            Send
-                                                        </button>
-                                                        <button class="btn btn-danger d-none cancel-message">
-                                                            Cancel
-                                                        </button>
+                                                        <input type="hidden" name="messageDirection" value="process_1">
+                                                        <button class="btn btn-outline-primary send-message">Send</button>
+                                                        <button class="btn btn-outline-danger d-none cancel-message">Cancel</button>
                                                     </p>
                                                 </div>
                                             </div><!-- end row -->

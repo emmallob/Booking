@@ -4,8 +4,7 @@ class Communication extends Booking {
 
     private $_key = "rMOWeGxqRy3MOqa683c4hUbnv";
     
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
     }
 
@@ -48,8 +47,7 @@ class Communication extends Booking {
      *
      * @return String $result
      */
-    public function sendSMS($message, $to)
-    {
+    public function sendSMS($message, $to) {
         
         //defining the parameters
         $to = $to;
@@ -71,8 +69,7 @@ class Communication extends Booking {
      *
      * @return String $result
      */
-    private function _curlSMSAPI($url)
-    {
+    private function _curlSMSAPI($url) {
         $this->_message = "1009";
 
         if (!empty($url)) {
@@ -97,8 +94,7 @@ class Communication extends Booking {
      *
      * @return String $this->_message
      */
-    public function reduceSMSUnit($totalUsed, $clientId)
-    {
+    public function reduceSMSUnit($totalUsed, $clientId) {
         $stmt = $this->db->prepare(
             "UPDATE sms_subscribers 
                 SET sms_units = (sms_units-$totalUsed)
@@ -174,18 +170,27 @@ class Communication extends Booking {
 
                 if ($stmt->execute()) {
 
-                    $message = "
-                        <label>Select Event - <small><em>Bookers / Confirmed to Receive Mail</em></small></label>
-                        <select class=\"form-control pqSelect\" multiple=\"multiple\" data-placeholder=\"Select Event\" name=\"recipient-lists\">
+                    $message = "<div class='row'>
+                        <div class='col-lg-12'>
+                        <div class='form-group'>
+                        <label>Select Event - <small><em>Booked / Confirmed to Receive Mail</em></small></label>
+                        <select class=\"form-control pqSelect\" data-placeholder=\"Select Event\" name=\"recipient-lists\">
                             <option label=\"-- Select  Event--\"></option>";
-
                     while ($data = $stmt->fetch(PDO::FETCH_OBJ)) {
-
                         $message .= "<option value=\"{$data->event_guid}\">{$data->event_title}</option>";
-
                     }
-
                     $message .= "</select>";
+                    $message .= "</div></div>";
+                    $message .= "<div class='col-lg-12'>";
+                    $message .= "<div class='form-group m-0'>
+                                    <input type='checkbox' name='category_list' value='booked_list' id='booked_list' class='custom-checkbox'>
+                                    <label for='booked_list'>Booked Audience</label>
+                                </div>";
+                    $message .= "<div class='form-group m-0'>
+                                    <input type='checkbox' name='category_list' value='confirmed_list' id='confirmed_list' class='custom-checkbox'>
+                                    <label for='confirmed_list'>Confirmed Audience</label>
+                                </div>";
+                    $message .= "</div></div>";
                     $status = 200;
                 }
 
@@ -197,5 +202,264 @@ class Communication extends Booking {
 
         return $message;
     }
+
+    /**
+     * Get the SMS History
+     * 
+     * @param $params->group        The group of messages to list
+     * @param $params->client_guid  The client guid for filtering the record
+     * @param $params->limit        The limit to get the messages
+     * 
+     * @return Array
+     */
+    public function smsHistory(stdClass $params) {
+
+        // confirm that the group parameter has been parsed
+        if ($params->group == "single") {
+            $condition = " && recipient_group = 'Single Contact'";
+        } else if ($params->group == "bulk") {
+            $condition = " && recipient_group IN ('All Contacts', 'Selected Contacts')";
+        } else {
+            $condition = "";
+        }
+
+        // fetch the user messages history
+        if($params->group == "single") {
+
+            $singleMsgs = $this->db->prepare("
+                SELECT DISTINCT a.contact_id, a.sms_status,
+                    a.message, a.history_id, a.date_sent, 
+                    CONCAT(b.firstname, ' ', b.lastname) AS fullname,
+                    (
+                        SELECT COUNT(*) 
+                        FROM messages_history c 
+                        WHERE c.contact_id = a.contact_id
+                        AND status = '1'
+                    ) AS messages_count
+                FROM messages_history a
+                LEFT JOIN customers b ON b.customer_id = a.contact_id
+                WHERE 
+                    a.clientId = ? AND a.status = ? AND (LENGTH(a.contact_id) > 5)
+                    AND a.msg_type = 'sms'
+                GROUP BY a.contact_id ORDER BY a.id DESC
+            ");
+            $singleMsgs->execute([$params->clientId, 1]);
+
+            $i = 0;
+            $message = array();
+
+            while ($data = $singleMsgs->fetch(PDO::FETCH_OBJ)) {
+                $i++;
+
+                $date = date('d M', strtotime($data->date_sent));
+
+                $messagesHistory = $smsClass->getAllRows(
+                    "messages_history",
+                    "message, date_sent, sms_status",
+                    "contact_id = '{$data->contact_id}'"
+                );
+
+                $message[$data->history_id] = [
+                    "recipientName" => $data->fullname,
+                    "recipients" => $data->contact_id,
+                    "list" => "
+                    <a data-history='".json_encode($messagesHistory)."' href=\"javascript:void(0)\" class=\"media\" data-history-id=\"{$data->contact_id}\">
+                        <div class=\"media-left\">
+                            <div class=\"avatar-box thumb-md align-self-center mr-2\">
+                                <span class=\"avatar-title bg-primary rounded-circle\">
+                                    <i class=\"fab fa-quinscape\"></i>
+                                </span>
+                            </div>
+                        </div><!-- media-left -->
+                        <div class=\"media-body\">
+                            <div>
+                                <h6>{$data->fullname}</h6>
+                                <p>".nl2br(htmlspecialchars_decode(limit_words($data->message, 4)))."...</p>
+                            </div>
+                            <div>
+                                <span>{$date}</span>
+                                <span>{$data->messages_count}</span>
+                            </div>
+                        </div><!-- end media-body -->
+                    </a> <!--end media-->"
+                ];
+            }
+            $message = $message;
+            $status = 200;
+
+        }
+
+        // group messages
+        elseif($params->group == "bulk") {
+
+            $multipleMsgs = $this->db->prepare("
+                SELECT a.*
+                FROM messages a
+                WHERE a.clientId = ? AND a.message_type = 'sms'
+                ORDER BY a.id DESC
+            ");
+            $multipleMsgs->execute([$params->clientId]);
+
+            $i = 0;
+            $message = array();
+
+            while ($data = $multipleMsgs->fetch(PDO::FETCH_OBJ)) {
+                $i++;
+
+                $date = date('d M', strtotime($data->created_on));
+                $fulldate = date('jS F Y \a\t H:iA', strtotime($data->created_on));
+                $list = json_decode($data->recipient_list, true);
+                $status = $this->stringToArray($data->recipient_status);
+                
+                $eachRecipient = [];
+                for($i = 0; $i < count($list); $i++) {
+                    $eachRecipient[] = [
+                        'fullname' => $list[$i]['fullname'],
+                        'contact' => $list[$i]['contact'],
+                        'message_status' => $status[$i] ?? 'pending'
+                    ];
+                }
+
+                $message[$data->history_id] = [
+                    "recipientName" => $data->recipient_group,
+                    "recipients" => $data->recipientIds,
+                    "history_id" => $data->history_id,
+                    "date_sent" => $date,
+                    "full_date" => $fulldate,
+                    "list" => "
+                    <a data-recipients-info='".json_encode($eachRecipient)."' href=\"javascript:void(0)\" data-message=\"{$data->sms_message}\" class=\"media\" data-bulk-history-id=\"{$data->history_id}\">
+                        <div class=\"media-left\">
+                            <div class=\"avatar-box thumb-md align-self-center mr-2\">
+                                <span class=\"avatar-title bg-primary rounded-circle\">
+                                    <i class=\"fab fa-quinscape\"></i>
+                                </span>
+                            </div>
+                        </div><!-- media-left -->
+                        <div class=\"media-body\">
+                            <div>
+                                <h6>{$data->recipient_group}</h6>
+                                <p>Message sent to...</p>
+                            </div>
+                            <div>
+                                <span>{$date}</span>
+                                <span>{$data->total_contacts}</span>
+                            </div>
+                        </div><!-- end media-body -->
+                    </a> <!--end media-->"
+                ];
+            }
+            $message = $message;
+            $status = 200;
+
+        }
+
+
+    }
+
+    /**
+     * Send SMS Message
+     */
+    public function smsSend(stdClass $params) {
+        
+        $logMessage = 'Sent messages to some contacts';
+
+        if (!empty($params->recipients) && !empty($params->message)) {
+            
+            if (($params->category == "specificEvent")) {
+
+                // the people to receive the message
+                $recipient_group = (isset($params->data)) ? $this->stringToArray($params->data) : ["booked_list", "confirmed_list"];
+
+                // confirm that the event exist
+                $eventData = $this->pushQuery("id, event_title, booking_start_time", "events", "event_guid='{$params->recipients}' AND client_guid='{$params->clientId}' AND deleted='0' LIMIT 1");
+
+                // count the number of rows found
+                if(empty($eventData)) {
+                    return "Sorry! An invalid event guid has been supplied.";
+                }
+
+                //: Recipients list
+                $recipient_list = [];
+
+                // get the list of contacts depending on the data parsed
+                if(in_array("booked_list", $recipient_group)) {
+                    $usersList = $this->pushQuery("fullname, created_by AS contact", "events_booking", "event_guid='{$params->recipients}' AND client_guid='{$params->clientId}' AND deleted='0' AND status='0'");
+                    foreach($usersList as $eachUser) {
+                        $recipient_list[] = $eachUser;
+                    }
+                }
+
+                if(in_array("confirmed_list", $recipient_group)) {
+                    $usersList = $this->pushQuery("fullname, created_by AS contact", "events_booking", "event_guid='{$params->recipients}' AND client_guid='{$params->clientId}' AND deleted='0' AND status='1'");
+                    foreach($usersList as $eachUser) {
+                        $recipient_list[] = $eachUser;
+                    }
+                }
+
+                // generate a common id
+                $commonID = random_string('alnum', 32);
+
+                // confirm that the event exist
+                $commonData = $this->pushQuery("unique_guid, recipient_count", "messages", "related_item='event' AND related_guid='{$params->recipients}' AND client_guid='{$params->clientId}' LIMIT 1");
+
+                // count the number of rows found
+                if(!empty($commonData)) {
+                    $commonID = ($commonData[0]->recipient_count == count($recipient_list)) ? $commonData[0]->unique_guid : $commonID;
+                }
+
+                $logMessage = "Sent out an SMS to ".count($recipient_list)." contacts for the event ".$eventData[0]->event_title;
+            }
+
+            $recipientCount = count($recipient_list);
+
+            if(!$recipientCount) {
+                return "Sorry! The recipients count cannot be nil.";
+            }
+
+            $smsMsg = strip_tags($params->message);
+            $smsUnit = round(strlen($smsMsg) / 145);
+
+            $smsUnit = $smsUnit == 0 ? 1 : $smsUnit;
+
+            $unit = (isset($params->unit)) ? $params->unit : $smsUnit;
+
+            // Check Total Units To Use
+            $totalUnitInvolved = ($recipientCount * $unit);
+
+            // Check Company SMS Credit Left
+            if ($this->checkBalance($params) < $totalUnitInvolved) {
+                return "Sorry! Your Balance Is Insufficient To Send This Message.";
+            }
+            
+            // Prepare Message & Recipient Details In Database
+            $stmt = $this->db->prepare("
+                INSERT INTO messages SET unique_guid = ?, related_item = ?, related_guid = ?, message_type = ?, 
+                recipient_count = ?, recipient_list = ?, message = ?, subject = ?, created_by = ?, sms_units = ?
+            ");
+
+            if ($stmt->execute([
+                $commonID, 'event', $params->recipients, 'sms', $recipientCount, 
+                json_encode($recipient_list), $params->message, "Send Messages to {$recipientCount}", 
+                $params->userId, $totalUnitInvolved
+            ])) {
+
+                // Reduce The Total Units Used
+                $this->reduceSMSUnit($totalUnitInvolved, $params->clientId);
+
+                /** Log the user activity */
+                $this->userLogs('sms', $params->recipients, $logMessage, $params->userId, $params->clientId);
+
+                return [
+                    "result" => "Message Successfully Sent.",
+                    "recipient_id" => $commonID
+                ];
+            }
+
+        } else {
+            return "Please Check All Required Fields.";
+        }
+
+    }
+
 }
 ?>
