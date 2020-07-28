@@ -25,12 +25,20 @@ function forceHttps() {
 
 forceHttps();
 
+// error message
 function server_log() {
+	// unacceptable query made
+    http_response_code(404);
+
+	// print the error message
 	print json_encode([
-	    "response_code" => 900,
+	    "response_code" => 404,
 	    "request_request" => $_SERVER['REQUEST_URI'],
 	    "route_error" => "Sorry! You are trying to access an invalid route on this server."
 	]);
+
+	// exit the query
+	die();
 }
 
 /*
