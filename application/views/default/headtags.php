@@ -73,7 +73,7 @@ $accessObject->userId = $userId;
         }
 	</style>
 </head>
-<body class="nav-fixed dashboard bg <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
+<body class="nav-fixed dashboard bg <?= in_array($SITEURL[0], ["tickets-list"]) ? "sidenav-toggled" : null ?> <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
 	<div id="current_url" value="<?= $session->current_url; ?>"></div>
 	<nav class="topnav navbar navbar-expand shadow navbar-light bg-white" id="sidenavAccordion">
 		<a class="navbar-brand d-none d-sm-block" href="<?= $baseUrl ?>"><?= config_item("site_name") ?></a><button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle" href="#"><i data-feather="menu"></i></button>
@@ -81,28 +81,6 @@ $accessObject->userId = $userId;
 			<input class="form-control form-control-solid mr-sm-2" type="search" name="q" placeholder="Search" aria-label="Search" />
 		</form>
 		<ul class="navbar-nav align-items-center ml-auto">
-			<li class="nav-item dropdown no-caret mr-3">
-				<a class="nav-link dropdown-toggle" id="navbarDropdownDocs" href="javascript:void(0);" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-					><div class="d-inline d-md-none font-weight-500">Docs</div>
-					<div class="d-none d-md-inline font-weight-500">Documentation</div>
-					<i class="fas fa-chevron-right dropdown-arrow"></i>
-				</a>
-				<div class="dropdown-menu dropdown-menu-right py-0 o-hidden mr-n15 mr-lg-0 animated--fade-in-up" aria-labelledby="navbarDropdownDocs">
-					<a class="dropdown-item py-3" href="<?= $baseUrl ?>docs" target="_blank">
-						<div class="icon-stack bg-primary-soft text-primary mr-4"><i data-feather="book"></i></div>
-						<div>
-							<div class="small text-gray-500">Documentation</div>
-							Usage instructions and reference
-						</div></a>
-					<div class="dropdown-divider m-0"></div>
-					<a class="dropdown-item py-3" href="<?= $baseUrl ?>changelog" target="_blank">
-						<div class="icon-stack bg-primary-soft text-primary mr-4"><i data-feather="file-text"></i></div>
-						<div>
-							<div class="small text-gray-500">Changelog</div>
-							Updates and changes
-						</div></a>
-				</div>
-			</li>
 			<li class="nav-item dropdown no-caret mr-3 dropdown-notifications">
 				<a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownAlerts" href="javascript:void(0);" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i data-feather="bell"></i></a>
 				<div class="dropdown-menu dropdown-menu-right border-0 shadow animated--fade-in-up" aria-labelledby="navbarDropdownAlerts">
@@ -152,6 +130,9 @@ $accessObject->userId = $userId;
 					<div class="dropdown-divider"></div>
 					<a class="dropdown-item" href="<?= $baseUrl ?>profile">
 						<div class="curve dropdown-item-icon"><i data-feather="user"></i></div> Profile
+					</a>
+					<a class="dropdown-item" href="<?= $baseUrl ?>activity-logs">
+						<div class="dropdown-item-icon"><i data-feather="list"></i></div> Activity Logs
 					</a>
 					<?php if($accessObject->hasAccess("manage", "account")) { ?>
 					<a class="dropdown-item" href="<?= $baseUrl ?>configuration">
@@ -212,7 +193,7 @@ $accessObject->userId = $userId;
 							Tickets
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-sell", "tickets-report", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-list", "tickets-sell", "tickets-report", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>tickets">Tickets</a>
 								<?php if($accessObject->hasAccess("generate", "tickets")) { ?>

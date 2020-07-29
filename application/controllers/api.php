@@ -277,6 +277,13 @@ class Api {
                             "ticket_guid" => "The Id of the ticket to load the data",
                             "event_guid" => "This filters the list of tickets by the Event Guid"
                         ]
+                    ],
+                    "sales-list" => [
+                        "params" => [
+                            "limit" => "The number of rows to return in the results",
+                            "serial" => "The Id of the ticket serial to load the data",
+                            "date" => "This is the date for which the user wants to fetch the records"
+                        ]
                     ]
                 ],
                 "POST" => [
@@ -918,6 +925,21 @@ class Api {
                     $result['remote_request']['href'] = $this->config->base_url("tickets-list");
                 } else {
                     $result['result'] = $request;
+                }
+            }
+
+            // list of tickets sold
+            elseif($this->inner_url == "tickets" && $this->outer_url == "sales-list") {
+                // limit parameter
+                $params->limit = !empty($params->limit) ? $params->limit : 500;
+
+                // update the user theme color
+                $request = $objectClass->listSales($params);
+
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
                 }
             }
 

@@ -960,8 +960,11 @@ if ($(`div[id="ticketsManager"]`).length) {
 
 if ($(`table[class~="activityLogs"]`).length) {
 
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+
     var payload = '{"user_id":"' + user_id + '"}';
     $.post(`${baseUrl}api/users/history`, payload).then((resp) => {
+
         if (resp.code == 200) {
             $(`table[class~="activityLogs"]`).dataTable().fnDestroy();
             $(`table[class~="activityLogs"]`).dataTable({
@@ -976,6 +979,42 @@ if ($(`table[class~="activityLogs"]`).length) {
                 ]
             });
         }
+
+        $(`div[class="form-content-loader"]`).css("display", "none");
+    }).catch(() => {
+        $(`div[class="form-content-loader"]`).css("display", "none");
+    });
+}
+
+
+if ($(`table[class~="ticketsSoldList"]`).length) {
+
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+
+    $.get(`${baseUrl}api/tickets/sales-list`).then((resp) => {
+
+        if (resp.code == 200) {
+            $(`table[class~="ticketsSoldList"]`).dataTable().fnDestroy();
+            $(`table[class~="ticketsSoldList"]`).dataTable({
+                "aaData": resp.data.result,
+                "iDisplayLength": 10,
+                "columns": [
+                    { "data": 'row_id' },
+                    { "data": 'fullname' },
+                    { "data": 'contact' },
+                    { "data": 'email' },
+                    { "data": 'event_title' },
+                    { "data": 'ticket_serial' },
+                    { "data": 'ticket_amount' },
+                    { "data": 'date_created' },
+                    { "data": 'status' }
+                ]
+            });
+        }
+
+        $(`div[class="form-content-loader"]`).css("display", "none");
+    }).catch(() => {
+        $(`div[class="form-content-loader"]`).css("display", "none");
     });
 
 }

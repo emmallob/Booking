@@ -1,5 +1,5 @@
 <?php 
-$page_title = "Activity Logs";
+$page_title = "Tickets Sold";
 
 require "headtags.php";
 ?>
@@ -8,7 +8,7 @@ require "headtags.php";
         <div class="container-fluid">
             <div class="page-header-content">
                 <h1 class="page-header-title">
-                    <div class="page-header-icon"><i data-feather="list"></i></div>
+                    <div class="page-header-icon"><i data-feather="airplay"></i></div>
                     <span><?= $page_title ?></span>
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
@@ -18,26 +18,30 @@ require "headtags.php";
             </div>
         </div>
     </div>
-    <div class="container-fluid mt-n10" id="ticketsManager">
+    <div class="container-fluid mt-n10">
         <div class="card">
             <div class="card-header">
                 <div class="row" style="width:100%">
                     <div class="col-lg-8 col-md-8">
-                        The list of users activities logs
+                        The list of tickets that have been sold out
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <?= form_loader() ?>
                 <div class="row">
                     <div class="datatable table-responsive">
-                        <table width="100%" class="table activityLogs table-hover" data-toggle="datatable">
+                        <table width="100%" class="table ticketsSoldList table-hover" data-toggle="datatable">
                             <thead>
                                 <th width="6%">#</th>
-                                <th width="10%">Page</th>
-                                <th>Description</th>
-                                <th width="25%">User Agent</th>
-                                <th width="15%" style="text-align:left">Date Created</th>
+                                <th>Fullname</th>
+                                <th>Contact</th>
+                                <th>Email Address</th>
+                                <th width="25%">Event Title</th>
+                                <th>Ticket Serial</th>
+                                <th>Amount</th>
+                                <th width="15%" style="text-align:left">Sold Created</th>
+                                <th width="10%">Status</th>
+                                <th></th>
                             </thead>
                             <tbody></tbody>
                         </table>

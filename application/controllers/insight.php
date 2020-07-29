@@ -154,10 +154,10 @@ class Insight extends Booking {
                 SELECT
                     (
                         SELECT SUM(ticket_amount) AS overall_funds_realised 
-                        FROM tickets_listing WHERE status='used' AND sold_state = '1' AND client_guid = '{$client_guid}'
+                        FROM tickets_listing WHERE sold_state = '1' AND client_guid = '{$client_guid}'
                     ) AS overall_funds_realised,
                     (
-                        SELECT COUNT(*) FROM tickets_listing WHERE status='used' AND sold_state = '1' AND client_guid = '{$client_guid}'
+                        SELECT COUNT(*) FROM tickets_listing WHERE sold_state = '1' AND client_guid = '{$client_guid}'
                     ) AS overall_tickets_sold,
                     (
                         SELECT COUNT(*) FROM tickets_listing WHERE event_booked = '{$event_guid}' AND sold_state = '1'

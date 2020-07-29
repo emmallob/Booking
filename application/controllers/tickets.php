@@ -372,8 +372,8 @@ class Tickets extends Booking {
             $stmt->execute([$params->ticket_guid]);
 
             // insert the purchase information
-            $stmt = $this->db->prepare("INSERT INTO ticket_purchases SET ticket_id = ?, fullname = ?, contact = ?, email = ?");
-            $stmt->execute([$ticketsList[0]->id, $params->fullname, $params->contact, $params->email ?? null]);
+            $stmt = $this->db->prepare("INSERT INTO ticket_purchases SET ticket_id = ?, event_id = ?, fullname = ?, contact = ?, email = ?");
+            $stmt->execute([$ticketsList[0]->id, $eventData[0]->id, $params->fullname, $params->contact, $params->email ?? null]);
 
             // set the recipient details
             $recipient = [
@@ -410,6 +410,42 @@ class Tickets extends Booking {
         } catch(PDOException $e) {
             $this->db->rollBack();
             return $e->getMessage();
+        }
+    }
+
+    /**
+     * Sales list
+     */
+    public function listSales(stdClass $params) {
+        try {
+            
+            $condition = !empty($params->serial) ? " AND b.ticket_serial='{$params->serial}'" : null;
+
+			$stmt = $this->db->prepare("SELECT 
+                (SELECT event_title b FROM events b WHERE b.id = a.event_id) AS event_title,
+                b.ticket_amount, b.ticket_serial, b.status,
+                a.fullname, a.contact, a.email, a.date_created
+                FROM ticket_purchases a
+                LEFT JOIN tickets_listing b ON b.id = a.ticket_id
+                WHERE b.client_guid = ? {$condition}
+                ORDER BY a.id DESC LIMIT {$params->limit}
+            ");
+            $stmt->execute([$params->clientId]);
+
+			$i = 0;
+			$results = [];
+            while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+				
+				$i++;
+                $result->status = ucfirst($result->status);
+				$result->row_id = $i;
+				$results[] = $result;
+			}
+
+            return $results;
+
+        } catch(PDOException $e) {
+            return false;
         }
     }
 
