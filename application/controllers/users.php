@@ -571,12 +571,25 @@ class Users extends Booking {
 			// begin transaction
 			$this->db->beginTransaction();
 
+			// set the settings into an empty object
+			$settings = (object) [];
+
+			// update the user dashboard settings
+			if(isset($params->navbar)) {
+				$settings->navbar = $params->navbar;
+			}
+
+			if(isset($params->theme)) {
+				$settings->theme = $params->theme;
+			}
+
 			// insert the user account the user profile information
 			$stmt = $this->db->prepare("
 				INSERT INTO `users` SET
 				name = ?, email = ?, contact = ?, client_guid=?, created_on = now(), 
 				created_by = ?, verify_token = ?, username = ?".
 				(empty($uploadedFile) ? '' : ", image = '{$uploadedFile}'").
+				(empty($settings) ? '' : ", dashboard_settings = '".json_encode($settings)."'").
 				(empty($params->access_level_id) ? '' : ", access_level = '{$params->access_level_id}'").
 				", user_guid = ?, user_type = ?, password = ?
 			");
@@ -700,7 +713,7 @@ class Users extends Booking {
 		}
 
 		// Check If User ID Exists
-		$checkData = $this->pushQuery("COUNT(*) AS userTotal, access_level", "users", "user_guid='{$userData->user_guid}'");
+		$checkData = $this->pushQuery("COUNT(*) AS userTotal, access_level, dashboard_settings", "users", "user_guid='{$userData->user_guid}' AND client_guid = '{$userData->clientId}'");
 
 		if ($checkData != false && $checkData[0]->userTotal == '1') {
 
@@ -728,10 +741,23 @@ class Users extends Booking {
 				}
 			}
 			
+			// set the user dashboard settings into an object
+			$settings = json_decode($checkData[0]->dashboard_settings);
+
+			// update the user dashboard settings
+			if(isset($userData->navbar)) {
+				$settings->navbar = $userData->navbar;
+			}
+
+			if(isset($userData->theme)) {
+				$settings->theme = $userData->theme;
+			}
+
 			// update user data
 			$query = $this->updateData(
 				"users",
-				"name='{$userData->fullname}', email='{$userData->email}'
+				"name='{$userData->fullname}', email='{$userData->email}', 
+				dashboard_settings='".json_encode($settings)."'
 				".(isset($userData->contact) ? ",contact='{$userData->contact}'" : null)."
 				".(isset($uploadedFile) ? ",image='{$uploadedFile}'" : null)."
 				".(isset($userData->access_level_id) ? ",access_level='{$userData->access_level_id}'" : null)."	",
@@ -741,7 +767,11 @@ class Users extends Booking {
 			if ($query == true) {
 
 				// Record user activity
-				$this->userLogs('users', $userData->user_guid, 'Update the user details.', $userData->userId, $userData->clientId);
+				if($userData->user_guid == $userData->userId) {
+					$this->userLogs('users', $userData->user_guid, 'You have updated your account information.', $userData->userId, $userData->clientId);
+				} else {
+					$this->userLogs('users', $userData->user_guid, 'Update the user details.', $userData->userId, $userData->clientId);
+				}
 
 				// if the user has permission to perform this action
 				if($accessObject->hasAccess('accesslevel', 'users')) {

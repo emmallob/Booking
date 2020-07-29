@@ -56,7 +56,7 @@ $genders = $usersClass->get_user_genders();
                                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                                         <a href="<?= $baseUrl ?>users" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Users</a>
                                     </div>
-                                </div>
+                                </div>  
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -108,6 +108,28 @@ $genders = $usersClass->get_user_genders();
                                             }
                                             ?>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label for="navbar">Sidebar</label>
+                                                    <select  name="navbar" id="navbar" class="selectpicker form-control">
+                                                        <option value="sidenav-toggled">Hide Sidebar</option>
+                                                        <option value="visible">Show Sidebar</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label for="theme">Default Theme</label>
+                                                    <select  name="theme" id="theme" class="selectpicker form-control">
+                                                        <option value="light-theme">Light Theme</option>
+                                                        <option value="dark-theme">Dark Theme</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -25,18 +25,11 @@ if(!isset($userData->name)) {
 	exit(-1);
 }
 
-/* Make Database Query Here */
-if(empty($session->userPreferedTheme)) {
+// user settings
+$userSettings = json_decode($userData->dashboard_settings);
 
-	// get the user preferred theme color
-	$userPreferedTheme = ($userData->theme == 1) ? "light-theme" : "dark-theme";
-
-	/* Set the user prefered theme in a session */
-	$session->userPreferedTheme = $userPreferedTheme;
-} else {
-	// fetch the data in a session
-	$userPreferedTheme = $session->userPreferedTheme;
-}
+// get the user preferred theme color
+$userPreferedTheme = $userSettings->theme;
 
 // save the current page in session
 $session->set("current_url", current_url());
@@ -73,7 +66,7 @@ $accessObject->userId = $userId;
         }
 	</style>
 </head>
-<body class="nav-fixed dashboard bg <?= in_array($SITEURL[0], ["tickets-list"]) ? "sidenav-toggled" : null ?> <?= $userPreferedTheme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
+<body class="nav-fixed dashboard bg <?= $userSettings->navbar ?> <?= $userSettings->theme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
 	<div id="current_url" value="<?= $session->current_url; ?>"></div>
 	<nav class="topnav navbar navbar-expand shadow navbar-light bg-white" id="sidenavAccordion">
 		<a class="navbar-brand d-none d-sm-block" href="<?= $baseUrl ?>"><?= config_item("site_name") ?></a><button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle" href="#"><i data-feather="menu"></i></button>

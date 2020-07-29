@@ -101,6 +101,8 @@ class Api {
                             "email" => "required - The email address of the user",
                             "username" => "The username must always be unique",
                             'user_image' => 'The user image for profile picture',
+                            "theme" => "This is the default background theme to use (light-theme or dark-theme)",
+                            "navbar" => "This specifies whether the navigation bar must be hidden or visible"
                         ]
                     ],
                     "update" => [
@@ -113,7 +115,9 @@ class Api {
                             'username' => 'required - The username of the user',
                             'access_level_id' => "This is the user access level id",
                             'contact' => 'The contact number of the  Account Holder',
-                            'access_level' => 'array - The access Level of the user'
+                            'access_level' => 'array - The access Level of the user',
+                            "theme" => "This is the default background theme to use (light-theme or dark-theme)",
+                            "navbar" => "This specifies whether the navigation bar must be hidden or visible"
                         ]
                     ],
                     "history" => [

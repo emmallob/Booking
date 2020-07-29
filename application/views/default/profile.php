@@ -130,6 +130,28 @@ if(!empty($thisUser)) {
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-lg-6">
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label for="navbar">Sidebar</label>
+                                                    <select  name="navbar" id="navbar" class="selectpicker form-control">
+                                                        <option <?= ($userSettings->navbar == "sidenav-toggled") ? "selected" : null ?> value="sidenav-toggled">Hide Sidebar</option>
+                                                        <option <?= ($userSettings->navbar == "visible") ? "selected" : null ?> value="visible">Show Sidebar</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label for="theme">Default Theme</label>
+                                                    <select  name="theme" id="theme" class="selectpicker form-control">
+                                                        <option <?= ($userSettings->theme == "light-theme") ? "selected" : null ?> value="light-theme">Light Theme</option>
+                                                        <option <?= ($userSettings->theme == "dark-theme") ? "selected" : null ?> value="dark-theme">Dark Theme</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-lg-12 col-md-12 pl-3">
