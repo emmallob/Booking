@@ -25,21 +25,25 @@ require "headtags.php";
                     <div class="col-lg-8 col-md-8">
                         The list of tickets that have been sold out
                     </div>
+                    <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
+                        <a href="<?= $baseUrl ?>tickets-sell" class="btn btn-sm btn-outline-primary"><i class="fa fa-award"></i>&nbsp;Sell Ticket</a>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
+                <?= form_loader() ?>
                 <div class="row">
                     <div class="datatable table-responsive">
                         <table width="100%" class="table ticketsSoldList table-hover" data-toggle="datatable">
                             <thead>
                                 <th width="6%">#</th>
-                                <th>Fullname</th>
+                                <th width="15%">Fullname</th>
                                 <th>Contact</th>
                                 <th>Email Address</th>
-                                <th width="25%">Event Title</th>
-                                <th>Ticket Serial</th>
+                                <th width="23%">Event Title</th>
+                                <th>Ticket</th>
                                 <th>Amount</th>
-                                <th width="15%" style="text-align:left">Sold Created</th>
+                                <th width="15%" style="text-align:left">Date Created</th>
                                 <th width="10%">Status</th>
                                 <th></th>
                             </thead>

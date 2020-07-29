@@ -168,7 +168,8 @@ class Tickets extends Booking {
                 /** Generate the tickets */
                 for($i = 1; $i < ($quantity + 1); $i++) {
                     /** Generate the serial number */
-                    $serial = $this->serialIdFormat($i);
+                    //$serial = $this->serialIdFormat($i);
+                    $serial = strtoupper(random_string('alnum', $length));
                     $tickets[] = "{$initials}{$serial}";
 
                     /** Append to the insert query */ 
