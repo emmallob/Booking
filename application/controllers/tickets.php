@@ -73,21 +73,30 @@ class Tickets extends Booking {
                     unset($result->id);
                     $result->row_id = $i;
 
-                    $action = "";
-
                     $result->title = "{$result->title} (GHS{$result->ticket_amount})";
 
-                    // check the status
-                    if(!$result->activated) {
-                        $action = "&nbsp; <a href='javascript:void(0)' data-redirect='tickets' data-item='ticket_guid' data-guid='{$result->guid}' data-url='api/tickets/activate' title='Click to Activate this Ticket' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
+                    // if the request is made remotely
+                    if(!$params->remote) {
+                        
+                        // set the action
+                        $action = "<div class='text-center'>";
+
+                        // check the status
+                        if(!$result->activated) {
+                            $action = "&nbsp; <a href='javascript:void(0)' data-redirect='tickets' data-item='ticket_guid' data-guid='{$result->guid}' data-url='api/tickets/activate' title='Click to Activate this Ticket' class='btn btn-outline-primary btn-sm activate-item'><i class='fa fa-check'></i></a>";
+                        }
+
+                        // do not show the delete button once at least one person has used the ticket
+                        if(!$result->number_used) {
+                            $action .= "&nbsp; <a href='javascript:void(0)' data-title=\"Delete Ticket\" title=\"Click to delete this Ticket.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this ticket?\" data-item=\"ticket\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";   
+                        }
+
+                        $action .= "</div>";
+
+                        $result->action = $action;
                     }
 
-                    // do not show the delete button once at least one person has used the ticket
-                    if(!$result->number_used) {
-                        $action .= "&nbsp; <a href='javascript:void(0)' data-title=\"Delete Ticket\" title=\"Click to delete this Ticket.\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this ticket?\" data-item=\"ticket\" data-item-id=\"{$result->guid}\"><i class='fa fa-trash'></i></a> ";   
-                    }
-
-                    $result->action = $action;
+                    // append to the list
                     $data[] = $result;
 
                 }

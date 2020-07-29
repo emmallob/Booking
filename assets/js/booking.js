@@ -934,7 +934,7 @@ $(`button[data-function="remove-attachment"]`).on("click", function() {
 
 if ($(`div[id="ticketsManager"]`).length) {
 
-    $.ajax(`${baseUrl}api/events/list?summary=true&state=pending,in-progress`).then((resp) => {
+    $.get(`${baseUrl}api/events/list?summary=true&state=pending,in-progress`).then((resp) => {
         if (resp.code == 200) {
             pushIntoOptions("event_guid", resp.data.result, "Select Event");
         }
@@ -945,7 +945,7 @@ if ($(`div[id="ticketsManager"]`).length) {
         $(`div[id="ticketsManager"] input, div[id="ticketsManager"] button`).prop('disabled', true);
 
         if (event_guid.length > 12) {
-            $.ajax(`${baseUrl}api/tickets/list?event_guid=${event_guid}`).then((resp) => {
+            $.get(`${baseUrl}api/tickets/list?event_guid=${event_guid}`).then((resp) => {
                 if (resp.code == 200) {
                     $(`div[id="ticketsManager"] input, div[id="ticketsManager"] button`).prop('disabled', false);
                 }
@@ -956,4 +956,26 @@ if ($(`div[id="ticketsManager"]`).length) {
             $(`select[name="ticket_guid"]`).append(`<option value="">Select Event Ticket</option>`);
         }
     });
+}
+
+if ($(`table[class~="activityLogs"]`).length) {
+
+    var payload = '{"user_id":"' + user_id + '"}';
+    $.post(`${baseUrl}api/users/history`, payload).then((resp) => {
+        if (resp.code == 200) {
+            $(`table[class~="activityLogs"]`).dataTable().fnDestroy();
+            $(`table[class~="activityLogs"]`).dataTable({
+                "aaData": resp.data.result,
+                "iDisplayLength": 10,
+                "columns": [
+                    { "data": 'row_id' },
+                    { "data": 'page' },
+                    { "data": 'description' },
+                    { "data": 'user_agent' },
+                    { "data": 'date_recorded' }
+                ]
+            });
+        }
+    });
+
 }

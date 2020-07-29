@@ -939,7 +939,14 @@ class Users extends Booking {
 			$stmt = $this->db->prepare("SELECT page, date_recorded, description, user_agent FROM users_activity_logs WHERE client_guid = ? AND user_guid = ? ORDER BY id DESC LIMIT {$params->limit}");
             $stmt->execute([$params->clientId, $params->user_id]);
 
-            $results = $stmt->fetchAll(PDO::FETCH_OBJ);
+			$i = 0;
+			$results = [];
+            while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+				
+				$i++;
+				$result->row_id = $i;
+				$results[] = $result;
+			}
 
             return $results;
 

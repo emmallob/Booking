@@ -63,6 +63,8 @@ class Departments extends Booking {
                     
                     /** Generate the action button */
                     $action = "";
+
+                    $result->description = htmlspecialchars_decode($result->description);
                     
                     if($accessObject->hasAccess('update', 'departments')) {
                         $action .= "<a href='{$this->baseUrl}departments-edit/{$result->guid}' title='Edit the details of this department' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";

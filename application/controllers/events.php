@@ -121,32 +121,39 @@ class Events extends Booking {
                         } else {
                             $result->status = "<span class='badge badge-warning'>Past</span>";
                         }
+                        
+                        // if the request is made remotely
+                        if(!$params->remote) {
+
+                            $action = "<div class='text-center'>";
+
+                            if($updateEvent) {
+                                if(in_array($result->state, ["pending"])) {
+                                    $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='Edit the details of this event' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
+                                } else {
+                                    $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='View this event' class='btn btn-outline-success btn-sm'><i class='fa fa-eye'></i></a>";
+                                }
+                            }
+
+                            /** Access Permissions Check */
+                            if($deleteEvent) {
+                                /** Cancel Event */
+                                if(in_array($result->state, ["pending"])) {
+                                    $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" data-title=\"Cancel Event\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
+                                }
+                                /** If no one has booked and it is still pending */
+                                if($result->booked_count == 0 && $result->state == "pending") {
+                                    $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to delete this event.\" data-title=\"Delete Event\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this event?\" data-item=\"event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-trash'></i></a>";
+                                }
+                            }
+
+                            /** Event insight */
+                            if($eventInsight) {
+                                $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
+                            }
                             
-                        $action = "<div class='text-center'>";
-
-                        if($updateEvent) {
-                            if(in_array($result->state, ["pending"])) {
-                                $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='Edit the details of this event' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
-                            } else {
-                                $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='View this event' class='btn btn-outline-success btn-sm'><i class='fa fa-eye'></i></a>";
-                            }
-                        }
-
-                        /** Access Permissions Check */
-                        if($deleteEvent) {
-                            /** Cancel Event */
-                            if(in_array($result->state, ["pending"])) {
-                                $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" data-title=\"Cancel Event\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
-                            }
-                            /** If no one has booked and it is still pending */
-                            if($result->booked_count == 0 && $result->state == "pending") {
-                                $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to delete this event.\" data-title=\"Delete Event\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this event?\" data-item=\"event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-trash'></i></a>";
-                            }
-                        }
-
-                        /** Event insight */
-                        if($eventInsight) {
-                            $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
+                            // set the action
+                            $result->action = $action;
                         }
 
                         $result->event_details = "
@@ -154,7 +161,7 @@ class Events extends Booking {
                             <strong>Booking Ends:</strong> {$result->booking_end_time}<br>
                             ".(!empty($result->department_name) ? "<strong>Department:</strong> {$result->department_name} <br>" : null)."
                         ";
-                        $result->action = $action;
+                        
                     }
 
                     $data[] = $result;

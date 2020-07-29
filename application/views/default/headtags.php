@@ -220,6 +220,7 @@ $accessObject->userId = $userId;
 								<?php } ?>
 								<?php if($accessObject->hasAccess("sell", "tickets")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-sell">Sell Ticket</a>
+								<a class="nav-link" href="<?= $baseUrl ?>tickets-list">Sales List</a>
 								<?php } ?>
 								<?php if($accessObject->hasAccess("reports", "tickets")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-report">Generate Reports</a>
