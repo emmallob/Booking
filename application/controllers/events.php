@@ -25,8 +25,15 @@ class Events extends Booking {
         global $accessObject;
 
         try {
+            
+            $condition = "";
+            $condition .= !empty($params->event_guid) ? "AND a.event_guid='{$params->event_guid}'" : null;
 
-            $condition = !empty($params->event_guid) ? "AND a.event_guid='{$params->event_guid}'" : null;
+            // get the event tickets
+            if(isset($params->state)) {
+                // set the condition for the tickets
+                $condition .= " AND a.state IN {$this->inList($params->state)}";
+            }
 
             $stmt = $this->db->prepare("
                 SELECT a.*,
@@ -40,10 +47,11 @@ class Events extends Booking {
                         SELECT GROUP_CONCAT(b.hall_guid) FROM events_halls_configuration b WHERE b.event_guid = a.event_guid
                     ) AS event_halls
                 FROM events a
-                WHERE a.client_guid = ? AND a.deleted = ? {$condition}
-                ORDER BY DATE(a.event_date)    DESC
+                WHERE a.client_guid = '{$params->clientId}' AND a.deleted = '0' {$condition}
+                ORDER BY DATE(a.event_date) DESC
+                LIMIT {$params->limit}
             ");
-            $stmt->execute([$params->clientId, 0]);
+            $stmt->execute();
 
             /** Begin an empty array of the result */
             $data = [];
@@ -64,79 +72,90 @@ class Events extends Booking {
 
                     $i++;
 
-                    // unset the id from the result set
-                    unset($result->id);
+                    // if the summary parameter was parsed
+                    if(isset($params->summary)) {
+                        $result->guid = $result->event_guid;
+                        $result->title = $result->event_title;
+                    }
 
-                    // get each hall information
-                    $halls = $this->stringToArray($result->event_halls);
+                    // if the summary was not parsed
+                    if(!isset($params->summary)) {
 
-                    /** Begin an empty array */
-                    $halls_array = [];
-                    $hall_seats = "";
-                    $seats = 0;
+                        // unset the id from the result set
+                        unset($result->id);
 
-                    /** Loop through the list of halls */
-                    foreach($halls as $eachHall) {
+                        // get each hall information
+                        $halls = $this->stringToArray($result->event_halls);
 
-                        /** Load the hall information */
-                        $hallInfo = $hallObject->listEventHalls($eachHall, $result->event_guid, true);
+                        /** Begin an empty array */
+                        $halls_array = [];
+                        $hall_seats = "";
+                        $seats = 0;
+
+                        /** Loop through the list of halls */
+                        foreach($halls as $eachHall) {
+
+                            /** Load the hall information */
+                            $hallInfo = $hallObject->listEventHalls($eachHall, $result->event_guid, true);
+                            
+                            /** Cofirm that the hall information is not empty */
+                            if(!empty($hallInfo)) {
+                                $halls_array[] = $hallInfo;
+                                $seats += count($hallInfo->configuration["labels"]);
+                                $hall_seats .= "<a href='{$this->baseUrl}halls-configuration/{$eachHall}'>".count($hallInfo->configuration["labels"])."</a> + ";
+                            }
+                        }
                         
-                        /** Cofirm that the hall information is not empty */
-                        if(!empty($hallInfo)) {
-                            $halls_array[] = $hallInfo;
-                            $seats += count($hallInfo->configuration["labels"]);
-                            $hall_seats .= "<a href='{$this->baseUrl}halls-configuration/{$eachHall}'>".count($hallInfo->configuration["labels"])."</a> + ";
-                        }
-                    }
-                    
-                    /** Add additional information */
-                    $result->row_id = $i;
-                    $result->seats = trim($hall_seats," + ") ." = ".$seats;
-                    $result->event_halls = $halls_array;
+                        /** Add additional information */
+                        $result->row_id = $i;
+                        $result->seats = trim($hall_seats," + ") ." = ".$seats;
+                        $result->event_halls = $halls_array;
 
-                    // event state configuration
-                    if($result->state == "pending") {
-                        $result->status = "<span class='badge badge-primary'>Pending</span>";
-                    } elseif($result->state == "in-progress") {
-                        $result->status = "<span class='badge badge-success'>In Progress</span>";
-                    } elseif($result->state == "cancelled") {
-                        $result->status = "<span class='badge badge-danger'>Cancelled</span>";
-                    } else {
-                        $result->status = "<span class='badge badge-warning'>Past</span>";
-                    }
-                    $action = "<div class='text-center'>";
-
-                    if($updateEvent) {
-                        if(in_array($result->state, ["pending"])) {
-                            $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='Edit the details of this event' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
+                        // event state configuration
+                        if($result->state == "pending") {
+                            $result->status = "<span class='badge badge-primary'>Pending</span>";
+                        } elseif($result->state == "in-progress") {
+                            $result->status = "<span class='badge badge-success'>In Progress</span>";
+                        } elseif($result->state == "cancelled") {
+                            $result->status = "<span class='badge badge-danger'>Cancelled</span>";
                         } else {
-                            $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='View this event' class='btn btn-outline-success btn-sm'><i class='fa fa-eye'></i></a>";
+                            $result->status = "<span class='badge badge-warning'>Past</span>";
                         }
-                    }
+                            
+                        $action = "<div class='text-center'>";
 
-                    /** Access Permissions Check */
-                    if($deleteEvent) {
-                        /** Cancel Event */
-                        if(in_array($result->state, ["pending"])) {
-                            $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" data-title=\"Cancel Event\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
+                        if($updateEvent) {
+                            if(in_array($result->state, ["pending"])) {
+                                $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='Edit the details of this event' class='btn btn-outline-success btn-sm'><i class='fa fa-edit'></i></a>";
+                            } else {
+                                $action .= "<a href='{$this->baseUrl}events-edit/{$result->event_guid}' title='View this event' class='btn btn-outline-success btn-sm'><i class='fa fa-eye'></i></a>";
+                            }
                         }
-                        /** If no one has booked and it is still pending */
-                        if($result->booked_count == 0 && $result->state == "pending") {
-                            $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to delete this event.\" data-title=\"Delete Event\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this event?\" data-item=\"event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-trash'></i></a>";
+
+                        /** Access Permissions Check */
+                        if($deleteEvent) {
+                            /** Cancel Event */
+                            if(in_array($result->state, ["pending"])) {
+                                $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to cancel.\" data-title=\"Cancel Event\" class=\"btn btn-sm btn-outline-warning delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to cancel this event?\" data-item=\"cancel-event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-times'></i></a>";
+                            }
+                            /** If no one has booked and it is still pending */
+                            if($result->booked_count == 0 && $result->state == "pending") {
+                                $action .= "&nbsp;<a href='javascript:void(0)' title=\"Click to delete this event.\" data-title=\"Delete Event\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-msg=\"Are you sure you want to delete this event?\" data-item=\"event\" data-item-id=\"{$result->event_guid}\"><i class='fa fa-trash'></i></a>";
+                            }
                         }
-                    }
 
-                    /** Event insight */
-                    if($eventInsight) {
-                        $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
-                    }
+                        /** Event insight */
+                        if($eventInsight) {
+                            $action .= "&nbsp;<a href='{$this->baseUrl}events-insight/{$result->event_guid}' title='View insights for this event' class='btn btn-outline-primary btn-sm'><i class='fa fa-chart-bar'></i></a></div>";
+                        }
 
-                    $result->event_details = "
-                        <strong>Booking Starts:</strong> {$result->booking_start_time}<br>
-                        <strong>Booking Ends:</strong> {$result->booking_end_time}<br>
-                        ".(!empty($result->department_name) ? "<strong>Department:</strong> {$result->department_name} <br>" : null)."
-                    ";
-                    $result->action = $action;
+                        $result->event_details = "
+                            <strong>Booking Starts:</strong> {$result->booking_start_time}<br>
+                            <strong>Booking Ends:</strong> {$result->booking_end_time}<br>
+                            ".(!empty($result->department_name) ? "<strong>Department:</strong> {$result->department_name} <br>" : null)."
+                        ";
+                        $result->action = $action;
+                    }
 
                     $data[] = $result;
 
@@ -146,7 +165,7 @@ class Events extends Booking {
             return $data;
 
 
-        } catch(\Exception $e) {
+        } catch(PDOException $e) {
             return [];
         }
 

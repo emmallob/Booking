@@ -453,13 +453,17 @@ class Booking {
 	 * This method prepares a string to be used in a query
 	 * This will format the user parameters to for a valid IN query
 	 * 
-	 * @param String $params 	This is the string that the user has parsed
+	 * @param String $param 	This is the string that the user has parsed
 	 * @param Array $compare 	This is the string to test the user's own against
 	 * @param String $colum 	This is the column name
 	 * 
 	 * @return String
 	 */
 	public function inList($param) {
+
+		if(empty($param)) {
+			return $param;
+		}
 
 		$params = (is_array($param)) ? $param : $this->stringToArray($param);
 

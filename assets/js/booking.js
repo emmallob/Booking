@@ -366,7 +366,9 @@ $("form[class~='appForm']").on("submit", function(e) {
                 }
                 if (response.data.remote_request.reload) {
                     $(`form[class~='appForm'] input, form[class~='appForm'] textarea`).val('');
-                    $(`form[class~='appForm'] select`).val('null').change();
+                    if (!$(`div[id="ticketsManager"]`).length) {
+                        $(`form[class~='appForm'] select`).val('null').change();
+                    }
                     setTimeout(() => {
                         window.location.href = response.data.remote_request.href;
                     }, 2000);
@@ -376,17 +378,16 @@ $("form[class~='appForm']").on("submit", function(e) {
             if (response.data.additional) {
                 let count = 0,
                     table = "<table class='table'>";
-                $.each(response.data.additional.list, function(i, e) {
+                $.each(response.data.additional, function(i, e) {
                     count++;
-                    table += `<tr><td>${count}</td><td>${e}</td></tr>`;
+                    table += `<tr><td><strong>${i}</strong></td><td>${e}</td></tr>`;
                 });
                 table += `</table>`;
-                table += `<div class="text-center"><a data-url="${response.data.additional.url}" data-redirect="${response.data.additional.redirect}" data-item="${response.data.additional.item}" data-guid="${response.data.additional.guid}" href='javascript:void(0)' class="btn btn-outline-success activate-item">Activate</a></div>`;
 
-                $(`div[class~="sample-data"]`).html(table);
-
-                $(`form[class~="appForm"] button[type="submit"]`).remove();
+                $(`div[class="sample-data"]`).html(table);
+                $(`form div[class="form-content-loader"]`).css("display", "none");
             }
+
         },
         error: function(err) {
             $(`div[class="form-content-loader"]`).css("display", "none");
@@ -930,3 +931,29 @@ $(`button[data-function="remove-attachment"]`).on("click", function() {
         }
     }, 'json');
 });
+
+if ($(`div[id="ticketsManager"]`).length) {
+
+    $.ajax(`${baseUrl}api/events/list?summary=true&state=pending,in-progress`).then((resp) => {
+        if (resp.code == 200) {
+            pushIntoOptions("event_guid", resp.data.result, "Select Event");
+        }
+    });
+
+    $(`div[id="ticketsManager"] select[name="event_guid"]`).on("change", function() {
+        let event_guid = $(this).val();
+        $(`div[id="ticketsManager"] input, div[id="ticketsManager"] button`).prop('disabled', true);
+
+        if (event_guid.length > 12) {
+            $.ajax(`${baseUrl}api/tickets/list?event_guid=${event_guid}`).then((resp) => {
+                if (resp.code == 200) {
+                    $(`div[id="ticketsManager"] input, div[id="ticketsManager"] button`).prop('disabled', false);
+                }
+                pushIntoOptions("ticket_guid", resp.data.result, "Select Event Ticket");
+            });
+        } else {
+            $(`select[name="ticket_guid"]`).find('option').remove().end();
+            $(`select[name="ticket_guid"]`).append(`<option value="">Select Event Ticket</option>`);
+        }
+    });
+}

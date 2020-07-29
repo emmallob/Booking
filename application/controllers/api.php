@@ -178,6 +178,7 @@ class Api {
                 "GET" => [
                     "list" => [
                         "params" => [
+                            "limit" => "The number of rows to return in the results",
                             "hall_guid" => "The Id of the hall to load the data"
                         ]
                     ]
@@ -224,6 +225,7 @@ class Api {
                 "GET" => [
                     "list" => [
                         "params" => [
+                            "limit" => "The number of rows to return in the results",
                             "event_guid" => "The Event Id to Filter the Results"
                         ]
                     ]
@@ -244,6 +246,7 @@ class Api {
                 "GET" => [
                     "list" => [
                         "params" => [
+                            "limit" => "The number of rows to return in the results",
                             "department_guid" => "The Id of the Department"
                         ]
                     ]
@@ -270,7 +273,9 @@ class Api {
                 "GET" => [
                     "list" => [
                         "params" => [
-                            "ticket_guid" => "The Id of the ticket to load the data"
+                            "limit" => "The number of rows to return in the results",
+                            "ticket_guid" => "The Id of the ticket to load the data",
+                            "event_guid" => "This filters the list of tickets by the Event Guid"
                         ]
                     ]
                 ],
@@ -282,15 +287,24 @@ class Api {
                     ],
                     "validate" => [
                         "params" => [
-                            "ticket_guid" => "required - The id for the generated tickets to be validated",
-                            "event_guid" => "required - This is the unique id for the event"
+                            "ticket_guid" => "required - The id for the generated tickets to be validated.",
+                            "event_guid" => "required - This is the unique id for the event."
+                        ]
+                    ],
+                    "sell" => [
+                        "params" => [
+                            "ticket_guid" => "required - The id for the generated tickets to be validated.",
+                            "event_guid" => "required - This is the unique id for the event.",
+                            "fullname" => "required - The fullname of the person making the purchase.",
+                            "contact" => "required - The contact number of the person making the purchase.",
+                            "email" => "The email address of the person making the purchase.",
                         ]
                     ],
                     "generate" => [
                         "params" => [
-                            "ticket_title" => "required - The title for this ticket",
-                            "quantity" => "The number of Tickets to be generated (default is 100)",
-                            "initials" => "Any initials for be appended to this ticket",
+                            "ticket_title" => "required - The title for this ticket.",
+                            "quantity" => "The number of Tickets to be generated (default is 100).",
+                            "initials" => "Any initials for be appended to this ticket.",
                             "length" => "required - What is the expected length of the serial number?",
                             "ticket_is_payable" => "Is this ticket paid for? (0 or 1)",
                             "ticket_amount" => "If paid, what is the amount to be paid for this ticket?"
@@ -313,6 +327,9 @@ class Api {
                 "GET" => [
                     "list" => [
                         "params" => [
+                            "state" => "This is the filter applied to the state of the event",
+                            "limit" => "The number of rows to return in the results",
+                            "summary" => "This is an optional parameter to query",
                             "event_guid" => "The guid of the event to load the data"
                         ]
                     ]
@@ -443,6 +460,7 @@ class Api {
                     "history" => [
                         "description" => "Get the SMS History sent from this account",
                         "params" => [
+                            "limit" => "The number of rows to return in the results",
                             "group" => "Could either be bulk or single"
                         ]
                     ],
@@ -883,6 +901,23 @@ class Api {
                 if($request) {
                     $result['result'] = "The Ticket was successfully activated and can now be used.";
                     $code = 200;
+                }
+            }
+
+            // sell out a ticket
+            elseif(($this->inner_url == "tickets") && ($this->outer_url == "sell")) {
+                // sell out the ticket
+                $request = $objectClass->sellTicket($params);
+
+                // if the request was successful
+                if(is_array($request)) {
+                    $code = 200;
+                    $result['result'] = $request['result'];
+                    $result['remote_request']['reload'] = true;
+                    $result['additional'] = $request['event_data'];
+                    $result['remote_request']['href'] = $this->config->base_url("tickets-list");
+                } else {
+                    $result['result'] = $request;
                 }
             }
 

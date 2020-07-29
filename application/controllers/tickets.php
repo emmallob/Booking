@@ -23,17 +23,38 @@ class Tickets extends Booking {
     public function listItems(stdClass $params) {
         
         try {
+            
+            $condition = "";
+            $condition .= !empty($params->ticket_guid) ? " AND a.ticket_guid='{$params->ticket_guid}'" : null;
 
-            $condition = !empty($params->ticket_guid) ? "AND a.ticket_guid='{$params->ticket_guid}'" : null;
+            // get the event tickets
+            if(isset($params->event_guid)) {
 
+                // check if the event already exist using the name, date and start time
+                $eventData = $this->pushQuery("id, ticket_guid", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}'");
+
+                // count the number of rows found
+                if(!empty($eventData)) {
+                    $eventData = $eventData[0];
+
+                    // get the tickets list
+                    $eventTickets = $eventData->ticket_guid;
+
+                    // set the condition for the tickets
+                    $condition .= " AND a.ticket_guid IN {$this->inList($eventTickets)}";
+                }
+                
+            }
+            
+            // make the query
             $stmt = $this->db->prepare("
-                SELECT a.*, a.ticket_guid AS guid,  a.ticket_title AS title,
+                SELECT a.*, a.ticket_guid AS guid,  a.ticket_title AS title, a.ticket_amount,
                     (
                         SELECT COUNT(*) FROM tickets_listing b WHERE b.ticket_guid = a.ticket_guid
                         AND b.status = 'used'
                     ) AS number_used
                 FROM tickets a
-                WHERE a.client_guid = ? AND a.status = ? {$condition}
+                WHERE a.client_guid = ? AND a.status = ? {$condition} LIMIT {$params->limit}
             ");
             $stmt->execute([$params->clientId, 1]);
 
@@ -53,6 +74,8 @@ class Tickets extends Booking {
                     $result->row_id = $i;
 
                     $action = "";
+
+                    $result->title = "{$result->title} (GHS{$result->ticket_amount})";
 
                     // check the status
                     if(!$result->activated) {
@@ -278,4 +301,107 @@ class Tickets extends Booking {
         return "Ticket successfully validated";
 
     }
+
+    /**
+     * Sell out tickets to a user
+     * 
+     * @param String $params->ticket_guid       The id of the ticket
+     * @param String $params->event_guid        The id of the event guid
+     * @param String $params->fullname          The fullname of the user
+     * @param String $params->email             The email address of the user
+     * @param String $params->contact           The contact number of the user
+     * 
+     * @return Array
+     */
+    public function sellTicket(stdClass $params) {
+
+        // confirm valid contact number
+		if(!preg_match("/^[0-9+]+$/", $params->contact) || (strlen($params->contact) < 10)) {
+			return "Sorry! An invalid contact number was entered";
+		}
+
+		// confirm valid email address
+		if(isset($params->email) && !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
+			return "Sorry! An invalid email address was entered";
+		}
+
+        // check if the event already exist using the name, date and start time
+        $eventData = $this->pushQuery("id, event_title, event_date", "events", "event_guid='{$params->event_guid}' AND client_guid='{$params->clientId}' AND deleted='0'");
+
+        // count the number of rows found
+        if(empty($eventData)) {
+            return "Sorry! An invalid event guid has been supplied.";
+        }
+
+        // check if the ticket already exist using the name, date and start time
+        $ticketData = $this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'");
+
+        // count the number of rows found
+        if(empty($ticketData)) {
+            return "Sorry! An invalid ticket guid has been supplied.";
+        }
+
+        // make a request for at least on ticket
+        $ticketsList = $this->pushQuery("ticket_serial, id, ticket_amount", "tickets_listing", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND sold_state='0' AND status='pending' ORDER BY RAND() LIMIT 1");
+        
+        // count the number of rows found
+        if(empty($ticketsList)) {
+            return "Sorry! There are no available tickets under this category.";
+        }
+
+        // begin a transaction
+        $this->db->beginTransaction();
+
+        try {
+
+            // update the ticket details
+            $stmt = $this->db->prepare("UPDATE tickets_listing SET bought_by = ?, sold_by = ?, sold_state = ? WHERE client_guid = ? AND ticket_serial = ?");
+            $stmt->execute(["{$params->fullname} - {$params->contact}", $params->userId, 1, $params->clientId, $ticketsList[0]->ticket_serial]);
+
+            // update the main ticket sold and left counts
+            $stmt = $this->db->prepare("UPDATE tickets SET number_sold = (number_sold + 1), number_left = (number_left - 1) WHERE ticket_guid = ?");
+            $stmt->execute([$params->ticket_guid]);
+
+            // insert the purchase information
+            $stmt = $this->db->prepare("INSERT INTO ticket_purchases SET ticket_id = ?, fullname = ?, contact = ?, email = ?");
+            $stmt->execute([$ticketsList[0]->id, $params->fullname, $params->contact, $params->email ?? null]);
+
+            // set the recipient details
+            $recipient = [
+                "recipients_list" => [
+                    ["fullname" => $params->fullname,"email" => ($params->email) ?? null,"contact" => $params->contact]
+                ]
+            ];
+
+            // form the message to be sent to the user
+            $message = "Hi {$params->fullname}, <br>Your Serial Number for the Event: {$eventData[0]->event_title} 
+            scheduled on {$eventData[0]->event_date} is {$ticketsList[0]->ticket_serial}. Thank you.";
+            
+            // insert the email content to be processed by the cron job
+            $stmt = $this->db->prepare("INSERT INTO email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, subject = ?, message = ?");
+            $stmt->execute([$params->clientId, 'ticket', $ticketsList[0]->ticket_serial, json_encode($recipient), $params->userId, "Event: {$eventData[0]->event_title} Ticket", $message]);
+
+            // insert the user activity
+            $this->userLogs("ticket", $ticketsList[0]->ticket_serial, "Event: {$eventData[0]->event_title} Ticket was sold out to {$params->fullname}", $params->userId, $params->clientId);
+            
+            // commit the statement
+            $this->db->commit();
+
+            // return the success response
+            return [
+                "event_data" => [
+                    "Event Name" => $eventData[0]->event_title,
+                    "Event Date" => $eventData[0]->event_date,
+                    "Serial Number" => $ticketsList[0]->ticket_serial,
+                    "Ticket Amount" => $ticketsList[0]->ticket_amount
+                ],
+                "result" => "Congrats! The request was successfully processed."
+            ];
+
+        } catch(PDOException $e) {
+            $this->db->rollBack();
+            return $e->getMessage();
+        }
+    }
+
 }

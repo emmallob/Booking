@@ -212,11 +212,17 @@ $accessObject->userId = $userId;
 							Tickets
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-sell", "tickets-report", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>tickets">Tickets</a>
 								<?php if($accessObject->hasAccess("generate", "tickets")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-generate">Generate</a>
+								<?php } ?>
+								<?php if($accessObject->hasAccess("sell", "tickets")) { ?>
+								<a class="nav-link" href="<?= $baseUrl ?>tickets-sell">Sell Ticket</a>
+								<?php } ?>
+								<?php if($accessObject->hasAccess("reports", "tickets")) { ?>
+								<a class="nav-link" href="<?= $baseUrl ?>tickets-report">Generate Reports</a>
 								<?php } ?>
 							</nav>
 						</div>
