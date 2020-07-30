@@ -7,7 +7,7 @@
  * @package		Helpers
  * @subpackage	Email Helper Functions
  * @category	Core Functions
- * @author		Analitica Innovare Dev Team
+ * @author		VisamiNet Solutions Dev Team
  */
 
 defined('BASEPATH') OR exit('No direct script access allowed');

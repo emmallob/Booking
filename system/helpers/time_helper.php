@@ -7,7 +7,7 @@
  * @package     Helpers
  * @subpackage  Time Helper Functions
  * @category    Core Functions
- * @author      Analitica Innovare Dev Team
+ * @author      VisamiNet Solutions Dev Team
  */
 
 function time_diff($timestamp, $current_time=null) {

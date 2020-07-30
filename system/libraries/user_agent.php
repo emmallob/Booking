@@ -7,7 +7,7 @@
  * @package		Libraries
  * @subpackage	User Agent
  * @category	Core Functions
- * @author		Analitica Innovare Dev Team
+ * @author		VisamiNet Solutions Dev Team
  */
 
 class User_agent {

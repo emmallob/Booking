@@ -7,7 +7,7 @@
  * @package		Helpers
  * @subpackage	String Helper Functions
  * @category	Core Functions
- * @author		Analitica Innovare Dev Team
+ * @author		VisamiNet Solutions Dev Team
  */
 
 // ------------------------------------------------------------------------

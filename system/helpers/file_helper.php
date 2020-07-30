@@ -7,7 +7,7 @@
  * @package		Helpers
  * @subpackage	File Helper Functions
  * @category	Core Functions
- * @author		Analitica Innovare Dev Team
+ * @author		VisamiNet Solutions Dev Team
  */
 
 if ( ! function_exists('read_file'))
