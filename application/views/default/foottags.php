@@ -43,6 +43,7 @@
             </div>
         </div>
     </div>
+    <?php if(in_array($SITEURL[0], ["activity-logs", "profile"])) { ?>
     <div class="modal fade" id="DefaultModalWindow" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -65,6 +66,7 @@
             </div>
         </div>
     </div>
+    <?php } ?>
     <?php global $rootDir, $SITEURL; ?>
     <script>var baseUrl = "<?= $rootDir ?>";</script>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>

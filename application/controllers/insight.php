@@ -2,6 +2,13 @@
 
 class Insight extends Booking {
 
+
+    // preset some variables
+    public $start_date;
+    public $end_date;
+    public $group_by;
+    public $date_format;
+
     public function __construct()
     {
         parent::__construct();
@@ -21,60 +28,76 @@ class Insight extends Booking {
 
             $params->tree = (isset($params->tree)) ? $this->stringToArray($params->tree) : ["list", "booking_summary", "detail", "booking_count", "overall_summary"];
 
-            $stmt = $this->db->prepare("
-                SELECT 
-                    a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
-                    a.is_payable, a.allow_multiple_booking, a.maximum_multiple_booking, a.description,
-                    (SELECT b.ticket_title FROM tickets b WHERE b.ticket_guid = a.ticket_guid) AS ticket_applicable,
-                    a.state, a.created_on, 
-                    (
-                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0'
-                    ) AS booked_count,
-                    (
-                        SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0' AND b.status='1'
-                    ) AS confirmed_count,
-                    (
-                        SELECT b.department_name FROM departments b WHERE b.department_guid = a.department_guid
-                    ) AS department_name,
-                    (
-                        SELECT GROUP_CONCAT(b.hall_guid) FROM events_halls_configuration b WHERE b.event_guid = a.event_guid
-                    ) AS event_halls
-                FROM events a
-                WHERE a.client_guid = ? AND a.deleted = ? {$condition}
-                ORDER BY DATE(a.event_date) ".(isset($params->order) ? $params->order : "DESC")."
-            ");
-            $stmt->execute([$params->clientId, 0]);
-
             $data = [];
             $i = 0;
-            while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
-                
-                // booked list
-                if(in_array("list", $params->tree)) {
-                    $data[$i]['booking_list'] = $this->bookedList($result->event_guid, $params->remote);
-                }
 
-                if(in_array("booking_summary", $params->tree)) {
-                    $data[$i]['booking_summary'] = $this->summaryDetails($result->event_guid, $params->clientId);
-                }
-                
-                if(in_array("booking_count", $params->tree)) {
-                    $data[$i]['booking_count'] = [
-                        "event_title" => $result->event_title . " (". date("jS F", strtotime($result->event_date)) . ")",
-                        "booked_count" => $result->booked_count,
-                        "confirmed_count" => $result->confirmed_count
-                    ];
-                }
+            // if the user did not specify vouchers as part of the request
+            if(!in_array("vouchers", $params->tree)) {
+
+                // run the query
+                $stmt = $this->db->prepare("
+                    SELECT 
+                        a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
+                        a.is_payable, a.allow_multiple_booking, a.maximum_multiple_booking, a.description,
+                        (SELECT b.ticket_title FROM tickets b WHERE b.ticket_guid = a.ticket_guid) AS ticket_applicable,
+                        a.state, a.created_on, 
+                        (
+                            SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0'
+                        ) AS booked_count,
+                        (
+                            SELECT COUNT(*) FROM events_booking b WHERE b.event_guid = a.event_guid AND b.deleted = '0' AND b.status='1'
+                        ) AS confirmed_count,
+                        (
+                            SELECT b.department_name FROM departments b WHERE b.department_guid = a.department_guid
+                        ) AS department_name,
+                        (
+                            SELECT GROUP_CONCAT(b.hall_guid) FROM events_halls_configuration b WHERE b.event_guid = a.event_guid
+                        ) AS event_halls
+                    FROM events a
+                    WHERE a.client_guid = ? AND a.deleted = ? {$condition}
+                    ORDER BY DATE(a.event_date) ".(isset($params->order) ? $params->order : "DESC")."
+                ");
+                $stmt->execute([$params->clientId, 0]);
+
+                // loop through the request
+                while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
                     
-                if(in_array("detail", $params->tree)) {
-                    $data[$i]['detail'] = $result;
+                    // booked list
+                    if(in_array("list", $params->tree)) {
+                        $data[$i]['booking_list'] = $this->bookedList($result->event_guid, $params->remote);
+                    }
+
+                    if(in_array("booking_summary", $params->tree)) {
+                        $data[$i]['booking_summary'] = $this->summaryDetails($result->event_guid, $params->clientId);
+                    }
+                    
+                    if(in_array("booking_count", $params->tree)) {
+                        $data[$i]['booking_count'] = [
+                            "event_title" => $result->event_title . " (". date("jS F", strtotime($result->event_date)) . ")",
+                            "booked_count" => $result->booked_count,
+                            "confirmed_count" => $result->confirmed_count
+                        ];
+                    }
+                        
+                    if(in_array("detail", $params->tree)) {
+                        $data[$i]['detail'] = $result;
+                    }
+
+                    $i++;
+                    
                 }
 
-                $i++;
-                
             }
-            /** Set the result */
-            $results['data'] = $data;
+
+            // vouchers query
+            if(in_array("vouchers", $params->tree)) {
+                // load the voucher report
+                $results['voucher_report'] = $this->voucherReport($params);
+            } else {
+
+                /** Set the result */
+                $results['data'] = $data;
+            }
 
             /** If the overall_summary is parsed */
             if(in_array("overall_summary", $params->tree)) {
@@ -264,8 +287,16 @@ class Insight extends Booking {
                 SELECT
                     (
                         SELECT SUM(ticket_amount) AS overall_funds_realised 
+                        FROM tickets_listing WHERE sold_state = '1' AND status != 'invalid' AND client_guid = '{$client_guid}'
+                    ) AS overall_funds_realised_from_sale,
+                    (
+                        SELECT SUM(ticket_amount) AS overall_funds_realised 
                         FROM tickets_listing WHERE status='used' AND sold_state = '1' AND client_guid = '{$client_guid}'
                     ) AS overall_funds_realised,
+                    (
+                        SELECT COUNT(ticket_amount) AS overall_funds_realised 
+                        FROM tickets_listing WHERE sold_state = '1' AND status != 'invalid' AND client_guid = '{$client_guid}'
+                    ) AS tickets_sold,
                     (
                         SELECT COUNT(*) FROM events WHERE deleted='0' AND client_guid = '{$client_guid}'
                     ) AS events_count,
@@ -294,7 +325,58 @@ class Insight extends Booking {
         } catch(PDOException $e) {
             return $e->getMessage();
         }
-    } 
+    }
+    
+
+    /**
+     * Make a better date format
+     */ 
+    private function makeDate($period) {
+        
+        /** Properly format the period */
+        $date = explode("to", $period);
+
+        /** If the date is not not */
+        if(!isset($date[1])) {
+            
+            // confirm if the first item is a valid date
+            if($this->validDate($date[0])) {
+                
+                // preset the variables
+                $this->start_date = $date[0];
+                $this->end_date = $date[0];
+                $this->group_by = "DATE";
+                $this->date_format = "jS M Y";
+                
+                return $this;
+            }
+
+            // return empty
+            return;
+        } else {
+            // confirm if the first item is a valid date
+            if($this->validDate($date[0])) {
+                // preset the variables
+                $this->start_date = trim($date[0]);
+            }
+
+            if($this->validDate($date[1])) {
+                $this->end_date = trim($date[1]);
+            }
+            // set other items
+            $days_count = $this->listDays($this->start_date, $this->end_date);
+            
+            // group by
+            if(count($days_count) > 90) {
+                $this->group_by = "MONTH";
+            } else {
+                $this->group_by = "DATE";
+            }
+            $this->date_format = "jS M Y";
+            
+            return $this;
+        }
+    }
 
     /**
      * This formats the correct date range
@@ -303,62 +385,92 @@ class Insight extends Booking {
      * 
      * @return This     $this->start_date, $this->end_date;
      */
-    private function dateRangeFormater($datePeriod) {
+    private function dateFormat($period) {
 
-        // Check Sales Period
-        switch ($datePeriod) {
-            case 'this_week':
-                $groupBy = "DATE";
-                $format = "jS M Y";
-                $dateFrom = date("Y-m-d", strtotime("today -6 days"));
-                $dateTo = date("Y-m-d");
-                break;
-            case 'this_month':
-                $groupBy = "DATE";
-                $format = "jS M Y";
-                $dateFrom = date("Y-m-01", strtotime("today"));
-                $dateTo = date("Y-m-t", strtotime("today"));
-                break;
-            case 'last_30_days':
-                $groupBy = "DATE";
-                $format = "jS M Y";
-                $dateFrom = date("Y-m-d", strtotime("-30 days"));
-                $dateTo = date("Y-m-d");
-                break;
-            case 'last_3months':
-                $groupBy = "MONTH";
-                $format = "jS M Y";
-                $dateFrom = date("Y-m-d", strtotime("today -3 months"));
-                $dateTo = date("Y-m-d");
-                break;
-            case 'last_6months':
-                $groupBy = "MONTH";
-                $format = "jS M Y";
-                $dateFrom = date("Y-m-d", strtotime("today -6 months"));
-                $dateTo = date("Y-m-d");
-                break;
-            case 'last_month':
-                $groupBy = "DATE";
-                $format = "jS M Y";
-                $dateFrom = date("Y-m-01", strtotime("-1 month"));
-                $dateTo = date("Y-m-t", strtotime("-1 month"));
-                break;
-            case 'this_year':
-                $groupBy = "MONTH";
-                $format = "F";
-                $dateFrom = date('Y-01-01');
-                $dateTo = date('Y-m-d');
-                break;
-            default:
-                break;
+        // check the date format
+        $dateFrame = $this->makeDate($period);
+
+        // if the date frame is empty
+        if(empty($dateFrame)) {
+
+            // Check Sales Period
+            switch ($period) {
+                case 'this_week':
+                    $groupBy = "DATE";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-d", strtotime("today -6 days"));
+                    $dateTo = date("Y-m-d");
+                    break;
+                case 'this_month':
+                    $groupBy = "DATE";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-01", strtotime("today"));
+                    $dateTo = date("Y-m-t", strtotime("today"));
+                    break;
+                case 'last_30_days':
+                    $groupBy = "DATE";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-d", strtotime("-30 days"));
+                    $dateTo = date("Y-m-d");
+                    break;
+                case 'last_3months':
+                    $groupBy = "MONTH";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-d", strtotime("today -3 months"));
+                    $dateTo = date("Y-m-d");
+                    break;
+                case 'last_6months':
+                    $groupBy = "MONTH";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-d", strtotime("today -6 months"));
+                    $dateTo = date("Y-m-d");
+                    break;
+                case 'last_month':
+                    $groupBy = "DATE";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-01", strtotime("-1 month"));
+                    $dateTo = date("Y-m-t", strtotime("-1 month"));
+                    break;
+                case 'this_year':
+                    $groupBy = "MONTH";
+                    $format = "F";
+                    $dateFrom = date('Y-01-01');
+                    $dateTo = date('Y-m-d');
+                    break;
+                default:
+                    $groupBy = "DATE";
+                    $format = "jS M Y";
+                    $dateFrom = date("Y-m-d", strtotime("today -6 days"));
+                    $dateTo = date("Y-m-d");
+                    break;
+            }
+
+            // set the date
+            $this->start_date = $dateFrom;
+            $this->end_date = $dateTo;
+            $this->group_by = $groupBy;
+            $this->date_format = $format;
         }
 
-        $this->start_date = $dateFrom;
-        $this->end_date = $dateTo;
-        $this->group_by = $groupBy;
-        $this->date_format = $format;
+    }
 
-        return $this;
+    /**
+     * Generate voucher reports
+     * 
+     * @param String $params->clientId          This is the client id to load the records
+     * @param String $params->period            This is a unique period for time range calculation 
+     *          This can be dates separated with the keyword "to" or predefined timeframe
+     * @param String $params->user_guid         This is the id of the user agent
+     * 
+     * @param Array
+     */
+    private function voucherReport(stdClass $params) {
+        
+        $period = isset($params->period) ? $params->period : "this_week";
+        $period = $this->dateFormat($period);
+
+        
 
     }
+
 }

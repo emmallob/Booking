@@ -445,8 +445,8 @@ class Booking {
 	 * @return bool
 	 */
 	public function validDate($date, $format = 'Y-m-d') {
-	    $d = DateTime::createFromFormat($format, $date);
-	    return $d && $d->format($format) === $date;
+	    $d = DateTime::createFromFormat($format, trim($date));
+	    return $d && $d->format($format) === trim($date);
 	}
 
 	/**
@@ -633,61 +633,6 @@ class Booking {
 			return 1;
 		} elseif(($status == 'inactive') || ($status == 0)) {
 			return 0;
-		}
-	}
-
-	/**
-	 * This returns an array of the page posts
-	 * 
-	 * @param string $post_type		This is the type of the pages that is to be fetched
-	 * @param string $status 		This is the status of the post page (Default is Published)
-	 * @param int $limit			The number to limit the query
-	 * @param string $where_clause	This is an optional where clause to append to the query
-	 * 
-	 * @return array objects
-	 */
-	public function page_posts(string $post_type, string $status = 'Published', $where_clause = null, int $limit = 10, $order_by = "ORDER BY id DESC") {
-		try {
-			$posts = $this->db->prepare("
-				SELECT * 
-				FROM posts 
-				WHERE post_type='{$post_type}' 
-				AND post_status='{$status}' {$where_clause} {$order_by} LIMIT {$limit}
-			");
-			$posts->execute();
-
-			return $posts->fetchAll(PDO::FETCH_OBJ);
-
-		} catch(PDOException $e) {
-			return $e->getMessage();
-		}
-	}
-
-	/**
-	 * This returns an array of a single page post using the id or slug
-	 * 
-	 * @param string $postId	This is the page post or slug that is to be fetched
-	 * @param stirng $status 	This is the status of the page to be parsed
-	 * @return array object
-	 */
-	public function get_post($postId, $status = 'Published', $parentslug = null) {
-
-		$field = (preg_match('/^[0-9]+$/', $postId)) ? "a.id" : "a.post_slug";
-		try {
-			$posts = $this->db->prepare("
-				SELECT a.*,
-					b.post_title AS parent_title,
-					b.post_slug AS parent_slug
-				FROM posts a
-				LEFT JOIN posts b ON b.id = a.parent_page
-				WHERE {$field}='{$postId}' AND a.post_status='{$status}'
-			");
-			$posts->execute();
-
-			return $posts->fetch(PDO::FETCH_OBJ);
-
-		} catch(PDOException $e) {
-			return $e->getMessage();
 		}
 	}
 

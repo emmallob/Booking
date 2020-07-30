@@ -459,7 +459,7 @@ class Tickets extends Booking {
                     $result->action .= "</div>";
                 }
 
-                $result->status = ucfirst($result->status);
+                $result->status = "<span class='badge badge-".(($result->status == 'pending') ? "primary" : ($result->status == 'invalid' ? 'danger' : 'success') )."'>" .ucfirst($result->status) ."</span>";
 				$result->row_id = $i;
 				$results[] = $result;
 			}

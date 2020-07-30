@@ -186,7 +186,7 @@ $accessObject->userId = $userId;
 							Tickets
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-list", "tickets-sell", "tickets-report", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["tickets", "tickets-list", "tickets-sell", "tickets-generate", "tickets-assign"]) ? "show" : null ?>" id="collapseUtilities" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>tickets">Tickets</a>
 								<?php if($accessObject->hasAccess("generate", "tickets")) { ?>
@@ -195,9 +195,6 @@ $accessObject->userId = $userId;
 								<?php if($accessObject->hasAccess("sell", "tickets")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-sell">Sell Ticket</a>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-list">Sales List</a>
-								<?php } ?>
-								<?php if($accessObject->hasAccess("reports", "tickets")) { ?>
-								<a class="nav-link" href="<?= $baseUrl ?>tickets-report">Generate Reports</a>
 								<?php } ?>
 							</nav>
 						</div>
@@ -250,10 +247,21 @@ $accessObject->userId = $userId;
 							User Management
 						</a>
 						<?php } ?>
-						<a class="nav-link" href="<?= $baseUrl ?>reports">
-							<div class="nav-link-icon"><i data-feather="bar-chart"></i></div>
+						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseReports" aria-expanded="false" aria-controls="collapseReports">
+							<div class="nav-link-icon"><i class="fa fa-chart-bar"></i></div>
 							Reports
+							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
+						<div class="collapse <?= in_array($SITEURL[0], ["events-report", "tickets-report"]) ? "show" : null ?>" id="collapseReports" data-parent="#accordionSidenav">
+							<nav class="sidenav-menu-nested nav">
+								<?php if($accessObject->hasAccess("reports", "tickets")) { ?>
+								<a class="nav-link" href="<?= $baseUrl ?>tickets-report">Tickets</a>
+								<?php } ?>
+								<a class="nav-link" href="<?= $baseUrl ?>events-report">Events</a>
+							</nav>
+						</div>
+
+
 						<?php if($accessObject->hasAccess("manage", "account")) { ?>
 						<a class="nav-link" href="<?= $baseUrl ?>configuration">
 							<div class="nav-link-icon"><i data-feather="filter"></i></div>

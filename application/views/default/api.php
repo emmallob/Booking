@@ -31,6 +31,9 @@ $bookingClass->clientId = $clientId;
 
 $remote = false;
 
+// load the user data
+$userData = (Object) $usersClass->item_by_id("users", $userId);
+
 // init the params variable
 $params = [];
 
