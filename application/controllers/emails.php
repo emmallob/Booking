@@ -229,7 +229,7 @@ class Emails extends Booking {
                 //: remove all sessions
                 $this->session->remove('emailsList');
                 $this->session->remove('newListNames');
-                $this->session->remove('emailAttachment');
+                $this->session->remove('tempAttachments');
                 
                 //: Set new values
                 return 'Sent';

@@ -174,14 +174,17 @@ $(`form[class="submitEmailForm"]`).on('submit', function(e) {
         success: function(resp) {
             if (resp.code == 200) {
                 $(`input[name="subject"]`).val('');
+                $(`input[name="recipients"]`).val('');
                 Toast.fire({
                     type: "success",
                     title: "Email message was successfully sent"
                 });
                 $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
-                $(`div[class~="send-to-list"]`).html(``);
-                $(`textarea[data-editor="summernote"]`).summernote('destroy');
+                $(`textarea[data-editor="summernote"]`).val('');
                 temporaryAttachments();
+                setTimeout(() => {
+                    window.location.href = `${baseUrl}emails-list`;
+                }, 2000);
             } else {
                 $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
                 Toast.fire({
