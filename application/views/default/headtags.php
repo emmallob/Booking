@@ -232,10 +232,11 @@ $accessObject->userId = $userId;
 							Communications
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["sms-list", "emails-list"]) ? "show" : null ?>" id="collapseCommunication" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["sms-list", "emails-list", "emails-compose"]) ? "show" : null ?>" id="collapseCommunication" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>sms-list"> SMS List</a>
 								<a class="nav-link" href="<?= $baseUrl ?>emails-list">Emails List</a>
+								<a class="nav-link" href="<?= $baseUrl ?>emails-compose">Compose Email</a>
 							</nav>
 						</div>
 						<?php } ?>

@@ -418,13 +418,17 @@ class Tickets extends Booking {
      * Sales list
      */
     public function listSales(stdClass $params) {
+        
+        global $accessObject;
+        
         try {
             
             $condition = !empty($params->serial) ? " AND b.ticket_serial='{$params->serial}'" : null;
 
 			$stmt = $this->db->prepare("SELECT 
+                a.id, a.event_id, a.ticket_id,
                 (SELECT event_title b FROM events b WHERE b.id = a.event_id) AS event_title,
-                b.ticket_amount, b.ticket_serial, b.status,
+                b.ticket_serial, b.ticket_amount, b.status, 
                 a.fullname, a.contact, a.email, a.date_created
                 FROM ticket_purchases a
                 LEFT JOIN tickets_listing b ON b.id = a.ticket_id
@@ -435,9 +439,26 @@ class Tickets extends Booking {
 
 			$i = 0;
 			$results = [];
+
+            $returnTicket = $accessObject->hasAccess('return', 'tickets');
+
             while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
 				
 				$i++;
+
+                // if the request was made remotely
+                if(!$params->remote) {
+                    $result->action = "<div class='text-center'>";
+                    // if the user has the required permissions
+                    if($returnTicket) {
+                        // if the ticket is still pending
+                        if($result->status == 'pending') {
+                            $result->action .= "<a href='javascript:void(0)' data-title='Return Ticket' title='Are you sure you want to return this ticket and set it as Inactive?' data-item-id='{$result->id}_{$result->event_id}_{$result->ticket_id}' data-item='return-ticket' class='btn btn-sm delete-item btn-outline-primary'><i class='fa fa-reply'></i></a>";
+                        }
+                    }
+                    $result->action .= "</div>";
+                }
+
                 $result->status = ucfirst($result->status);
 				$result->row_id = $i;
 				$results[] = $result;

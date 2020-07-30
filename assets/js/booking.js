@@ -1007,9 +1007,12 @@ if ($(`table[class~="ticketsSoldList"]`).length) {
                     { "data": 'ticket_serial' },
                     { "data": 'ticket_amount' },
                     { "data": 'date_created' },
-                    { "data": 'status' }
+                    { "data": 'status' },
+                    { "data": 'action' }
                 ]
             });
+
+            deleteItem();
         }
 
         $(`div[class="form-content-loader"]`).css("display", "none");
@@ -1017,4 +1020,16 @@ if ($(`table[class~="ticketsSoldList"]`).length) {
         $(`div[class="form-content-loader"]`).css("display", "none");
     });
 
+}
+if ($("#tinymce").length > 0) {
+    //     tinymce.init({
+    //         selector: "textarea#tinymce",
+    //         theme: "mordern",
+    //         height: 250,
+    //         plugins: [
+    //             "advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
+    //             "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
+    //             "save table contextmenu directionality emoticons template paste textcolor"
+    //         ]
+    //     });
 }

@@ -966,7 +966,7 @@ class Users extends Booking {
     public function userActivityLogs(stdClass $params) {
         try {
             
-			$stmt = $this->db->prepare("SELECT page, date_recorded, description, user_agent FROM users_activity_logs WHERE client_guid = ? AND user_guid = ? ORDER BY id DESC LIMIT {$params->limit}");
+			$stmt = $this->db->prepare("SELECT `page`, `date_recorded`, `description`, `user_agent` FROM users_activity_logs WHERE client_guid = ? AND user_guid = ? ORDER BY id DESC LIMIT {$params->limit}");
             $stmt->execute([$params->clientId, $params->user_id]);
 
 			$i = 0;
@@ -974,6 +974,7 @@ class Users extends Booking {
             while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
 				
 				$i++;
+				$result->page = ucfirst($result->page);
 				$result->row_id = $i;
 				$results[] = $result;
 			}

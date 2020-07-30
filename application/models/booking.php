@@ -924,13 +924,16 @@ class Booking {
 					return "denied";
 				} else {
 					
-					/** Remove the item from the list of events by setting it as been deleted */
+					/** Confirm the item from the list of events by setting it as been deleted */
 					$stmt = $this->db->prepare("UPDATE `events` SET `state`=? WHERE `event_guid` = ? AND client_guid = ?");
 					$stmt->execute(["in-progress", $event[0], $params->clientId]);
 
 					/** Update the user row */
 					$stmt = $this->db->prepare("UPDATE `events_booking` SET `status`=? WHERE `event_guid` = ? AND id = ?");
 					$stmt->execute([1, $event[0], $event[1]]);
+
+					/** Log the user activity */
+					$this->userLogs("booking", $event[1], "The Booking was successfully confirmed.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();
@@ -962,12 +965,61 @@ class Booking {
 					$reserveObj = load_class("reservations", "controllers");
 					$unbook = $reserveObj->unbookSeat($event[0], $event[1], $params->clientId);
 
+					/** Log the user activity */
+					$this->userLogs("booking", $event[1], "The booked seat was successfully unbooked and released.", $params->userId, $params->clientId);
+
 					/** Commit the transactions */
 					$this->db->commit();
 					
 					return $unbook;
 				}
 
+			}
+			
+			/** return ticket and set as inactive */
+			elseif($params->item == "return-ticket") {
+
+				/** Split the event and the row id */
+				$ticket = explode("_", $params->item_id);
+
+				/** If there is not a second item */
+				if(!isset($ticket[2])) {
+					return "denied";
+				}
+				
+				/** Confirm that ticket is not already deleted */
+				$ticketActive = $this->db->prepare("
+					SELECT a.id, a.fullname, a.contact 
+					FROM ticket_purchases a
+					LEFT JOIN tickets_listing b ON a.ticket_id = b.id
+					WHERE a.id = ? AND a.event_id = ? AND a.ticket_id = ? AND b.client_guid = ? AND b.status = ? LIMIT 1
+				");
+				$ticketActive->execute([$ticket[0], $ticket[1], $ticket[2], $params->clientId, 'pending']);
+
+				/** Count the number of rows */
+				if($ticketActive->rowCount() != 1) {
+					return "denied";
+				} else {
+
+					// get the ticket information
+					$result = $ticketActive->fetch(PDO::FETCH_OBJ);
+					
+					/** Remove the item from the list of events by setting it as been deleted */
+					$stmt = $this->db->prepare("
+						UPDATE tickets_listing a SET a.status = ? WHERE `id` = ? AND client_guid = ?
+					");
+					$stmt->execute(["invalid", $ticket[2], $params->clientId]);
+
+					/** Log the user activity */
+					$this->userLogs("ticket", $ticket[1], "The ticket sold out to {$result->fullname} ({$result->contact}) was returned.", $params->userId, $params->clientId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
 			}
 
 			/** remove event media */

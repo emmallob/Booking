@@ -66,6 +66,7 @@
         </div>
     </div>
     <?php global $rootDir, $SITEURL; ?>
+    <script>var baseUrl = "<?= $rootDir ?>";</script>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <?php if(in_array($SITEURL[0], ["dashboard", "reports"])) { ?>
@@ -79,7 +80,9 @@
     <?php if(in_array($SITEURL[0], ["events-add", "events-edit", "halls-add", "halls-edit"])) { ?>
     <script src="<?= $rootDir ?>assets/libs/summernote/dist/summernote-bs4.min.js"></script>
     <?php } ?>
-    <script>var baseUrl = "<?= $rootDir ?>";</script>
+    <?php if (in_array($SITEURL[0], ['emails-compose'])) { ?>
+    
+    <?php } ?>
     <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
