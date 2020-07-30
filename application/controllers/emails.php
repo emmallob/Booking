@@ -172,5 +172,19 @@ class Emails extends Booking {
 
     }
     
+    /**
+	 * Send out messages to a list of recipients
+     * 
+     * @param String $params->recipients    The list of receipients to receive the mail
+     * @param String $params->subject       The subject of the email message
+     * @param String $params->content       The content of the mail
+     * @param String $params->sender        The email address to send the mail from
+     * 
+	 * @return Bool
+	 **/
+    public function sendEmail() {
+
+    }
+
 }
 ?>

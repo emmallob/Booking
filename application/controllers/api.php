@@ -518,6 +518,15 @@ class Api {
                     "discard" => [
                         "description" => "Discard the email message composing",
                         "params" => []
+                    ],
+                    "send" => [
+                        "description" => "Send Email to the list of receipients",
+                        "params" => [
+                            "sender" => "The Email to send the message from",
+                            "subject" => "The subject of th mail",
+                            "content" => "The content of the email message",
+                            "recipients" => "The recipients to receive the email"
+                        ]
                     ]
                 ]
             ]
@@ -1195,6 +1204,18 @@ class Api {
                     $code = 200;
                 }
             }
+
+            // send email message
+            elseif( $this->outer_url == "send" ) {
+                // update the user theme color
+                $request = $objectClass->sendEmail();
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
+                }
+            }
+
         }
 
         // insight endpoint

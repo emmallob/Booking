@@ -152,3 +152,55 @@ function uploadData(formdata) {
         }
     });
 }
+
+$(`form[class="submitEmailForm"]`).on('submit', function(e) {
+    e.preventDefault();
+    let sender = $(`select[name="send_from"]`).val(),
+        subject = $(`input[name="subject"]`).val(),
+        recipients = $(`input[name="recipients"]`).val(),
+        content = htmlEntities($(`textarea[data-editor="summernote"]`).val());
+
+    let payload = `{"sender":"${sender}","subject":"${subject}","content":"${content}","recipients":"${recipients}"}`;
+
+    $.ajax({
+        type: "POST",
+        url: `${baseUrl}api/emails/send`,
+        data: payload,
+        dataType: "json",
+        beforeSend: function() {
+            $(`form div[class="form-content-loader"]`).css("display", "flex");
+            $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', true);
+        },
+        success: function(resp) {
+            if (resp.code == 200) {
+                $(`input[name="subject"]`).val('');
+                Toast.fire({
+                    type: "success",
+                    title: "Email message was successfully sent"
+                });
+                $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
+                $(`div[class~="send-to-list"]`).html(``);
+                $(`textarea[data-editor="summernote"]`).summernote('destroy');
+                temporaryAttachments();
+            } else {
+                $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
+                Toast.fire({
+                    type: "error",
+                    title: resp.data.result
+                });
+            }
+        },
+        complete: function(data) {
+            $(`form div[class="form-content-loader"]`).css("display", "none");
+        },
+        error: function(err) {
+            $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
+            $(`form div[class="form-content-loader"]`).css("display", "none");
+            Toast.fire({
+                type: "success",
+                title: "Sorry! An error was encountered while trying to send the message."
+            });
+        }
+    });
+
+});

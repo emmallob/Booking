@@ -68,7 +68,7 @@ if(empty($session->tempAttachment)) {
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text" id="basic-addon1">To</span>
                                                 </div>
-                                                <input placeholder="List of Members to Send Mail To" type="text" name="send_to" id="send_to" class="form-control">
+                                                <input placeholder="List of Members to Send Mail To (comma separated list)" type="text" name="recipients" id="recipients" class="form-control">
                                             </div>
                                         </div>
                                         <div class="row mt-2">

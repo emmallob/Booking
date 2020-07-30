@@ -294,24 +294,6 @@ class Booking {
 	}
 
 	/**
-	 * @method sendEmail
-	 * @param $fullname	- This is the fullname of the recipient
-	 * @param $subject - This will contain the subject of the mail
-	 * @param $sent_to - This is the email address of the recipient
-	 * @param $copy_to - This will contain the list of users to copy the message to
-	 * @param $sent_from - This is the email from which the mail will be sent 
-	 * @param $message - This will contain the actual content of the email
-	 * @return bool
-	 **/
-	final function sendEmail($unique_id, $template = 'default', $fullname = null, $subject, $sent_to, $message, $copy_to = null) : bool {
-
-		$stmt = $this->db->prepare("
-			INSERT INTO emails SET unique_id = ?, template=?, subject = ?, fullname = ?, sent_to = ?, message = ?, copy_to = ?, client_guid = ?
-		");
-		return $stmt->execute([$unique_id, $template, $subject, $fullname, $sent_to, $message, $copy_to, $this->client_guid]);
-	}
-
-	/**
 	 * @method allowedTime
 	 * @desc Check if the User is within the time frame for logging an attendance
 	 * @return bool
