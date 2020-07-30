@@ -23,13 +23,52 @@ require "headtags.php";
             <div class="card-header">
                 <div class="row" style="width:100%">
                     <div class="col-lg-8 col-md-8"></div>
+                    <?php if($accessObject->hasAccess("manage", "communications")) { ?>
+                    <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
+                        <a href="<?= $baseUrl ?>emails-compose" class="btn btn-sm btn-outline-primary"><i class="fa fa-reply"></i>&nbsp;Send Mail</a>
+                    </div>1
+                    <?php } ?>
                 </div>
             </div>
-            <div class="card-body">
-                
-
-
-            </div>
+            <?= form_loader() ?>
+            <?php if(!$accessObject->hasAccess("manage", "communications")) { ?>
+                <div class="card-body">
+                    <?= pageNotFound($baseUrl) ?>
+                </div>
+            <?php } else { ?>
+                <div class="card-body">
+                    <div class="btn-toolbar row justify-content-between" role="toolbar">
+                        <div class="btn-group action-buttons">
+                            <span class="active-msg"></span>
+                        </div>
+                        <div class="float-right d-flex">
+                            <div class="btn-group ml-1">
+                                <button type="button" class="btn btn-outline-success hidden go-back">
+                                    <i class="fas fa-arrow-alt-circle-left"></i> Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body mails-listing hidden table-responsive">
+                    <table data-none="No mails available to display." class="table dataTable emailsList table-bordered">
+                        <thead>
+                            <tr>
+                                <th width="5%"></th>
+                                <th class="text-left">Subject</th>
+                                <th>Message</th>
+                                <th width="17%">Date</th>
+                                <th width="12%"></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="card-body">
+                    <div class="col-lg-12">
+                        <div class="mails-content"></div>
+                    </div>
+                </div>
+            <?php } ?>
         </div>
     </div>
 

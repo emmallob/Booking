@@ -88,7 +88,7 @@
     <?php if(in_array($SITEURL[0], ["sms-list", "emails-list"])) { ?>
     <script src="<?= $rootDir ?>assets/js/communication.js"></script>
     <?php } ?>
-    <?php if(in_array($SITEURL[0], ["emails-compose"])) { ?>
+    <?php if(in_array($SITEURL[0], ["emails-compose", "emails-list"])) { ?>
     <script src="<?= $rootDir ?>assets/js/emails.js"></script>
     <?php } ?>
     <script>

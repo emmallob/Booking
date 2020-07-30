@@ -205,7 +205,7 @@ class Emails extends Booking {
             } else {
                 $mailingList[] = [
                     "fullname" => $receiver,
-                    "email_adress" => $receiver
+                    "email_address" => $receiver
                 ];
             }
         }
@@ -327,6 +327,217 @@ class Emails extends Booking {
 			}
 		} catch(PDOException $e) {
 			return false;
+		}
+
+	}
+
+
+    /**
+     * 
+     */
+    public function listEmails(stdClass $params) {
+
+        $emails =  $this->loadEmails($params);
+        $row = 1;
+        $trashCount = 0;
+        $allMailsCount = 0;
+
+        foreach($emails as $eachMail) {
+
+            // assign some more variables
+            $trashCount = $eachMail->trashCount;
+
+            if(!isset($params->message_guid)) {
+                $eachMail->message = strip_tags(limit_words(htmlspecialchars_decode($eachMail->message), 10))."...";
+            } else {
+                $eachMail->message = htmlspecialchars_decode($eachMail->message);
+            }
+
+            // if a single message was queried
+            if(isset($params->message_guid)) {
+
+                $recipient = "";
+                $eachMail->recipient = json_decode($eachMail->recipient);
+
+                $recipientNames = array_column($eachMail->recipient, 'fullname');
+                $recipientEmail = array_column($eachMail->recipient, 'email_address');
+
+                $joinedEmailNames = array_combine($recipientNames, $recipientEmail);
+
+                foreach($joinedEmailNames as $key => $value) {
+                    $recipient .= "<small class=\"text-muted cursor\" title=\"{$key} ({$value})\">{$key} &lt;{$value}&gt;</small>, "; 
+                }
+
+                $eachMail->recipient = substr($recipient, 0, -2);
+                $eachMail->date_sent = date("jS M Y - h:iA", strtotime($eachMail->date_sent));
+
+                $mailAttachments = $this->listEmailAttachments($params->message_guid, $params->clientId, $params->remote);
+
+                $eachMail->attachments = (empty($mailAttachments)) ? '<span class="p-2"><em>No attached documents</em></span>' : $mailAttachments;
+
+            } else {
+                $eachMail->date_sent = date("jS M - h:iA", strtotime($eachMail->date_sent));
+            }
+
+            // print this if not a remote request
+            if(!$params->remote) {
+                $eachMail->row_id = "
+                    <div class=\"col-mail col-mail-1\">
+                        <div class=\"checkbox-wrapper-mail\">
+                            <input id=\"chk_{$eachMail->email_guid}\" class=\"chk_msgs\" data-value=\"{$eachMail->email_guid}\" type=\"checkbox\">
+                            <label for=\"chk_{$eachMail->email_guid}\" class=\"toggle\"></label>
+                        </div>
+                    </div>";
+            }
+
+            $eachMail->main_subject = ($params->remote) ? $eachMail->subject : "<span title=\"{$eachMail->subject}\" class=\"title msg-details cursor\" onclick=\"return showEmailContent('{$eachMail->email_guid}')\"><strong>{$eachMail->subject}</strong></span>";
+            
+            // print this if not a remote request
+            if(!$params->remote) {
+                $eachMail->option = "<div align=\"center\"><span title=\"{$eachMail->subject}\" class=\"title msg-details cursor btn btn-sm btn-outline-success\" onclick=\"return showEmailContent('{$eachMail->email_guid}')\"><i class=\"fa fa-eye\"></i></span> <a title=\"{$eachMail->subject}\" class=\"btn btn-outline-primary btn-sm cursor\" title=\"Forward Email\" href=\"".$this->baseUrl."emails-compose/fwd/{$eachMail->email_guid}\"><i class=\"fa fa-reply\"></i></a></div>";
+                $eachMail->email_status = (($eachMail->email_status == "Pending") ? "<span class='btn btn-sm btn-warning'>Pending</span>" : (($eachMail->email_status == "Sent") ? "<span class='btn btn-sm btn-success'>Sent</span>" : (($eachMail->email_status == "Failed") ? "<span class='btn btn-danger'>Failed</span>" : "<span class='btn btn-info'>{$eachMail->email_status}</span>")));
+            } else {
+                $eachMail->recipient = json_decode($eachMail->recipient);
+            }
+            
+            $data[] = $eachMail;
+        }
+
+        // print the reponse data
+        return [
+            "result" => $data,
+            "trashCount" => $trashCount,
+            "mailsCount" => count($emails)
+        ];                
+    }
+
+    /**
+     * Load the email attachments
+     * 
+     * @return Array
+     */
+    public function listEmailAttachments($emailId, $clientId, $remote) {
+
+		try {
+
+			//: Fetch the list of attachments
+			$stmt = $this->db->prepare("
+				SELECT 
+					document_name, document_link,
+					document_type, document_size, date_log
+				FROM 
+					emails_attachments 
+				WHERE email_guid = ? AND email_guid = ?
+			");
+			$stmt->execute([$emailId, $clientId]);
+
+			// favicon to be used in place of the milestone type
+			$faviconArray = [
+				'jpg' => 'fa fa-file-image', 'png' => 'fa fa-file-image',
+				'jpeg' => 'fa fa-file-image', 'gif' => 'fa fa-file-image',
+				'pdf' => 'fa fa-file-pdf', 'doc' => 'fa fa-file-word',
+				'docx' => 'fa fa-file-word', 'mp3' => 'fa fa-file-audio',
+				'txt' => 'fa fa-file-alt', 'csv' => 'fa fa-file-csv',
+				'rtf' => 'fa fa-file-alt', 'xls' => 'fa fa-file-excel',
+				'xlsx' => 'fa fa-file-excel', 'php' => 'fa fa-file-alt',
+				'css' => 'fa fa-file-alt', 'ppt' => 'fa fa-file-powerpoint',
+				'pptx' => 'fa fa-file-powerpoint', 'sql' => 'fa fa-file-alt',
+			];
+
+			$results = [];
+			$color = 'danger';
+			//: using the while loop
+			while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+				//: Prepare each file for processing
+				$result->favicon = $faviconArray[$result->document_type];
+				
+				//: Background color of the icon
+				if(in_array($result->document_type, ['doc', 'docx'])) {
+					$color = 'primary';
+				} elseif(in_array($result->document_type, ['xls', 'xlsx'])) {
+					$color = 'success';
+				} elseif(in_array($result->document_type, ['txt', 'rtf', 'sql', 'css', 'php'])) {
+					$color = 'default';
+				}
+
+				if($remote) {
+					$results[] = [
+						"color" => $color,
+						"favicon" => $result->favicon,
+						"document_name" => $result->document_name,
+						"download_link" => "assets/emails/docs/{$result->document_link}"
+					];
+				} else {
+					$results[] = "<div class=\"col-lg-2 p-2 text-center cursor col-md-4\" data-document-link=\"{$result->document_link}\" title=\"Click to Download {$result->document_name}\" style=\"height: 150px\">
+							<div class=\"card p-1\" style=\"height:100%\">
+								<div class=\"card-file-thumb text-{$color}\">
+									<i class=\"{$result->favicon} fa-3x\"></i>
+								</div>
+								<div class=\"text-center\">
+									".substr($result->document_name, 0, 40)."<br>
+								</div>
+								<div style=\"position:absolute; bottom: 3px; width:100%\" class=\"text-center btn\">
+								<a href=\"javascript:void(0)\" data-document-link=\"{$result->document_link}\" class=\"text-success\">Download <i class=\"fas fa-download ml-1
+									\"></i></a>
+								</div>
+							</div>
+						</div>";
+				}
+			}
+
+			return $results;
+
+		} catch(PDOException $e) {
+			return false;
+		}
+	}
+
+    /**
+     * Load all emails
+     * 
+     * @return Array
+     */
+    public function loadEmails($postData = null) {
+		
+		try {
+
+			$postData->message_guid = (isset($postData->message_guid) && ($postData->message_guid != 'null')) ? xss_clean($postData->message_guid) : null;
+
+			$filter = '';
+			$filter  .= (!empty($postData->message_guid)) ? "AND em.email_guid = '{$postData->message_guid}'" : null;
+
+			if(empty($postData->message_guid)) {
+				$filter  .= (!empty($postData->message_type) && ($postData->message_type != 'all')) ? "AND em.email_state = '{$postData->message_type}'" : "AND (em.email_state != 'trash')";
+			}
+
+			$stmt = $this->db->prepare("
+				SELECT
+					em.client_guid, em.email_guid, em.favourite, em.recipient, em.subject,
+					em.message, em.email_state, em.date_sent, em.email_status,
+					(
+						SELECT COUNT(*) 
+						FROM emails 
+						WHERE email_state = 'trash' AND client_guid = '{$postData->clientId}' 
+							AND status != '0'
+					) AS trashCount,
+					(
+						SELECT COUNT(*) 
+						FROM emails 
+						WHERE email_state != 'trash' AND client_guid = '{$postData->clientId}' 
+						AND status != '0'
+					) AS allMailsCount
+				FROM emails em 
+				WHERE 
+					em.status != '0' {$filter} AND 
+					em.client_guid = '{$postData->clientId}'
+				ORDER BY em.id DESC LIMIT {$postData->limit}
+			");
+			$stmt->execute();
+
+			return $stmt->fetchAll(PDO::FETCH_OBJ);
+			
+		} catch(PDOException $e) {
+			return $e->getMessage();
 		}
 
 	}

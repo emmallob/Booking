@@ -500,6 +500,14 @@ class Api {
                     "temp-attachments" => [
                         "description" => "This endpoint lists attachments to a mail",
                         "params" => []
+                    ],
+                    "list" => [
+                        "params" => [
+                            "contact_guid" => "The unique id of the customer",
+                            "limit" => "The number of rows to return in the results",
+                            "message_guid" => "This is the unique id of the message",
+                            "message_type" => "This is the category of the message"
+                        ]
                     ]
                 ],
                 "POST" => [
@@ -1215,6 +1223,20 @@ class Api {
                     $code = 200;
                 } else {
                     $result['result'] = $request;
+                }
+            }
+
+            // list the emails
+            elseif( $this->outer_url == "list" ) {
+                // limit parameter
+                $params->limit = !empty($params->limit) ? $params->limit : 500;
+
+                // list the emails
+                $request = $objectClass->listEmails($params);
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
                 }
             }
 

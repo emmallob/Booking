@@ -5,6 +5,43 @@ require "headtags.php";
 
 $msgFound = false;
 
+// check if a message id has been parsed
+if(confirm_url_id(1, 'fwd') && confirm_url_id(2)) {
+    // assign a variable to msg id
+    $messageId = xss_clean($SITEURL[2]);
+
+    // get the message content
+    $stmt = $booking->prepare("
+        SELECT
+            em.*
+        FROM emails em 
+        WHERE 
+            em.status != '0' AND em.email_guid = ? AND em.client_guid = '{$session->clientId}'
+        ORDER BY em.id DESC
+    ");
+    $stmt->execute([$messageId]);
+
+    $msgDetails = $stmt->fetch(PDO::FETCH_OBJ);
+
+    $msgFound = ($stmt->rowCount() > 0) ? true : false;
+
+    if($msgFound) {
+        $recipient = "";
+        $msgDetails->recipient = json_decode($msgDetails->recipient);
+
+        $recipientNames = array_column($msgDetails->recipient, 'item_value');
+        $recipientEmail = array_column($msgDetails->recipient, 'item_added');
+
+        $joinedEmailNames = array_combine($recipientNames, $recipientEmail);
+
+        foreach($joinedEmailNames as $key => $value) {
+            $recipient .= "{$key} <{$value}>, "; 
+        }
+
+        $msgDetails->recipient = substr($recipient, 0, -2);
+    }
+}
+
 // If the tempAttachment session is empty
 if(empty($session->tempAttachment)) {
     $session->set("tempAttachment", random_string('alnum', 14));
@@ -20,6 +57,7 @@ if(empty($session->tempAttachment)) {
                 </h1>
                 <ol class="breadcrumb mt-4 mb-0">
                     <li class="breadcrumb-item"><a href="<?= $baseUrl ?>dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="<?= $baseUrl ?>emails-list">Emails List</a></li>
                     <li class="breadcrumb-item active"><?= $page_title ?></li>
                 </ol>
             </div>
@@ -33,7 +71,9 @@ if(empty($session->tempAttachment)) {
                 </div>
             </div>
             <div class="card-body">
-                
+                <?php if(!$accessObject->hasAccess("manage", "communications")) { ?>
+                    <?= pageNotFound($baseUrl) ?>
+                <?php } else { ?>
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="" tabindex="-1" role="dialog" aria-hidden="true">        
@@ -88,7 +128,7 @@ if(empty($session->tempAttachment)) {
                                                     <?= 
                                                         ($msgFound) ? 
                                                             "<br><br>---------- Forwarded message ---------<br>"
-                                                        . "From: {$clientData->client_name} <{$msgDetails->sent_via}><br>
+                                                        . "From: {$clientData->name} <{$msgDetails->sent_via}><br>
                                                             Date: ".date("D, M d, Y \at h:iA", strtotime($msgDetails->sent_via))."<br>
                                                             Subject: {$msgDetails->subject}<br>
                                                             To: {$msgDetails->recipient}<br><br>"
@@ -131,7 +171,7 @@ if(empty($session->tempAttachment)) {
                         </div>
                     </div>
                 </div>
-
+                <?php } ?>
             </div>
         </div>
     </div>
