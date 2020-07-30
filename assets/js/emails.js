@@ -75,17 +75,27 @@ if ($(`div[class~="email-attachments"]`).length) {
     })
 }
 
-
 $(`button[class~="discard-mail"]`).on('click', function() {
-    $.ajax({
-        url: `${baseUrl}api/emails/discard`,
-        type: 'post',
-        data: { discardEmail: true },
-        dataType: 'json',
-        success: function(resp) {
-            window.location.href = `${baseUrl}emails`;
-        }
-    });
+    if (confirm("Are you sure you want to discard this message?")) {
+        $.ajax({
+            url: `${baseUrl}api/emails/discard`,
+            type: 'post',
+            data: { discardEmail: true },
+            dataType: 'json',
+            success: function(resp) {
+                if (resp.code == 200) {
+                    Toast.fire({
+                        title: 'Message was successfully discarded',
+                        type: 'success'
+                    });
+                    $(`div[class~="email-attachments"]`).html(``);
+                    setTimeout(() => {
+                        window.location.href = `${baseUrl}emails-list`;
+                    }, 1000);
+                }
+            }
+        });
+    }
 });
 
 function removeItem() {

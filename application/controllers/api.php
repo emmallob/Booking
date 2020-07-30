@@ -514,6 +514,10 @@ class Api {
                         "params" => [
                             "document_id" => "required - The temporary id of the document to remove"
                         ]
+                    ],
+                    "discard" => [
+                        "description" => "Discard the email message composing",
+                        "params" => []
                     ]
                 ]
             ]
@@ -1174,6 +1178,17 @@ class Api {
             elseif( $this->outer_url == "remove-attachment" ) {
                 // update the user theme color
                 $request = $objectClass->removeTempAttachment($params);
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
+                }
+            }
+
+            // discard the email
+            elseif( $this->outer_url == "discard" ) {
+                // update the user theme color
+                $request = $objectClass->discardEmail();
                 // if the request was successful
                 if($request) {
                     $result['result'] = $request;

@@ -118,7 +118,7 @@ class Emails extends Booking {
      * 
      * @param String $params->document_id       This is the temp document id
      * 
-     * @return Bool
+     * @return Array
      */
     public function removeTempAttachment(stdClass $params) {
 
@@ -146,5 +146,31 @@ class Emails extends Booking {
         ];
     }
 
+    /**
+     * Discard The Email message Composing
+     * 
+     * @return Bool
+     */
+    public function discardEmail() {
+
+        //: create a new session
+        $sessionClass = load_class('sessions', 'controllers');
+
+        // unset the sessions
+        $this->session->remove("emailsList");
+        $this->session->remove("newListNames");
+        
+        //: remove the attached documents
+        if(!empty($this->session->tempAttachments) && is_array($this->session->tempAttachments)) {
+            $sessionClass->removeAllItems('tempAttachments', 'assets/emails/tmp/');
+        }
+
+        // remove all sessions
+        $this->session->remove('tempAttachments');
+
+        return true;
+
+    }
+    
 }
 ?>
