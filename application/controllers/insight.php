@@ -383,7 +383,7 @@ class Insight extends Booking {
      *  
      * @param String    $datePeriod      This is the date period that was parsed
      * 
-     * @return This     $this->start_date, $this->end_date;
+     * @return $this
      */
     private function dateFormat($period) {
 
@@ -468,9 +468,7 @@ class Insight extends Booking {
         
         $period = isset($params->period) ? $params->period : "this_week";
         $period = $this->dateFormat($period);
-
         
-
     }
 
 }
