@@ -182,9 +182,154 @@ class Emails extends Booking {
      * 
 	 * @return Bool
 	 **/
-    public function sendEmail() {
+    public function sendEmail(stdClass $params) {
 
+        // assign variables
+        $content = isset($params->content) ? trim($params->content) : null;
+        $subject = isset($params->subject) ? $params->subject : null;
+        $sender = isset($params->sender) ? $params->sender : null;
+
+        //: the attachments list
+        $totalAttachments = (!empty($this->session->emailAttachment)) ? ($this->tempAttachmentsSize()) : 0;
+
+        // Email Recipients
+        $bugs = [];
+        $mailingList = [];
+        $recipients = explode(",", $params->recipients);
+
+        // loop through the list
+        foreach($recipients as $receiver) {
+            // confirm that a valid email was parsed
+            if(!filter_var($receiver, FILTER_VALIDATE_EMAIL)) {
+                $bugs[] = $receiver; 
+            } else {
+                $mailingList[] = [
+                    "fullname" => $receiver,
+                    "email_adress" => $receiver
+                ];
+            }
+        }
+
+        // if the attachment is more than 25mb
+        if(!empty($bugs)) {
+            return 'Please ensure that all emails are valid: '.implode(",", $bugs);
+        } elseif(($totalAttachments > 25)) {
+            return 'Maximum attachment allowed is 25MB.';
+        } else { 
+            //: Looping through the list to insert the data
+            $content = htmlspecialchars_decode($content);
+            $content = htmlspecialchars($content);
+            
+            //: push the information into the database
+            $data = $this->sendBulkEmails($params, $mailingList);
+
+            //: If the response is true
+            if($data) {
+
+                //: remove all sessions
+                $this->session->remove('emailsList');
+                $this->session->remove('newListNames');
+                $this->session->remove('emailAttachment');
+                
+                //: Set new values
+                return 'Sent';
+            
+            }
+
+            return "Sorry! There was an error while processing the request.";
+        }
     }
+
+    /**
+     * Send the mail
+     * 
+     * @param stdClass $params
+     * @param String $mailingList
+     * 
+     * @return Bool
+     */
+    private function sendBulkEmails($params, $mailingList){
+        
+        // begin transaction
+		$this->db->beginTransaction();
+
+		try {
+
+			//: if is array the mailing list
+			if(is_array($mailingList)) {
+
+				//: Generate a new token id
+				$emailId = random_string('alnum', mt_rand(25, 35));
+
+				$this->addEmailAttachment($emailId, $params->clientId);
+
+				//: Process the form
+				$stmt = $this->db->prepare("
+					INSERT INTO emails 
+					SET client_guid = ?, email_guid = ?, 
+						user_guid=?, sent_via = ?, 
+						recipient = ?, subject = ?, message = ?,
+						date_sent = now()
+				");
+				$stmt->execute([
+					$params->clientId, $emailId, 
+					$params->userId, $params->sender, json_encode($mailingList),
+					$params->subject, $params->message
+				]);
+
+				$this->db->commit();
+
+				return true;
+			}
+
+			return false;
+
+		} catch(PDOException $e) {
+			$this->db->rollBack();
+			return $e->getMessage();
+		}
+    }
+
+    /**
+     * Add the email attachments
+     */
+    public function addEmailAttachment($emailId = null, $clientId) {
+
+		try {
+			//: Process the email attachments
+			if(!empty($this->session->tempAttachments) && is_array($this->session->tempAttachments)) {
+				
+				// using foreach loop to get the list of attached documents
+				foreach($this->session->tempAttachments as $key => $values) {
+					
+					//: Insert the documents
+					$stmt = $this->db->prepare("
+						INSERT INTO emails_attachments SET 
+							client_guid = ?, email_guid = ?, document_name = ?, document_link = ?,
+							document_type = ?, document_size = ?
+					");
+					$stmt->execute([
+						$clientId, $emailId, $values['item_value'],
+						$values['item_id'], $values['fifth_item'], $values['item_name']
+					]);
+
+					// copy each file and send it into the main directory
+					$file_newname = 'assets/emails/docs/'.$values['item_id'];
+					$file_oldname = 'assets/emails/tmp/'.$values['item_id'];
+					
+					// first copy the file to a separate folder
+					copy($file_oldname, $file_newname);
+
+					// delete the old file
+					unlink($file_oldname);
+				}
+
+			}
+		} catch(PDOException $e) {
+			return false;
+		}
+
+	}
 
 }
 ?>

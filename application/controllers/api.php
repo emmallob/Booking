@@ -522,10 +522,10 @@ class Api {
                     "send" => [
                         "description" => "Send Email to the list of receipients",
                         "params" => [
-                            "sender" => "The Email to send the message from",
-                            "subject" => "The subject of th mail",
-                            "content" => "The content of the email message",
-                            "recipients" => "The recipients to receive the email"
+                            "sender" => "required - The Email to send the message from",
+                            "subject" => "required - The subject of th mail",
+                            "message" => "required - The content of the email message",
+                            "recipients" => "required - The recipients to receive the email"
                         ]
                     ]
                 ]
@@ -1208,11 +1208,13 @@ class Api {
             // send email message
             elseif( $this->outer_url == "send" ) {
                 // update the user theme color
-                $request = $objectClass->sendEmail();
+                $request = $objectClass->sendEmail($params);
                 // if the request was successful
-                if($request) {
-                    $result['result'] = $request;
+                if($request == "Sent") {
+                    $result['result'] = "The Email was succesfully sent to the list of recipients";
                     $code = 200;
+                } else {
+                    $result['result'] = $request;
                 }
             }
 

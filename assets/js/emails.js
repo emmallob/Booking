@@ -160,7 +160,7 @@ $(`form[class="submitEmailForm"]`).on('submit', function(e) {
         recipients = $(`input[name="recipients"]`).val(),
         content = htmlEntities($(`textarea[data-editor="summernote"]`).val());
 
-    let payload = `{"sender":"${sender}","subject":"${subject}","content":"${content}","recipients":"${recipients}"}`;
+    let payload = `{"sender":"${sender}","subject":"${subject}","message":"${content}","recipients":"${recipients}"}`;
 
     $.ajax({
         type: "POST",
