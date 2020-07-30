@@ -366,7 +366,7 @@ class Users extends Booking {
             
         // record the email sending to be processed by the cron job
         $sms = $this->db->prepare("
-            INSERT INTO email_list 
+            INSERT INTO users_email_list 
             SET clientId = ?, template_type = ?, item_guid = ?, recipients_list = ?,
                 request_performed_by = ?, message = ?, subject = ?
         ");
@@ -645,7 +645,7 @@ class Users extends Booking {
 
 			// record the email sending to be processed by the cron job
 			$sms = $this->db->prepare("
-				INSERT INTO email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
+				INSERT INTO users_email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, message = ?, subject = ?
 			");
 			$sms->execute([
 				$params->clientId, 'general', $params->userId, json_encode($userEmail), $params->curUserId, $emailMessage, $emailSubject

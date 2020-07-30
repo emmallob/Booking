@@ -24,6 +24,9 @@ require "headtags.php";
                 <div class="row" style="width:100%">
                     <div class="col-lg-12 col-md-12">
                         <p class="float-right forSMS badge badge-dark font-13 p-2 mt-1" id="get-sms-balance"></p>
+                        <button class="col-lg-2 btn btn-sm btn-primary top-up-sms" style="height: 25px;margin-top: 5px;padding-top: 0px;padding-bottom: 0;">
+                            Top Up <span class="mdi mdi-coins"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -100,9 +103,6 @@ require "headtags.php";
                                                         <p class="mb-0 chat-date"></p>
                                                     </div>
                                                     <p class="type-message d-none badge badge-soft-dark text-left col-2 font-13 p-2">SMS Cost: <span id="showSMSCost">0 Unit(s)</span></p>
-                                                    <button class="col-lg-2 btn btn-sm d-none btn-primary top-up-sms top-up-sms-activate" style="height: 25px;margin-top: 5px;padding-top: 0px;padding-bottom: 0;">
-                                                        Top Up <span class="mdi mdi-coins"></span>
-                                                    </button>
                                                 </div><!-- end media-body -->
                                             </a><!--end media-->
                                         </div><!-- end chat-header -->

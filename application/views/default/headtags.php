@@ -260,8 +260,6 @@ $accessObject->userId = $userId;
 								<a class="nav-link" href="<?= $baseUrl ?>events-report">Events</a>
 							</nav>
 						</div>
-
-
 						<?php if($accessObject->hasAccess("manage", "account")) { ?>
 						<a class="nav-link" href="<?= $baseUrl ?>configuration">
 							<div class="nav-link-icon"><i data-feather="filter"></i></div>

@@ -48,7 +48,7 @@ if($usersClass->logged_InControlled()) {
                         <div class="row justify-content-center">
                             <div class="col-lg-5">
                                 <div class="card shadow-lg border-0 rounded-lg mt-5">
-                                    <div class="card-header justify-content-center"><h3 class="font-weight-light my-4">Login</h3></div>
+                                    <div class="card-header justify-content-center"><h1 class="my-4"><strong><?= config_item("site_name") ?></strong></h1></div>
                                     <div class="card-body">
                                         <form method="POST" id="authForm" action="<?= $baseUrl ?>auth/login">
                                             <div class="form-group"><label class="small mb-1" for="inputEmailAddress">Email</label>

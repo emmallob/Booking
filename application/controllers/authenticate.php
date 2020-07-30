@@ -122,7 +122,7 @@ class Authenticate extends Booking {
                     $stmt->execute();
 
                     #remove the item from the mailing list
-                    $stmt = $this->db->prepare("UPDATE email_list SET deleted='1' WHERE item_guid='{$user_id}' AND template_type='recovery'");
+                    $stmt = $this->db->prepare("UPDATE users_email_list SET deleted='1' WHERE item_guid='{$user_id}' AND template_type='recovery'");
                     $stmt->execute();
                     
                     #process the form
@@ -148,7 +148,7 @@ class Authenticate extends Booking {
 
                     // insert the email content to be processed by the cron job
                     $stmt = $this->db->prepare("
-                        INSERT INTO email_list 
+                        INSERT INTO users_email_list 
                         SET client_guid = ?, template_type = ?, item_guid   = ?, recipients_list = ?,
                             request_performed_by = ?, subject = ?, message = ?
                     ");
@@ -253,7 +253,7 @@ class Authenticate extends Booking {
 
                     // add to the email list to be sent by a cron job
                     $stmt = $this->db->prepare("
-                        INSERT INTO email_list 
+                        INSERT INTO users_email_list 
                         SET client_guid = ?, template_type = ?, item_guid  = ?, recipients_list = ?, request_performed_by = ?, subject = ?, message = ?
                     ");
                     $stmt->execute([

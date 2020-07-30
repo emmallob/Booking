@@ -301,10 +301,8 @@ var calculateSMSUnitCost = () => {
         }
         totalCost = (totalContact > 0 && unit > 0) ? (totalContact * unit) : 0;
         if (totalCost > $("[data-sms-balance]").data("sms-balance")) {
-            $(".top-up-sms-activate").removeClass("d-none");
             $(".send-message:visible").attr("disabled", "disabled");
         } else {
-            $(".top-up-sms-activate").addClass("d-none");
             $(".send-message:visible").prop("disabled", false);
         }
         $("#showSMSCost").html(totalCost + " Unit(s)");
@@ -318,28 +316,70 @@ var getMultiSelectValues = () => {
     });
 }
 
-var topUpSMSUnit = () => {
-    $(".top-up-sms").on("click", function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: `${baseUrl}api/sms/topup-form`,
-            type: "GET",
-            dataType: "json",
-            beforeSend: function() {
-                $(`.launchModal`).modal("show");
-                $(".show-modal-title").html(`<span class="mdi mdi-coins"></span> SMS Top Up`);
-                $(".show-modal-body").html(`<p class="text-center mt-2 mb-2"><span class="fa fa-spinner fa-spin"></span></p>`);
-            },
-            success: function(response) {
-                $(".show-modal-body").html(response.data.result);
-            },
-            error: function() {
-                $(".show-modal-body").html(`<p class="text-center alert alert-danger mt-2 mb-2">Error Processing Request.</p>`);
-            }
-        });
+$(".top-up-sms").on("click", function(e) {
+    $(`[id="topupFormModal"]`).modal("show");
+});
+
+var smsCalculate = () => {
+    $(`form[id="topup-form"] input[name="topup-amount"]`).on('input', function() {
+        let amount = parseInt($(this).val());
+        if (amount > 1000) {
+            $(this).val(1000);
+        }
+        let smsunit = (amount * 50) / 10
+        if (!isNaN(smsunit)) {
+            $(`form[id="topup-form"] input[name="topup-unit"]`).val(smsunit);
+        } else {
+            $(`form[id="topup-form"] input[name="topup-unit"]`).val(0);
+        }
+    });
+    $(`form[id="topup-form"] button[type="submit"]`).on("click", function() {
+        let amount = parseInt($(`form[id="topup-form"] input[name="topup-amount"]`).val());
+
+        if (isNaN(amount) || amount == 0) {
+            Toast.fire({
+                'title': 'Sorry! Please enter an amount',
+                'type': 'error'
+            });
+        } else {
+            $(`form div[class="form-content-loader"]`).css("display", "flex");
+
+            var payload = '{"amount":"' + amount + '"}';
+
+            $.ajax({
+                type: `POST`,
+                url: `${baseUrl}api/sms/topup`,
+                data: payload,
+                dataType: 'json',
+                success: function(response) {
+                    Toast.fire({
+                        'title': response.data.result,
+                        'type': responseCode(response.code)
+                    });
+
+                    if (response.code == 200) {
+                        $(`form[id="topup-form"] input[name="topup-amount"]`).val(0);
+                        $(`form[id="topup-form"] input[name="topup-unit"]`).val(0);
+                        $(`.launchModal`).modal("hide");
+                    }
+                },
+                complete: function() {
+                    $(`form div[class="form-content-loader"]`).css("display", "none");
+                },
+                error: function() {
+                    Toast.fire({
+                        'title': 'Sorry! There was an error while processing the request.',
+                        'type': 'error'
+                    });
+                    $(`form div[class="form-content-loader"]`).css("display", "none");
+                }
+            }).catch(() => {
+                $(`form div[class="form-content-loader"]`).css("display", "none");
+            })
+        }
     });
 }
-topUpSMSUnit();
+smsCalculate();
 
 $("button[class~='cancel-message']").on("click", function(e) {
     $("#smsText").val("");
@@ -454,3 +494,39 @@ var sendBulkMessage = () => {
 
 }
 sendBulkMessage();
+
+var populateTopupList = (data) => {
+    $(`table[class~="smsTopupList"]`).dataTable().fnDestroy();
+    $(`table[class~="smsTopupList"]`).dataTable({
+        "aaData": data,
+        "iDisplayLength": 10,
+        "columns": [
+            { "data": 'row_id' },
+            { "data": 'request_date' },
+            { "data": 'request_by' },
+            { "data": 'amount' },
+            { "data": 'smsunit' },
+            { "data": 'status' },
+            { "data": 'action' }
+        ]
+    });
+    $(`table th:last`).removeClass('sorting');
+    deleteItem();
+    $(`div[class="form-content-loader"]`).css("display", "none");
+}
+
+async function fetchTopupList() {
+    if ($(`table[class~="smsTopupList"]`).length) {
+        $.ajax({
+            url: baseUrl + "apis/sms/topup-list",
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+                populateTopupList(response.data.result);
+            },
+            error: function() {},
+            complete: function() {}
+        });
+    }
+}
+fetchTopupList();

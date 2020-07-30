@@ -481,6 +481,9 @@ class Api {
                             "msg_type" => "required - This is the type of message to send",
                             "recipient" => "required - The receipient group to receive the message."
                         ]
+                    ],
+                    "topup-list" => [
+                        "params" => []
                     ]
                 ],
                 "POST" => [
@@ -491,6 +494,11 @@ class Api {
                             "category" => "required - The category of messages to receive",
                             "data" => "This is an additional data to parse together with the recipient category",
                             "unit" => "The unit of messages to send out to the uses."
+                        ]
+                    ],
+                    "topup" => [
+                        "params" => [
+                            "amount" => "required - The amount of SMS bundle to purchase"
                         ]
                     ]
                 ]
@@ -1386,6 +1394,28 @@ class Api {
             // list the history of the messages
             elseif($this->outer_url == "history") {
                 $request = $commObj->smsHistory($params);
+                if($request) {
+                    $code = 200;
+                    $result['result'] = $request;
+                }
+            }
+
+            // topup sms balance
+            elseif($this->outer_url == "topup") {
+                // parse the request
+                $request = $commObj->topupSMS($params);
+                // 
+                if($request) {
+                    $code = 200;
+                    $result['result'] = $request;
+                }
+            }
+
+            // topup sms balance
+            elseif($this->outer_url == "topup-list") {
+                // parse the request
+                $request = $commObj->topupList($params);
+                // 
                 if($request) {
                     $code = 200;
                     $result['result'] = $request;

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 29, 2020 at 09:31 AM
+-- Generation Time: Jul 31, 2020 at 12:21 AM
 -- Server version: 10.4.8-MariaDB
 -- PHP Version: 7.3.18
 
@@ -27,7 +27,6 @@ SET time_zone = "+00:00";
 -- Table structure for table `alerts`
 --
 
-DROP TABLE IF EXISTS `alerts`;
 CREATE TABLE `alerts` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -43,7 +42,6 @@ CREATE TABLE `alerts` (
 -- Table structure for table `country`
 --
 
-DROP TABLE IF EXISTS `country`;
 CREATE TABLE `country` (
   `id` int(11) NOT NULL,
   `country_name` varchar(255) NOT NULL,
@@ -311,7 +309,6 @@ INSERT INTO `country` (`id`, `country_name`, `country_code`) VALUES
 -- Table structure for table `departments`
 --
 
-DROP TABLE IF EXISTS `departments`;
 CREATE TABLE `departments` (
   `id` int(10) UNSIGNED NOT NULL,
   `client_guid` varchar(255) DEFAULT NULL,
@@ -335,38 +332,59 @@ INSERT INTO `departments` (`id`, `client_guid`, `department_guid`, `department_n
 -- --------------------------------------------------------
 
 --
--- Table structure for table `email_list`
+-- Table structure for table `emails`
 --
 
-DROP TABLE IF EXISTS `email_list`;
-CREATE TABLE `email_list` (
+CREATE TABLE `emails` (
   `id` int(11) NOT NULL,
-  `client_guid` varchar(32) DEFAULT 'NULL',
-  `template_type` enum('general','sign_up','login','recovery','receipt','ticket') DEFAULT NULL,
-  `item_guid` varchar(32) DEFAULT NULL,
-  `recipients_list` text DEFAULT NULL,
-  `date_requested` datetime DEFAULT current_timestamp(),
-  `sent_status` enum('0','1') DEFAULT '0',
-  `subject` varchar(255) DEFAULT NULL,
-  `message` text DEFAULT NULL,
-  `request_performed_by` varchar(255) DEFAULT NULL,
-  `deleted` enum('0','1') DEFAULT '0',
-  `date_sent` datetime DEFAULT NULL
+  `client_guid` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'The company sending the message',
+  `email_guid` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `user_guid` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'User in the company who sent the message',
+  `sent_via` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `label` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `favourite` enum('0','1') COLLATE utf8_unicode_ci DEFAULT '0',
+  `recipient` text COLLATE utf8_unicode_ci DEFAULT NULL,
+  `copy_to` text COLLATE utf8_unicode_ci DEFAULT NULL,
+  `subject` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `message` text COLLATE utf8_unicode_ci DEFAULT NULL,
+  `date_sent` datetime DEFAULT current_timestamp(),
+  `email_status` enum('Pending','Sent','Delivered','Failed','Draft') COLLATE utf8_unicode_ci DEFAULT 'Pending',
+  `email_state` enum('inbox','trash','draft','sent') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'sent',
+  `status` enum('0','1','2') COLLATE utf8_unicode_ci DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `emails`
+--
+
+INSERT INTO `emails` (`id`, `client_guid`, `email_guid`, `user_guid`, `sent_via`, `label`, `favourite`, `recipient`, `copy_to`, `subject`, `message`, `date_sent`, `email_status`, `email_state`, `status`) VALUES
+(1, '244444', 'ROEz7XQqgu9n50Vw6PmYWC8oMyZsc', 'KidkkL949', 'emmallob14@gmail.com', NULL, '0', '[{\"fullname\":\"emmallob14@gmail.com\",\"email_address\":\"emmallob14@gmail.com\"}]', NULL, 'subject of the message', '&lt;p&gt;the content of hte message to send out to the users.&lt;/p&gt;&lt;p&gt;content of the message&lt;/p&gt;', '2020-07-30 18:21:06', 'Pending', 'sent', '1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `emails_attachments`
+--
+
+CREATE TABLE `emails_attachments` (
+  `id` int(11) NOT NULL,
+  `client_guid` varchar(32) DEFAULT NULL,
+  `email_guid` varchar(32) DEFAULT NULL,
+  `document_name` varchar(255) DEFAULT NULL,
+  `document_link` varchar(255) DEFAULT NULL,
+  `document_type` varchar(25) DEFAULT NULL,
+  `document_size` varchar(25) DEFAULT NULL,
+  `document_size_actual` varchar(25) DEFAULT NULL,
+  `date_log` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `email_list`
+-- Dumping data for table `emails_attachments`
 --
 
-INSERT INTO `email_list` (`id`, `client_guid`, `template_type`, `item_guid`, `recipients_list`, `date_requested`, `sent_status`, `subject`, `message`, `request_performed_by`, `deleted`, `date_sent`) VALUES
-(1, '244444', 'general', 'FW651874392', '{\"recipients_list\":[{\"fullname\":\"testuser name\",\"email\":\"testusername@mail.com\",\"customer_id\":\"FW651874392\"}]}', '2020-07-16 21:22:01', '0', 'Account Setup \\[BookingLog\\]\n', 'Hello testuser name,\nYou have been added as a user on <strong>Kwesi Dickson Memorial Methodist Society</strong> to help manage the Account.\n\nYour username to be used for login is <strong>testusername</strong>\nYou can use your previous password to continue to login.\nPlease <a href=\'http://localhost/booking/verify/account?token=Uq6zTIrIweB7A5sByw18YOov3y8UJWha2JVFVS4Dkh4bMRiK2DxP0QNunbGZdL0YmpRGltzE3f\'><strong>Click Here</strong></a> to verify your Email Address.\n\n', 'KidkkL949', '0', NULL),
-(2, '244444', 'recovery', 'KidkkL949', '{\"recipients_list\":[{\"fullname\":\"Demo User\",\"email\":\"admin@mail.com\",\"customer_id\":\"KidkkL949\"}]}', '2020-07-16 22:17:18', '0', '[BookingLog] Change Password', 'Hi Demo User<br>You have requested to reset your password at BookingLog<br><br>Before you can reset your password please follow this link.<br><br><a class=\"alert alert-success\" href=\"http://localhost/booking/verify?password&token=y9tLxbw1OUD2Z8ck05KWNRvjo3hgpABGsMrqfIuJQneFl4V7ETXYadC6Pizm\">Click Here to Reset Password</a><br><br>If it does not work please copy this link and place it in your browser url.<br><br>http://localhost/booking/verify?password&token=y9tLxbw1OUD2Z8ck05KWNRvjo3hgpABGsMrqfIuJQneFl4V7ETXYadC6Pizm', 'KidkkL949', '0', NULL),
-(3, '244444', 'recovery', 'KidkkL949', '{\"recipients_list\":[{\"fullname\":\"Demo User\",\"email\":\"admin@mail.com\",\"customer_id\":\"KidkkL949\"}]}', '2020-07-16 22:17:53', '0', '[BookingLog] Change Password', 'Hi Demo User<br>You have successfully changed your password at BookingLog<br><br>Do ignore this message if your rightfully effected this change.<br><br>If not, do <a class=\"alert alert-success\" href=\"http://localhost/booking/recover\">Click Here</a> if you did not perform this act.', 'KidkkL949', '0', NULL),
-(4, '244444', 'general', 'FW917546832', '{\"recipients_list\":[{\"fullname\":\"afdadafdaf\",\"email\":\"admin@mail.com\",\"customer_id\":\"FW917546832\"}]}', '2020-07-17 10:00:37', '0', 'Account Setup \\[BookingLog\\]\n', 'Hello afdadafdaf,\nYou have been added as a user on <strong>Kwesi Dickson Memorial Methodist Society</strong> to help manage the Account.\n\nYour username to be used for login is <strong>admin</strong>\nYou can use your previous password to continue to login.\nPlease <a href=\'http://localhost/booking/verify/account?token=TFK6pw2NGeoJA3J7dxh8LrMWzsOVZfbHV8USNRv29ZYcMSFXt0qKRloxsaAEDTOuP0uY1\'><strong>Click Here</strong></a> to verify your Email Address.\n\n', 'KidkkL9491', '0', NULL),
-(5, '244444', 'recovery', 'FW917546832', '{\"recipients_list\":[{\"fullname\":\"afdadafdaf\",\"email\":\"moderator@mail.com\",\"customer_id\":\"FW917546832\"}]}', '2020-07-17 10:04:29', '0', '[BookingLog] Change Password', 'Hi afdadafdaf<br>You have successfully changed your password at BookingLog<br><br>Do ignore this message if your rightfully effected this change.<br><br>If not, do <a class=\"alert alert-success\" href=\"http://localhost/booking/recover\">Click Here</a> if you did not perform this act.', 'FW917546832', '0', NULL),
-(12, '244444', 'ticket', 'DZ000046', '{\"recipients_list\":[{\"fullname\":\"Emmanuella Darko\",\"email\":\"jauntybae@gmail.com\",\"contact\":\"04849940049\"}]}', '2020-07-29 07:04:20', '0', 'Event: Ticket Based Event Ticket', 'Hi Emmanuella Darko, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000046. Thank you.', 'KidkkL949', '0', NULL),
-(13, '244444', 'ticket', 'DZ000019', '{\"recipients_list\":[{\"fullname\":\"Emmanuel Obeng\",\"email\":\"emmallob14@gmail.com\",\"contact\":\"0550107770\"}]}', '2020-07-29 07:06:12', '0', 'Event: Ticket Based Event Ticket', 'Hi Emmanuel Obeng, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000019. Thank you.', 'KidkkL949', '0', NULL),
-(14, '244444', 'ticket', 'DZ000008', '{\"recipients_list\":[{\"fullname\":\"Name of Person\",\"email\":\"nameofperson@mail.com\",\"contact\":\"0203317732\"}]}', '2020-07-29 07:07:54', '0', 'Event: Ticket Based Event Ticket', 'Hi Name of Person, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000008. Thank you.', 'KidkkL949', '0', NULL);
+INSERT INTO `emails_attachments` (`id`, `client_guid`, `email_guid`, `document_name`, `document_link`, `document_type`, `document_size`, `document_size_actual`, `date_log`) VALUES
+(1, '244444', 'ROEz7XQqgu9n50Vw6PmYWC8oMyZsc', 'Programmes Lineup', 'aLI8UsdxlNHQXrEfkhM10S723', 'xlsx', '13.08KB', NULL, '2020-07-30 18:21:06'),
+(2, '244444', 'ROEz7XQqgu9n50Vw6PmYWC8oMyZsc', 'Numbering', 'o0QJRXjtN5VplLmIKhCEcdBen', 'xlsx', '11.54KB', NULL, '2020-07-30 18:21:06');
 
 -- --------------------------------------------------------
 
@@ -374,7 +392,6 @@ INSERT INTO `email_list` (`id`, `client_guid`, `template_type`, `item_guid`, `re
 -- Table structure for table `events`
 --
 
-DROP TABLE IF EXISTS `events`;
 CREATE TABLE `events` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -414,7 +431,6 @@ INSERT INTO `events` (`id`, `client_guid`, `event_guid`, `event_title`, `event_s
 -- Table structure for table `events_booking`
 --
 
-DROP TABLE IF EXISTS `events_booking`;
 CREATE TABLE `events_booking` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -457,7 +473,6 @@ INSERT INTO `events_booking` (`id`, `client_guid`, `event_guid`, `hall_guid`, `s
 -- Table structure for table `events_halls_configuration`
 --
 
-DROP TABLE IF EXISTS `events_halls_configuration`;
 CREATE TABLE `events_halls_configuration` (
   `id` int(11) NOT NULL,
   `event_guid` varchar(32) DEFAULT NULL,
@@ -490,7 +505,6 @@ INSERT INTO `events_halls_configuration` (`id`, `event_guid`, `hall_guid`, `hall
 -- Table structure for table `events_media`
 --
 
-DROP TABLE IF EXISTS `events_media`;
 CREATE TABLE `events_media` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -517,7 +531,6 @@ INSERT INTO `events_media` (`id`, `client_guid`, `event_guid`, `created_date`, `
 -- Table structure for table `halls`
 --
 
-DROP TABLE IF EXISTS `halls`;
 CREATE TABLE `halls` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -553,7 +566,6 @@ INSERT INTO `halls` (`id`, `client_guid`, `hall_guid`, `rows`, `columns`, `seats
 -- Table structure for table `messages`
 --
 
-DROP TABLE IF EXISTS `messages`;
 CREATE TABLE `messages` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -586,10 +598,39 @@ INSERT INTO `messages` (`id`, `client_guid`, `unique_guid`, `related_item`, `rel
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sms_purchases`
+--
+
+CREATE TABLE `sms_purchases` (
+  `id` int(11) NOT NULL,
+  `client_guid` varchar(32) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+  `request_unique_id` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `transaction_id` varchar(12) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `sms_capacity` int(11) NOT NULL DEFAULT 0,
+  `package_price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `user_guid` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `previous_balance` int(11) DEFAULT 0,
+  `current_balance` int(11) NOT NULL DEFAULT 0,
+  `request_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `request_status` enum('Pending','Processed','Cancelled') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Pending',
+  `cancelled_date` datetime DEFAULT NULL,
+  `status` enum('0','1') COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+  `processed_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `sms_purchases`
+--
+
+INSERT INTO `sms_purchases` (`id`, `client_guid`, `request_unique_id`, `transaction_id`, `sms_capacity`, `package_price`, `user_guid`, `previous_balance`, `current_balance`, `request_date`, `request_status`, `cancelled_date`, `status`, `processed_date`) VALUES
+(1, '244444', 'l1XuHMWBG4rbno3hY6NsQgmjfRiwtqxkZTzO50Vv8Ka2C7UFcLE', '100000000001', 220, '44.00', 'KidkkL949', 0, 0, '2020-07-30 21:35:24', 'Pending', NULL, '0', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sms_subscribers`
 --
 
-DROP TABLE IF EXISTS `sms_subscribers`;
 CREATE TABLE `sms_subscribers` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
@@ -611,7 +652,6 @@ INSERT INTO `sms_subscribers` (`id`, `client_guid`, `sms_package`, `sms_units`, 
 -- Table structure for table `tickets`
 --
 
-DROP TABLE IF EXISTS `tickets`;
 CREATE TABLE `tickets` (
   `id` int(11) UNSIGNED NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -634,7 +674,7 @@ CREATE TABLE `tickets` (
 --
 
 INSERT INTO `tickets` (`id`, `client_guid`, `ticket_guid`, `ticket_title`, `number_generated`, `number_sold`, `number_left`, `is_payable`, `ticket_amount`, `created_on`, `created_by`, `generated`, `activated`, `status`) VALUES
-(1, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'Tickets to use for some events', 100, 8, 92, '1', 40.00, '2020-07-05 17:06:32', 'KidkkL949', 'yes', '1', '1'),
+(1, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'Tickets to use for some events', 100, 9, 91, '1', 40.00, '2020-07-05 17:06:32', 'KidkkL949', 'yes', '1', '1'),
 (2, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'Another Ticket for Event', 300, 0, 0, '1', 100.00, '2020-07-05 17:06:57', 'KidkkL949', 'yes', '1', '1');
 
 -- --------------------------------------------------------
@@ -643,7 +683,6 @@ INSERT INTO `tickets` (`id`, `client_guid`, `ticket_guid`, `ticket_title`, `numb
 -- Table structure for table `tickets_listing`
 --
 
-DROP TABLE IF EXISTS `tickets_listing`;
 CREATE TABLE `tickets_listing` (
   `id` int(11) UNSIGNED NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -660,13 +699,419 @@ CREATE TABLE `tickets_listing` (
   `created_on` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `tickets_listing`
+--
+
+INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_serial`, `ticket_amount`, `sold_state`, `sold_by`, `bought_by`, `used_date`, `event_booked`, `status`, `created_by`, `created_on`) VALUES
+(1, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000001', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(2, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000002', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(3, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000003', 40.00, '1', 'Emmanuel Obeng', 'Emmauel Obeng', '2020-07-15 05:50:19', 'yo5xv0MFGRI6LdEjzNY7Xr4fkJ8K1m3W', 'used', NULL, '2020-07-05 17:06:32'),
+(4, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000004', 40.00, '1', NULL, NULL, '2020-07-15 06:08:03', 'yo5xv0MFGRI6LdEjzNY7Xr4fkJ8K1m3W', 'used', NULL, '2020-07-05 17:06:32'),
+(5, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000005', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(6, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000006', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(7, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000007', 40.00, '1', NULL, NULL, '2020-07-17 12:23:23', 'yo5xv0MFGRI6LdEjzNY7Xr4fkJ8K1m3W', 'used', NULL, '2020-07-05 17:06:32'),
+(8, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000008', 40.00, '1', 'KidkkL949', 'Name of Person - 0203317732', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(9, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000009', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(10, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000010', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(11, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000011', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(12, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000012', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(13, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000013', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(14, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000014', 40.00, '1', NULL, NULL, '2020-07-17 12:30:33', 'yo5xv0MFGRI6LdEjzNY7Xr4fkJ8K1m3W', 'used', NULL, '2020-07-05 17:06:32'),
+(15, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000015', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(16, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000016', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(17, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000017', 40.00, '1', NULL, NULL, '2020-07-17 12:44:12', 'yo5xv0MFGRI6LdEjzNY7Xr4fkJ8K1m3W', 'used', NULL, '2020-07-05 17:06:32'),
+(18, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000018', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(19, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000019', 40.00, '1', 'KidkkL949', 'Emmanuel Obeng - 0550107770', NULL, NULL, 'invalid', NULL, '2020-07-05 17:06:32'),
+(20, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000020', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(21, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000021', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(22, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000022', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(23, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000023', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(24, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000024', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(25, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000025', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(26, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000026', 40.00, '1', 'KidkkL949', 'The name of the person - 0550107', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(27, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000027', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(28, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000028', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(29, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000029', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(30, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000030', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(31, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000031', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(32, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000032', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(33, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000033', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(34, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000034', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(35, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000035', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(36, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000036', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(37, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000037', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(38, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000038', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(39, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000039', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(40, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000040', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(41, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000041', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(42, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000042', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(43, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000043', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(44, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000044', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(45, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000045', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(46, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000046', 40.00, '1', 'KidkkL949', 'Emmanuella Darko - 04849940049', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(47, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000047', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(48, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000048', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(49, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000049', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(50, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000050', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(51, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000051', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(52, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000052', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(53, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000053', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(54, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000054', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(55, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000055', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(56, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000056', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(57, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000057', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(58, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000058', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(59, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000059', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(60, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000060', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(61, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000061', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(62, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000062', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(63, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000063', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(64, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000064', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(65, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000065', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(66, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000066', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(67, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000067', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(68, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000068', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(69, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000069', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(70, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000070', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(71, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000071', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(72, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000072', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(73, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000073', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(74, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000074', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(75, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000075', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(76, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000076', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(77, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000077', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(78, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000078', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(79, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000079', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(80, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000080', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(81, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000081', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(82, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000082', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(83, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000083', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(84, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000084', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(85, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000085', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(86, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000086', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(87, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000087', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(88, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000088', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(89, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000089', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(90, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000090', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(91, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000091', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(92, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000092', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(93, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000093', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(94, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000094', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(95, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000095', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(96, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000096', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(97, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000097', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(98, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000098', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(99, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000099', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(100, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000100', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(101, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000001', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(102, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000002', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(103, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000003', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(104, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000004', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(105, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000005', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(106, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000006', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(107, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000007', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(108, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000008', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(109, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000009', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(110, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000010', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(111, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000011', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(112, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000012', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(113, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000013', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(114, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000014', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(115, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000015', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(116, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000016', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(117, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000017', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(118, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000018', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(119, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000019', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(120, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000020', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(121, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000021', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(122, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000022', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(123, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000023', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(124, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000024', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(125, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000025', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(126, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000026', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(127, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000027', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(128, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000028', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(129, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000029', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(130, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000030', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(131, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000031', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(132, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000032', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(133, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000033', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(134, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000034', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(135, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000035', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(136, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000036', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(137, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000037', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(138, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000038', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(139, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000039', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(140, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000040', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(141, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000041', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(142, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000042', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(143, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000043', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(144, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000044', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(145, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000045', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(146, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000046', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(147, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000047', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(148, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000048', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(149, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000049', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(150, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000050', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(151, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000051', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(152, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000052', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(153, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000053', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(154, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000054', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(155, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000055', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(156, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000056', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(157, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000057', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(158, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000058', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(159, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000059', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(160, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000060', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(161, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000061', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(162, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000062', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(163, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000063', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(164, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000064', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(165, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000065', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(166, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000066', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(167, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000067', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(168, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000068', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(169, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000069', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(170, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000070', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(171, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000071', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(172, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000072', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(173, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000073', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(174, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000074', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(175, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000075', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(176, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000076', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(177, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000077', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(178, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000078', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(179, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000079', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(180, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000080', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(181, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000081', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(182, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000082', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(183, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000083', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(184, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000084', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(185, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000085', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(186, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000086', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(187, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000087', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(188, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000088', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(189, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000089', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(190, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000090', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(191, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000091', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(192, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000092', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(193, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000093', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(194, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000094', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(195, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000095', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(196, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000096', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(197, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000097', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(198, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000098', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(199, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000099', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(200, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000100', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(201, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000101', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(202, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000102', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(203, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000103', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(204, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000104', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(205, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000105', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(206, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000106', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(207, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000107', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(208, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000108', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(209, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000109', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(210, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000110', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(211, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000111', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(212, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000112', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(213, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000113', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(214, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000114', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(215, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000115', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(216, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000116', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(217, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000117', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(218, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000118', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(219, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000119', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(220, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000120', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(221, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000121', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(222, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000122', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(223, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000123', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(224, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000124', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(225, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000125', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(226, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000126', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(227, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000127', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(228, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000128', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(229, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000129', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(230, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000130', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(231, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000131', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(232, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000132', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(233, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000133', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(234, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000134', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(235, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000135', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(236, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000136', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(237, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000137', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(238, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000138', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(239, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000139', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(240, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000140', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(241, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000141', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(242, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000142', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(243, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000143', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(244, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000144', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(245, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000145', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(246, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000146', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(247, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000147', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(248, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000148', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(249, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000149', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(250, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000150', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(251, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000151', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(252, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000152', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(253, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000153', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(254, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000154', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(255, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000155', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(256, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000156', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(257, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000157', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(258, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000158', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(259, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000159', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(260, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000160', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(261, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000161', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(262, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000162', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(263, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000163', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(264, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000164', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(265, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000165', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(266, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000166', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(267, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000167', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(268, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000168', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(269, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000169', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(270, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000170', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(271, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000171', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(272, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000172', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(273, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000173', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(274, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000174', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(275, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000175', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(276, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000176', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(277, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000177', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(278, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000178', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(279, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000179', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(280, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000180', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(281, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000181', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(282, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000182', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(283, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000183', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(284, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000184', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(285, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000185', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(286, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000186', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(287, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000187', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(288, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000188', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(289, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000189', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(290, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000190', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(291, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000191', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(292, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000192', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(293, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000193', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(294, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000194', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(295, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000195', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(296, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000196', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(297, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000197', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(298, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000198', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(299, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000199', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(300, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000200', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(301, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000201', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(302, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000202', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(303, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000203', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(304, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000204', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(305, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000205', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(306, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000206', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(307, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000207', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(308, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000208', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(309, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000209', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(310, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000210', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(311, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000211', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(312, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000212', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(313, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000213', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(314, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000214', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(315, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000215', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(316, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000216', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(317, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000217', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(318, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000218', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(319, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000219', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(320, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000220', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(321, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000221', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(322, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000222', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(323, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000223', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(324, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000224', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(325, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000225', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(326, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000226', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(327, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000227', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(328, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000228', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(329, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000229', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(330, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000230', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(331, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000231', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(332, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000232', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(333, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000233', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(334, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000234', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(335, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000235', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(336, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000236', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(337, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000237', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(338, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000238', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(339, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000239', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(340, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000240', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(341, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000241', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(342, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000242', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(343, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000243', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(344, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000244', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(345, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000245', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(346, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000246', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(347, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000247', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(348, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000248', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(349, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000249', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(350, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000250', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(351, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000251', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(352, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000252', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(353, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000253', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(354, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000254', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57');
+INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_serial`, `ticket_amount`, `sold_state`, `sold_by`, `bought_by`, `used_date`, `event_booked`, `status`, `created_by`, `created_on`) VALUES
+(355, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000255', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(356, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000256', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(357, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000257', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(358, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000258', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(359, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000259', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(360, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000260', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(361, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000261', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(362, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000262', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(363, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000263', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(364, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000264', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(365, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000265', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(366, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000266', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(367, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000267', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(368, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000268', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(369, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000269', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(370, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000270', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(371, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000271', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(372, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000272', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(373, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000273', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(374, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000274', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(375, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000275', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(376, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000276', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(377, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000277', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(378, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000278', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(379, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000279', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(380, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000280', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(381, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000281', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(382, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000282', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(383, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000283', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(384, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000284', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(385, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000285', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(386, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000286', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(387, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000287', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(388, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000288', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(389, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000289', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(390, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000290', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(391, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000291', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(392, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000292', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(393, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000293', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(394, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000294', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(395, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000295', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(396, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000296', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(397, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000297', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(398, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000298', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(399, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000299', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
+(400, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000300', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `ticket_purchases`
 --
 
-DROP TABLE IF EXISTS `ticket_purchases`;
 CREATE TABLE `ticket_purchases` (
   `id` int(11) NOT NULL,
   `ticket_id` varchar(32) DEFAULT NULL,
@@ -684,7 +1129,8 @@ CREATE TABLE `ticket_purchases` (
 INSERT INTO `ticket_purchases` (`id`, `ticket_id`, `event_id`, `fullname`, `contact`, `email`, `date_created`) VALUES
 (7, '46', '2', 'Emmanuella Darko', '04849940049', 'jauntybae@gmail.com', '2020-07-29 07:06:50'),
 (8, '19', '2', 'Emmanuel Obeng', '0550107770', 'emmallob14@gmail.com', '2020-07-29 07:06:50'),
-(9, '8', '2', 'Name of Person', '0203317732', 'nameofperson@mail.com', '2020-07-29 07:07:54');
+(9, '8', '2', 'Name of Person', '0203317732', 'nameofperson@mail.com', '2020-07-29 07:07:54'),
+(10, '26', '2', 'The name of the person', '0550107770', 'thenameoftheperson@gmail.com', '2020-07-30 06:14:17');
 
 -- --------------------------------------------------------
 
@@ -692,7 +1138,6 @@ INSERT INTO `ticket_purchases` (`id`, `ticket_id`, `event_id`, `fullname`, `cont
 -- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) UNSIGNED NOT NULL,
   `client_guid` varchar(32) CHARACTER SET latin1 DEFAULT NULL,
@@ -706,6 +1151,7 @@ CREATE TABLE `users` (
   `theme` enum('1','2') CHARACTER SET latin1 NOT NULL DEFAULT '2',
   `status` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
   `deleted` enum('0','1') CHARACTER SET latin1 NOT NULL DEFAULT '0',
+  `dashboard_settings` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT '{"navbar":"","theme":"light-theme"}',
   `verify_token` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
   `last_login` datetime DEFAULT current_timestamp(),
   `last_login_attempts_time` datetime DEFAULT current_timestamp(),
@@ -720,10 +1166,10 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `client_guid`, `user_guid`, `name`, `gender`, `email`, `username`, `password`, `access_level`, `theme`, `status`, `deleted`, `verify_token`, `last_login`, `last_login_attempts_time`, `contact`, `created_on`, `created_by`, `image`, `user_type`) VALUES
-(1, '244444', 'KidkkL949', 'Demo User', 'Male', 'admin@mail.com', 'adminuser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', NULL, '2020-07-29 05:00:49', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/profiles/nj7PqWXzRAcQH8mVKOurb1TYF.png', 'holder'),
-(2, '244444', 'KidkkL9491', 'Voucher User', 'Male', 'demouser@mail.com', 'demouser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', NULL, '2020-07-17 09:43:44', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/avatar.png', 'holder'),
-(3, '244444', 'FW917546832', 'Emmanuel Obeng Hyde', NULL, 'moderator@mail.com', 'moderator', '$2y$10$Q/MWA6VjnrmAHI3ZVPPi.O.2clgVSw6EvXeeRrn3t5VZAKp7ETBRa', 2, '2', '1', '0', NULL, '2020-07-17 10:04:42', '2020-07-17 10:00:37', '334343434343', '2020-07-17 10:00:37', 'KidkkL9491', 'assets/img/avatar.png', 'user');
+INSERT INTO `users` (`id`, `client_guid`, `user_guid`, `name`, `gender`, `email`, `username`, `password`, `access_level`, `theme`, `status`, `deleted`, `dashboard_settings`, `verify_token`, `last_login`, `last_login_attempts_time`, `contact`, `created_on`, `created_by`, `image`, `user_type`) VALUES
+(1, '244444', 'KidkkL949', 'Demo User', 'Male', 'admin@mail.com', 'adminuser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', '{\"navbar\":\"visible\",\"theme\":\"light-theme\"}', NULL, '2020-07-30 17:07:48', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/profiles/nj7PqWXzRAcQH8mVKOurb1TYF.png', 'holder'),
+(2, '244444', 'KidkkL9491', 'Voucher User', 'Male', 'demouser@mail.com', 'demouser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', '{\"navbar\":\"\",\"theme\":\"light-theme\"}', NULL, '2020-07-17 09:43:44', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/avatar.png', 'holder'),
+(3, '244444', 'FW917546832', 'Emmanuel Obeng Hyde', NULL, 'moderator@mail.com', 'moderator', '$2y$10$Q/MWA6VjnrmAHI3ZVPPi.O.2clgVSw6EvXeeRrn3t5VZAKp7ETBRa', 2, '2', '1', '0', '{\"navbar\":\"\",\"theme\":\"light-theme\"}', NULL, '2020-07-17 10:04:42', '2020-07-17 10:00:37', '334343434343', '2020-07-17 10:00:37', 'KidkkL9491', 'assets/img/avatar.png', 'user');
 
 -- --------------------------------------------------------
 
@@ -731,7 +1177,6 @@ INSERT INTO `users` (`id`, `client_guid`, `user_guid`, `name`, `gender`, `email`
 -- Table structure for table `users_access_levels`
 --
 
-DROP TABLE IF EXISTS `users_access_levels`;
 CREATE TABLE `users_access_levels` (
   `id` int(11) NOT NULL,
   `access_level_code` int(11) NOT NULL DEFAULT 6,
@@ -744,9 +1189,9 @@ CREATE TABLE `users_access_levels` (
 --
 
 INSERT INTO `users_access_levels` (`id`, `access_level_code`, `access_level_name`, `access_level_permissions`) VALUES
-(1, 1, 'Admin', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1,\"reports\":1},\"users\":{\"manage\":1,\"delete\":1,\"accesslevel\":1},\"account\":{\"manage\":1,\"subscription\":1}}}'),
+(1, 1, 'Admin', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1,\"return\":1,\"reports\":1},\"users\":{\"manage\":1,\"delete\":1,\"accesslevel\":1},\"account\":{\"manage\":1,\"subscription\":1},\"communications\":{\"manage\":1}}}'),
 (2, 2, 'Moderator', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1,\"reports\":1}}}'),
-(3, 3, 'Voucher Vendor', '{\"permissions\":{\"halls\":{\"list\":\"1\"},\"events\":{\"list\":1},\"departments\":{\"list\":1},\"tickets\":{\"list\":1,\"sell\":1,\"reports\":1}}}');
+(3, 3, 'Voucher Vendor', '{\"permissions\":{\"halls\":{\"list\":\"1\"},\"events\":{\"list\":1},\"departments\":{\"list\":1},\"tickets\":{\"list\":1,\"sell\":1,\"return\":1,\"reports\":1}}}');
 
 -- --------------------------------------------------------
 
@@ -754,7 +1199,6 @@ INSERT INTO `users_access_levels` (`id`, `access_level_code`, `access_level_name
 -- Table structure for table `users_accounts`
 --
 
-DROP TABLE IF EXISTS `users_accounts`;
 CREATE TABLE `users_accounts` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -786,7 +1230,6 @@ INSERT INTO `users_accounts` (`id`, `client_guid`, `client_abbr`, `client_key`, 
 -- Table structure for table `users_activity_logs`
 --
 
-DROP TABLE IF EXISTS `users_activity_logs`;
 CREATE TABLE `users_activity_logs` (
   `id` int(11) UNSIGNED NOT NULL,
   `client_guid` varchar(32) DEFAULT NULL,
@@ -806,7 +1249,14 @@ INSERT INTO `users_activity_logs` (`id`, `client_guid`, `user_guid`, `page`, `it
 (7, '244444', 'KidkkL949', 'ticket', 'DZ000046', '2020-07-29 07:04:20', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to Emmanuella Darko'),
 (8, '244444', 'KidkkL949', 'ticket', 'DZ000019', '2020-07-29 07:06:12', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to Emmanuel Obeng'),
 (9, '244444', 'KidkkL949', 'ticket', 'DZ000008', '2020-07-29 07:07:54', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to Name of Person'),
-(10, '244444', 'KidkkL949', 'departments', 'Mez6F1RuHKA32ZvLWnNYPJ4qr7waIcCj', '2020-07-29 07:38:19', 'Windows 10 | Chrome | ::1', 'Updated the details of the department.');
+(10, '244444', 'KidkkL949', 'departments', 'Mez6F1RuHKA32ZvLWnNYPJ4qr7waIcCj', '2020-07-29 07:38:19', 'Windows 10 | Chrome | ::1', 'Updated the details of the department.'),
+(11, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-29 19:39:02', 'Windows 10 | Chrome | ::1', 'Update the user details.'),
+(12, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-29 19:39:17', 'Windows 10 | Chrome | ::1', 'Update the user details.'),
+(13, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-29 19:39:27', 'Windows 10 | Chrome | ::1', 'Update the user details.'),
+(14, '244444', 'KidkkL949', 'ticket', '2', '2020-07-30 06:09:39', 'Windows 10 | Chrome | ::1', 'The ticket sold out to Emmanuel Obeng (0550107770) was returned.'),
+(15, '244444', 'KidkkL949', 'ticket', 'DZ000026', '2020-07-30 06:14:18', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to The name of the person'),
+(16, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-30 21:11:29', 'Windows 10 | Chrome | ::1', 'You have updated your account information.'),
+(17, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-30 21:11:49', 'Windows 10 | Chrome | ::1', 'You have updated your account information.');
 
 -- --------------------------------------------------------
 
@@ -814,7 +1264,6 @@ INSERT INTO `users_activity_logs` (`id`, `client_guid`, `user_guid`, `page`, `it
 -- Table structure for table `users_data_monitoring`
 --
 
-DROP TABLE IF EXISTS `users_data_monitoring`;
 CREATE TABLE `users_data_monitoring` (
   `id` int(11) NOT NULL,
   `client_guid` int(11) DEFAULT 1,
@@ -832,11 +1281,10 @@ CREATE TABLE `users_data_monitoring` (
 -- Table structure for table `users_email_list`
 --
 
-DROP TABLE IF EXISTS `users_email_list`;
 CREATE TABLE `users_email_list` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) DEFAULT 'NULL',
-  `template_type` enum('general','invoice','sign_up','login','recovery','request','receipt') DEFAULT NULL,
+  `template_type` enum('general','sign_up','login','recovery','receipt','ticket') DEFAULT NULL,
   `item_guid` varchar(32) DEFAULT NULL,
   `recipients_list` text DEFAULT NULL,
   `date_requested` datetime DEFAULT current_timestamp(),
@@ -862,7 +1310,6 @@ INSERT INTO `users_email_list` (`id`, `client_guid`, `template_type`, `item_guid
 -- Table structure for table `users_gender`
 --
 
-DROP TABLE IF EXISTS `users_gender`;
 CREATE TABLE `users_gender` (
   `id` int(11) NOT NULL,
   `name` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
@@ -883,7 +1330,6 @@ INSERT INTO `users_gender` (`id`, `name`) VALUES
 -- Table structure for table `users_login_history`
 --
 
-DROP TABLE IF EXISTS `users_login_history`;
 CREATE TABLE `users_login_history` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -901,7 +1347,12 @@ CREATE TABLE `users_login_history` (
 
 INSERT INTO `users_login_history` (`id`, `client_guid`, `user_guid`, `username`, `lastlogin`, `log_ipaddress`, `log_browser`, `log_platform`) VALUES
 (1, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-28 22:35:41', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
-(2, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-29 05:00:49', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89');
+(2, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-29 05:00:49', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
+(3, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-29 19:22:06', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
+(4, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-29 21:32:47', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
+(5, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 05:52:08', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
+(6, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 16:28:52', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
+(7, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 17:07:48', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10');
 
 -- --------------------------------------------------------
 
@@ -909,7 +1360,6 @@ INSERT INTO `users_login_history` (`id`, `client_guid`, `user_guid`, `username`,
 -- Table structure for table `users_reset_request`
 --
 
-DROP TABLE IF EXISTS `users_reset_request`;
 CREATE TABLE `users_reset_request` (
   `id` int(11) NOT NULL,
   `username` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -937,7 +1387,6 @@ INSERT INTO `users_reset_request` (`id`, `username`, `user_guid`, `user_agent`, 
 -- Table structure for table `users_roles`
 --
 
-DROP TABLE IF EXISTS `users_roles`;
 CREATE TABLE `users_roles` (
   `id` int(11) NOT NULL,
   `client_guid` varchar(32) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -952,7 +1401,7 @@ CREATE TABLE `users_roles` (
 --
 
 INSERT INTO `users_roles` (`id`, `client_guid`, `user_guid`, `permissions`, `date_logged`, `last_updated`) VALUES
-(1, '244444', 'KidkkL949', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1,\"reports\":1},\"users\":{\"manage\":1,\"delete\":1,\"accesslevel\":1},\"account\":{\"manage\":1,\"subscription\":1},\"communications\":{\"manage\":1}}}', '2020-07-02 09:03:11', '2020-07-17 09:41:12'),
+(1, '244444', 'KidkkL949', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1,\"return\":1,\"reports\":1},\"users\":{\"manage\":1,\"delete\":1,\"accesslevel\":1},\"account\":{\"manage\":1,\"subscription\":1},\"communications\":{\"manage\":1}}}', '2020-07-02 09:03:11', '2020-07-17 09:41:12'),
 (3, '244444', 'KidkkL9491', '{\"permissions\":{\"halls\":{\"list\":1,\"add\":1,\"configure\":1,\"update\":1},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1},\"tickets\":{\"list\":1,\"generate\":1},\"users\":{\"manage\":1,\"delete\":1},\"account\":{\"manage\":1,\"subscription\":1}}}', '2020-07-02 09:03:11', '2020-07-17 09:42:34'),
 (4, '244444', 'FW917546832', '{\"permissions\":{\"halls\":{\"list\":\"1\",\"add\":\"1\",\"configure\":1,\"update\":\"1\",\"delete\":\"1\"},\"events\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1,\"insight\":1},\"departments\":{\"list\":1,\"add\":1,\"update\":1,\"delete\":1},\"tickets\":{\"list\":1,\"generate\":1,\"delete\":1,\"sell\":1,\"reports\":1}}}', '2020-07-17 10:00:37', '2020-07-17 10:00:37');
 
@@ -979,9 +1428,15 @@ ALTER TABLE `departments`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `email_list`
+-- Indexes for table `emails`
 --
-ALTER TABLE `email_list`
+ALTER TABLE `emails`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `emails_attachments`
+--
+ALTER TABLE `emails_attachments`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1020,6 +1475,12 @@ ALTER TABLE `halls`
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `sms_purchases`
+--
+ALTER TABLE `sms_purchases`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1131,10 +1592,16 @@ ALTER TABLE `departments`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `email_list`
+-- AUTO_INCREMENT for table `emails`
 --
-ALTER TABLE `email_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+ALTER TABLE `emails`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `emails_attachments`
+--
+ALTER TABLE `emails_attachments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -1173,6 +1640,12 @@ ALTER TABLE `messages`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `sms_purchases`
+--
+ALTER TABLE `sms_purchases`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `sms_subscribers`
 --
 ALTER TABLE `sms_subscribers`
@@ -1188,13 +1661,13 @@ ALTER TABLE `tickets`
 -- AUTO_INCREMENT for table `tickets_listing`
 --
 ALTER TABLE `tickets_listing`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=401;
 
 --
 -- AUTO_INCREMENT for table `ticket_purchases`
 --
 ALTER TABLE `ticket_purchases`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1218,7 +1691,7 @@ ALTER TABLE `users_accounts`
 -- AUTO_INCREMENT for table `users_activity_logs`
 --
 ALTER TABLE `users_activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `users_data_monitoring`
@@ -1242,7 +1715,7 @@ ALTER TABLE `users_gender`
 -- AUTO_INCREMENT for table `users_login_history`
 --
 ALTER TABLE `users_login_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users_reset_request`

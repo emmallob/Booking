@@ -388,7 +388,7 @@ class Tickets extends Booking {
             scheduled on {$eventData[0]->event_date} is {$ticketsList[0]->ticket_serial}. Thank you.";
             
             // insert the email content to be processed by the cron job
-            $stmt = $this->db->prepare("INSERT INTO email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, subject = ?, message = ?");
+            $stmt = $this->db->prepare("INSERT INTO users_email_list SET client_guid = ?, template_type = ?, item_guid = ?, recipients_list = ?, request_performed_by = ?, subject = ?, message = ?");
             $stmt->execute([$params->clientId, 'ticket', $ticketsList[0]->ticket_serial, json_encode($recipient), $params->userId, "Event: {$eventData[0]->event_title} Ticket", $message]);
 
             // insert the user activity

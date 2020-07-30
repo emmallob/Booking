@@ -530,5 +530,101 @@ class Communication extends Booking {
 
     }
 
+    /**
+     * Topup SMS Balance
+     * This allows the user to purchase SMS Bundle. An algorithm is used to check the 
+     * number of sms based on the cost
+     * 
+     * @param String $params->amount        The amount of money to purchase
+     * 
+     * @return String
+     */
+    public function topupSMS(stdClass $params) {
+
+        // if the amount is more than 1000 then revert to 1000
+        if ($params->amount > 1000) {
+            return "Sorry! The amount must not be more than GHS 1000.00";
+        }
+        // if the amount is less than 1
+        elseif($params->amount < 1) {
+            return "Sorry! The amount must be more than GHS 1.00";
+        } else {
+            // calculate the amout of sms unit to purchase
+            $smsunit = round(($params->amount * 50) / 10);
+            $last_row_id = $this->lastRowId("sms_purchases")+1;
+
+            // the transaction 
+            $transaction_id = "1".str_pad($last_row_id, 11, '0', STR_PAD_LEFT);
+            
+            // insert the record into the database
+            $stmt = $this->db->prepare("INSERT INTO sms_purchases SET request_unique_id = ?, transaction_id = ?, client_guid = ?, user_guid = ?, sms_capacity = ?, package_price = ?");
+            
+            // execute the statement
+            if($stmt->execute([random_string('alnum', mt_rand(50, 64)), $transaction_id, $params->clientId, $params->userId, $smsunit, $params->amount])) {
+                return "Congrats! The request was successfully processed. Please proceed to make payment at under the settings Tab.";
+            }
+
+        }
+
+    }
+
+    /**
+     * Topup request list
+     */
+    public function topupList(stdClass $params) {
+
+        // insert the record into the database
+		$stmt = $this->db->prepare("
+            SELECT 
+                a.id, a.request_date, a.package_price AS amount,
+                b.name AS request_by, a.request_status,
+                a.package_price AS smsunit, a.previous_balance,
+                a.current_balance, a.request_unique_id AS payment_url
+            FROM sms_purchases a
+            LEFT JOIN users b ON b.user_guid = a.user_guid
+            WHERE a.client_guid = ? ORDER BY a.id DESC
+        ");
+
+        // execute the statement
+        if($stmt->execute([$params->clientId])) {
+            
+            $i = 0;
+            $message = [];
+
+            // loop through the results list
+            while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
+                $i++;
+
+                /** Set the payment url */
+                $result->payment_url = "{$this->baseUrl}checkout/{$result->payment_url}/sms";
+
+                if(!$params->remote) {
+
+                    $result->status = "<div class='text-center'>";
+                    $result->status .= "<span class='badge badge-".(($result->request_status == "Pending") ? "primary" : (($result->request_status == "Cancelled") ? "danger" : "success"))."'>{$result->request_status}</span>";
+                    $result->status .= "</div>";
+
+                    $result->action = "<div class='text-center'>";
+
+                    // if the request is still pending
+                    if(!in_array($result->request_status, ['Cancelled', 'Processed'])) {
+                        $result->action .= "<a class=\"btn btn-sm btn-outline-success\" title=\"Click to make payment\"  href=\"{$result->payment_url}\">Pay</a> ";
+                        $result->action .= "<a class=\"btn btn-sm delete-item btn-outline-danger\" title=\"Click to cancel the request\" data-msg=\"Are you sure you want to cancel the request to Topup the SMS Balance.\" data-item=\"topup-sms\" data-item-id=\"{$result->id}\" href=\"javascript:void(0)\"><i class=\"fa fa-stop\"></i> </a>";
+                    }
+                    $result->action .= "</div>";
+
+                    $result->row_id = $i;
+                }
+
+                unset($result->id);
+
+                $message[] = $result;
+            }
+            
+            return $message;
+
+        }
+    }
+
 }
 ?>

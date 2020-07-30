@@ -43,6 +43,51 @@
             </div>
         </div>
     </div>
+    <?php if(in_array($SITEURL[0], ["sms-list"])) { ?>
+    <div class="modal fade" id="topupFormModal" data-backdrop="static" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="p-b-5 semi-bold">Topup Form</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <form action="javascript:void(0)" autocomplete="Off" id="topup-form" class="needs-validation" novalidate="" method="post">
+                    <div class="modal-body">
+                        <?= form_loader(); ?>
+                        <div class="form-row">
+                            <div class="col-lg-5 col-md-5">
+                                <label for="title">Amount</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">GH¢</span>
+                                    </div>
+                                    <input type="number" name="topup-amount" id="topup-amount" value="" max="1000" placeholder="Maximum of GH¢1000.00" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-1"></div>
+                            <div class="col-lg-5 col-md-5">
+                                <label for="title">SMS Unit</label>
+                                <div class="input-group">
+                                    <input type="text" name="topup-unit" id="topup-unit" readonly value="0" class="form-control">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Units</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="customer_id" value="null" class="customer_id">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                        <button class="btn btn-primary submit-form" type="submit">
+                            <span class="mdi mdi-coins"></span> Top Up
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php } ?>
     <?php if(in_array($SITEURL[0], ["activity-logs", "profile"])) { ?>
     <div class="modal fade" id="DefaultModalWindow" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">

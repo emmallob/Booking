@@ -144,11 +144,11 @@ class Booking {
 	public function lastRowId($tableName) {
 
 		$stmt = $this->db->prepare("
-				SELECT id AS rowId FROM {$tableName} WHERE client_guid = ? ORDER BY id DESC LIMIT 1
+				SELECT id AS rowId FROM {$tableName} WHERE 1
 		");
-		$stmt->execute([$this->client_guid]);
+		$stmt->execute();
 
-		return $stmt->fetch(PDO::FETCH_OBJ)->rowId;
+		return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ)->rowId : 0;
 	}
 
 	/**

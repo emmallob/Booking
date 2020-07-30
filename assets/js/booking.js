@@ -1024,15 +1024,44 @@ if ($(`table[class~="ticketsSoldList"]`).length) {
     });
 
 }
-if ($("#tinymce").length > 0) {
-    //     tinymce.init({
-    //         selector: "textarea#tinymce",
-    //         theme: "mordern",
-    //         height: 250,
-    //         plugins: [
-    //             "advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
-    //             "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
-    //             "save table contextmenu directionality emoticons template paste textcolor"
-    //         ]
-    //     });
+var populateTopupList = (data) => {
+    $(`table[class~="smsTopupList"]`).dataTable().fnDestroy();
+    $(`table[class~="smsTopupList"]`).dataTable({
+        "aaData": data,
+        "iDisplayLength": 10,
+        "columns": [
+            { "data": 'row_id' },
+            { "data": 'request_date' },
+            { "data": 'request_by' },
+            { "data": 'amount' },
+            { "data": 'smsunit' },
+            { "data": 'status' },
+            { "data": 'action' }
+        ]
+    });
+    $(`table th:last`).removeClass('sorting');
+    deleteItem();
+    $(`div[class="form-content-loader"]`).css("display", "none");
 }
+
+async function fetchTopupList() {
+
+    if ($(`table[class~="smsTopupList"]`).length) {
+
+        $.ajax({
+            url: baseUrl + "api/sms/topup-list",
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+                if (response.code == 200) {
+                    populateTopupList(response.data.result);
+                }
+            },
+            error: function() {},
+            complete: function() {}
+        });
+
+    }
+
+}
+fetchTopupList();
