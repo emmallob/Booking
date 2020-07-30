@@ -395,20 +395,26 @@ class Booking {
 		return $array;
 	}
 
-	public function attachmentsTotalSize() {
+	/**
+	 * Loop through the session and populate the total temporary email attachment size
+	 * Convert the size to a much more readable version and parse back
+	 * 
+	 * @return String
+	 */
+	public function tempAttachmentsSize() {
 
 		//: Process the email attachments
-		if(!empty($this->session->reportsAttachment) && is_array($this->session->reportsAttachment)) {
+		if(!empty($this->session->tempAttachment) && is_array($this->session->tempAttachment)) {
 			
 			// calculate the file size
 			$totalFileSize = 0;
 			
 			// using foreach loop to get the list of attached documents
-			foreach($this->session->reportsAttachment as $key => $values) {
+			foreach($this->session->tempAttachment as $key => $values) {
 				
 				//: get the file size
-				$n_FileSize = file_size_convert("assets/attachments/tmp/{$values['item_id']}");
-				$n_FileSize_KB = file_size("assets/attachments/tmp/{$values['item_id']}");
+				$n_FileSize = file_size_convert("assets/emails/tmp/{$values['item_id']}");
+				$n_FileSize_KB = file_size("assets/emails/tmp/{$values['item_id']}");
 				$totalFileSize += $n_FileSize_KB;
 			}
 

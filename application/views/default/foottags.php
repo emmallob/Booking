@@ -79,17 +79,17 @@
     <script src="<?= $rootDir ?>assets/libs/select/select.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
-    <?php if(in_array($SITEURL[0], ["events-add", "events-edit", "halls-add", "halls-edit"])) { ?>
+    <?php if(in_array($SITEURL[0], ["events-add", "events-edit", "halls-add", "halls-edit", "emails-compose"])) { ?>
     <script src="<?= $rootDir ?>assets/libs/summernote/dist/summernote-bs4.min.js"></script>
-    <?php } ?>
-    <?php if (in_array($SITEURL[0], ['emails-compose'])) { ?>
-    
     <?php } ?>
     <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
     <?php if(in_array($SITEURL[0], ["sms-list", "emails-list"])) { ?>
     <script src="<?= $rootDir ?>assets/js/communication.js"></script>
+    <?php } ?>
+    <?php if(in_array($SITEURL[0], ["emails-compose"])) { ?>
+    <script src="<?= $rootDir ?>assets/js/emails.js"></script>
     <?php } ?>
     <script>
         confirmNotice("dashboard");

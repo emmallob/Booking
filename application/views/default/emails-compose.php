@@ -4,6 +4,11 @@ $page_title = "Communication > Compose Mail";
 require "headtags.php";
 
 $msgFound = false;
+
+// If the tempAttachment session is empty
+if(empty($session->tempAttachment)) {
+    $session->set("tempAttachment", random_string('alnum', 14));
+}
 ?>
 <main>
     <div class="page-header pb-10 page-header-dark bg-gradient-primary-to-secondary">
@@ -59,25 +64,19 @@ $msgFound = false;
                                             </div>
                                         </div>
                                         <div class="row mt-2 sent-to-listing">
-                                            <div class="input-group col-lg-8">
+                                            <div class="input-group col-lg-12">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text" id="basic-addon1">To</span>
                                                 </div>
-                                                <div class="send-to-list"></div>
-                                            </div>
-                                            <div class="col-lg-4">
-                                                <input type="hidden" name="sent_medium" value="evelyn" class="sent_medium">
-                                                <select data-placeholder="-- Search User --" name="send-to-list" id="send-to-list" class="selectpicker form-control">
-                                                    <option value="null" label="-- Search User --">-- Search User to Append To List --</option>
-                                                </select>
+                                                <input placeholder="List of Members to Send Mail To" type="text" name="send_to" id="send_to" class="form-control">
                                             </div>
                                         </div>
                                         <div class="row mt-2">
-                                            <div class="input-group col-lg-8 mailSubject">
+                                            <div class="input-group col-lg-12 mailSubject">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text" id="basic-addon1">Subject</span>
                                                 </div>
-                                                <input type="text" value="<?= ($msgFound) ? "RE: ". $msgDetails->subject : null ?>" name="subject" class="subject form-control" placeholder="Subject">
+                                                <input type="text" value="<?= ($msgFound) ? "RE: ". $msgDetails->subject : null ?>" name="subject" class="subject form-control" placeholder="Subject of Message">
                                             </div>
                                         </div>
 
@@ -85,7 +84,7 @@ $msgFound = false;
                                     <div class="row mb-3">
                                         <div class="col-lg-8">
                                             <div class="message_content_container" style="width: 100%">
-                                                <textarea data-height="250" data-width="800" name="message_content" id="tinymce" class="col-lg-12 form-control message-content">
+                                                <textarea data-height="250" data-editor-height="380" data-width="800" name="message_content" data-editor="summernote" class="col-lg-12 form-control message-content">
                                                     <?= 
                                                         ($msgFound) ? 
                                                             "<br><br>---------- Forwarded message ---------<br>"
@@ -100,17 +99,15 @@ $msgFound = false;
                                         </div>
                                         <div class="col-lg-4">
                                             <h4 class="page-title text-center">Attach Documents</h4>
-                                            <div class="dropzone border p-3 text-center" style="height: 405px">
+                                            <div class="dropzone border p-3 text-center" style="height: 445px">
                                                 <span>Maximum allowed file size is 25 MB</span> <hr>
-                                                <input type="file" name="mail_attachment" id="mail_attachment">
-
-                                                <!-- Drag and Drop container-->
+                                                <input type="file" class="form-control" name="mail_attachment" id="mail_attachment">
                                                 <div class="upload-area"  id="uploadfile">
                                                     <p>Drag and Drop file here<br/>Or<br/>Click to select file</p>
                                                     <small></small>
                                                 </div>
 
-                                                <div class="text-left p-3 email-attachments mt-2 slim-scroll" style="height: 200px; overflow-y: auto; overflow-x: hidden;"></div>
+                                                <div class="text-left p-3 email-attachments mt-2 slim-scroll" style="height: 180px; overflow-y: auto; overflow-x: hidden;"></div>
 
                                                 <div class="total-upload-size"></div>
 

@@ -48,7 +48,7 @@ var hideNotice = (noticeName) => {
 /*========= Summernote Editor Script ==========*/
 if ($(`textarea[data-editor="summernote"]`).length) {
     $(`textarea[data-editor="summernote"]`).summernote({
-        height: 200,
+        height: $(`textarea`).data(`editor-height`) != undefined ? $(`textarea`).data(`editor-height`) : 200,
         tabsize: 2
     });
 }

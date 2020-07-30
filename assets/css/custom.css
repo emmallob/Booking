@@ -291,3 +291,15 @@ img.curve {
 .chat-box-left .chat-list .media:focus {
     background-color: rgba(239, 242, 249, 0.5);
 }
+
+.upload-area {
+    width: 100%;
+    height: 100px;
+    border: 1px dashed lightgray;
+    border-radius: 3px;
+    margin: 0 auto;
+    margin-top: 10px;
+    text-align: center;
+    overflow: auto;
+    cursor: pointer;
+}

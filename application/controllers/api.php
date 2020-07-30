@@ -494,6 +494,28 @@ class Api {
                         ]
                     ]
                 ]
+            ],
+            "emails" => [
+                "GET" => [
+                    "temp-attachments" => [
+                        "description" => "This endpoint lists attachments to a mail",
+                        "params" => []
+                    ]
+                ],
+                "POST" => [
+                    "attach" => [
+                        "description" => "Upload a temporary mail attachment",
+                        "params" => [
+                            "mail_attachment" => "required - This must be a file document to upload"
+                        ]
+                    ],
+                    "remove-attachment" => [
+                        "description" => "Remove an attachment from the list",
+                        "params" => [
+                            "document_id" => "required - The temporary id of the document to remove"
+                        ]
+                    ]
+                ]
             ]
         ];
     }
@@ -1118,6 +1140,46 @@ class Api {
                 }                
             }
             
+        }
+
+        // check if the users endpoint was parsed
+        elseif( in_array($this->inner_url, ["emails"]) ) {
+            
+            // require the class
+            $objectClass = load_class($this->inner_url, "controllers");
+            
+            // or you can do that straight forward from here
+            if( $this->outer_url == "temp-attachments" ) {
+                // update the user theme color
+                $request = $objectClass->tempAttachments($params);
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
+                }
+            }
+
+            // upload an attachment
+            elseif( $this->outer_url == "attach" ) {
+                // update the user theme color
+                $request = $objectClass->uploadAttachment($params);
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
+                }
+            }
+
+            // remove the attachment
+            elseif( $this->outer_url == "remove-attachment" ) {
+                // update the user theme color
+                $request = $objectClass->removeTempAttachment($params);
+                // if the request was successful
+                if($request) {
+                    $result['result'] = $request;
+                    $code = 200;
+                }
+            }
         }
 
         // insight endpoint
