@@ -379,6 +379,7 @@ $("form[class~='appForm']").on("submit", function(e) {
             }
 
             if (response.data.additional) {
+                clear();
                 let count = 0,
                     table = "<table class='table'>";
                 $.each(response.data.additional, function(i, e) {
@@ -389,6 +390,10 @@ $("form[class~='appForm']").on("submit", function(e) {
 
                 $(`div[class="sample-data"]`).html(table);
                 $(`form div[class="form-content-loader"]`).css("display", "none");
+
+                setTimeout(() => {
+                    window.location.href = response.data.remote_request.href;
+                }, 20000);
             }
 
         },
@@ -601,10 +606,7 @@ $(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
             });
 
             if (response.code == 200) {
-                if ($(`input[id="attachment"]`).val().length) {
-                    setTimeout(() => {
-                        window.location.href = current_url;
-                    }, 1000);
+                if ($(`input[id="attachment"]`).length) {
                     $(`input[id="attachment"]`).val('');
                 }
             }
@@ -947,7 +949,7 @@ if ($(`div[id="ticketsManager"]`).length) {
         let event_guid = $(this).val();
         $(`div[id="ticketsManager"] input, div[id="ticketsManager"] button`).prop('disabled', true);
 
-        if (event_guid.length > 12) {
+        if (event_guid !== "null") {
             $.get(`${baseUrl}api/tickets/list?event_guid=${event_guid}`).then((resp) => {
                 if (resp.code == 200) {
                     $(`div[id="ticketsManager"] input, div[id="ticketsManager"] button`).prop('disabled', false);

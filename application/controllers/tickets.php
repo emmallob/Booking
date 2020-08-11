@@ -403,7 +403,9 @@ class Tickets extends Booking {
                     "Event Name" => $eventData[0]->event_title,
                     "Event Date" => $eventData[0]->event_date,
                     "Serial Number" => $ticketsList[0]->ticket_serial,
-                    "Ticket Amount" => $ticketsList[0]->ticket_amount
+                    "Ticket Amount" => $ticketsList[0]->ticket_amount,
+                    "Fullname" => $params->fullname,
+                    "Contact" => $params->contact
                 ],
                 "result" => "Congrats! The request was successfully processed."
             ];

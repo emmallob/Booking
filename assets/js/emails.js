@@ -265,7 +265,7 @@ var showEmailContent = (messageId) => {
                         <a class="btn btn-outline-danger delete-item" data-item="email" data-item-id="${resp.data.result.result[0].email_guid}" href="javascript:void(0)">
                             <i class="fa fa-trash"></i> Delete
                         </a>
-                        <a href="${baseUrl}compose-email/fwd/${resp.data.result.result[0].email_guid}" class="btn btn-outline-primary waves-effect">Forward <i class="mdi mdi-share"></i></a>
+                        <a href="${baseUrl}emails-compose/fwd/${resp.data.result.result[0].email_guid}" class="btn btn-outline-primary waves-effect">Forward <i class="mdi mdi-share"></i></a>
                     </div>
                 `);
             }

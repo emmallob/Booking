@@ -71,6 +71,9 @@ class Accounts extends Booking {
                 ".(!empty($account->country) ? ", country='{$account->country}'" : null)."
                 ".(!empty($account->phone) ? ", phone='{$account->phone}'" : null)."
 				".(!empty($account->email) ? ", email='{$account->email}'" : null)."
+				".(!empty($account->email_host) ? ", client_email_host='{$account->email_host}'" : null)."
+				".(!empty($account->email_password) ? ", client_email_password='{$account->email_password}'" : null)."
+				".(!empty($account->client_abbr) ? ", client_abbr='{$account->client_abbr}'" : null)."
 			WHERE client_guid='{$account->clientId}'
 		");
 

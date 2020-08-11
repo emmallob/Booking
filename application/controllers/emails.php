@@ -205,7 +205,7 @@ class Emails extends Booking {
             } else {
                 $mailingList[] = [
                     "fullname" => $receiver,
-                    "email_address" => $receiver
+                    "email" => $receiver
                 ];
             }
         }
@@ -269,7 +269,7 @@ class Emails extends Booking {
 					SET client_guid = ?, email_guid = ?, 
 						user_guid=?, sent_via = ?, 
 						recipient = ?, subject = ?, message = ?,
-						date_sent = now()
+						date_log = now()
 				");
 				$stmt->execute([
 					$params->clientId, $emailId, 
@@ -357,10 +357,10 @@ class Emails extends Booking {
             if(isset($params->message_guid)) {
 
                 $recipient = "";
-                $eachMail->recipient = json_decode($eachMail->recipient);
+                $eachMail->recipients_list = json_decode($eachMail->recipient);
 
                 $recipientNames = array_column($eachMail->recipient, 'fullname');
-                $recipientEmail = array_column($eachMail->recipient, 'email_address');
+                $recipientEmail = array_column($eachMail->recipient, 'email');
 
                 $joinedEmailNames = array_combine($recipientNames, $recipientEmail);
 
@@ -369,14 +369,14 @@ class Emails extends Booking {
                 }
 
                 $eachMail->recipient = substr($recipient, 0, -2);
-                $eachMail->date_sent = date("jS M Y - h:iA", strtotime($eachMail->date_sent));
+                $eachMail->date_sent = date("jS M Y - h:iA", strtotime($eachMail->date_log));
 
                 $mailAttachments = $this->listEmailAttachments($params->message_guid, $params->clientId, $params->remote);
 
                 $eachMail->attachments = (empty($mailAttachments)) ? '<span class="p-2"><em>No attached documents</em></span>' : $mailAttachments;
 
             } else {
-                $eachMail->date_sent = date("jS M - h:iA", strtotime($eachMail->date_sent));
+                $eachMail->date_sent = date("jS M - h:iA", strtotime($eachMail->date_log));
             }
 
             // print this if not a remote request
@@ -513,7 +513,7 @@ class Emails extends Booking {
 			$stmt = $this->db->prepare("
 				SELECT
 					em.client_guid, em.email_guid, em.favourite, em.recipient, em.subject,
-					em.message, em.email_state, em.date_sent, em.email_status,
+					em.message, em.email_state, em.date_sent, em.email_status, em.date_log,
 					(
 						SELECT COUNT(*) 
 						FROM emails 

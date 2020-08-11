@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 31, 2020 at 12:21 AM
+-- Generation Time: Aug 11, 2020 at 12:35 PM
 -- Server version: 10.4.8-MariaDB
 -- PHP Version: 7.3.18
 
@@ -347,7 +347,8 @@ CREATE TABLE `emails` (
   `copy_to` text COLLATE utf8_unicode_ci DEFAULT NULL,
   `subject` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `message` text COLLATE utf8_unicode_ci DEFAULT NULL,
-  `date_sent` datetime DEFAULT current_timestamp(),
+  `date_sent` datetime DEFAULT NULL,
+  `date_log` datetime DEFAULT current_timestamp(),
   `email_status` enum('Pending','Sent','Delivered','Failed','Draft') COLLATE utf8_unicode_ci DEFAULT 'Pending',
   `email_state` enum('inbox','trash','draft','sent') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'sent',
   `status` enum('0','1','2') COLLATE utf8_unicode_ci DEFAULT '1'
@@ -357,8 +358,8 @@ CREATE TABLE `emails` (
 -- Dumping data for table `emails`
 --
 
-INSERT INTO `emails` (`id`, `client_guid`, `email_guid`, `user_guid`, `sent_via`, `label`, `favourite`, `recipient`, `copy_to`, `subject`, `message`, `date_sent`, `email_status`, `email_state`, `status`) VALUES
-(1, '244444', 'ROEz7XQqgu9n50Vw6PmYWC8oMyZsc', 'KidkkL949', 'emmallob14@gmail.com', NULL, '0', '[{\"fullname\":\"emmallob14@gmail.com\",\"email_address\":\"emmallob14@gmail.com\"}]', NULL, 'subject of the message', '&lt;p&gt;the content of hte message to send out to the users.&lt;/p&gt;&lt;p&gt;content of the message&lt;/p&gt;', '2020-07-30 18:21:06', 'Pending', 'sent', '1');
+INSERT INTO `emails` (`id`, `client_guid`, `email_guid`, `user_guid`, `sent_via`, `label`, `favourite`, `recipient`, `copy_to`, `subject`, `message`, `date_sent`, `date_log`, `email_status`, `email_state`, `status`) VALUES
+(1, '244444', 'ROEz7XQqgu9n50Vw6PmYWC8oMyZsc', 'KidkkL949', 'emmallob14@gmail.com', NULL, '0', '[{\"fullname\":\"emmallob14@gmail.com\",\"email\":\"emmallob14@gmail.com\"}]', NULL, 'subject of the message', '&lt;p&gt;the content of hte message to send out to the users.&lt;/p&gt;&lt;p&gt;content of the message&lt;/p&gt;', '2020-07-30 18:21:06', '2020-08-11 11:04:38', 'Pending', 'sent', '1');
 
 -- --------------------------------------------------------
 
@@ -674,7 +675,7 @@ CREATE TABLE `tickets` (
 --
 
 INSERT INTO `tickets` (`id`, `client_guid`, `ticket_guid`, `ticket_title`, `number_generated`, `number_sold`, `number_left`, `is_payable`, `ticket_amount`, `created_on`, `created_by`, `generated`, `activated`, `status`) VALUES
-(1, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'Tickets to use for some events', 100, 9, 91, '1', 40.00, '2020-07-05 17:06:32', 'KidkkL949', 'yes', '1', '1'),
+(1, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'Tickets to use for some events', 100, 13, 87, '1', 40.00, '2020-07-05 17:06:32', 'KidkkL949', 'yes', '1', '1'),
 (2, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'Another Ticket for Event', 300, 0, 0, '1', 100.00, '2020-07-05 17:06:57', 'KidkkL949', 'yes', '1', '1');
 
 -- --------------------------------------------------------
@@ -712,7 +713,7 @@ INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_seria
 (6, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000006', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (7, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000007', 40.00, '1', NULL, NULL, '2020-07-17 12:23:23', 'yo5xv0MFGRI6LdEjzNY7Xr4fkJ8K1m3W', 'used', NULL, '2020-07-05 17:06:32'),
 (8, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000008', 40.00, '1', 'KidkkL949', 'Name of Person - 0203317732', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
-(9, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000009', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(9, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000009', 40.00, '1', 'KidkkL949', 'Last Tester - 0302909890', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (10, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000010', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (11, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000011', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (12, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000012', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
@@ -735,7 +736,7 @@ INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_seria
 (29, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000029', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (30, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000030', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (31, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000031', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
-(32, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000032', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(32, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000032', 40.00, '1', 'KidkkL949', 'George Asamoah - 0203317732', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (33, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000033', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (34, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000034', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (35, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000035', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
@@ -775,8 +776,8 @@ INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_seria
 (69, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000069', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (70, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000070', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (71, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000071', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
-(72, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000072', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
-(73, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000073', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(72, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000072', 40.00, '1', 'KidkkL949', 'Frank Obeng - 0550107770', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
+(73, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000073', 40.00, '1', 'KidkkL949', 'Grace Obeng Hyde - 0240553604', NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (74, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000074', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (75, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000075', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
 (76, '244444', 'E6WFfhHscDNGX5jlQodPLrBeqi18S2xY', 'DZ000076', 40.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:32'),
@@ -1056,9 +1057,9 @@ INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_seria
 (350, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000250', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
 (351, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000251', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
 (352, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000252', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
-(353, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000253', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
-(354, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000254', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57');
+(353, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000253', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57');
 INSERT INTO `tickets_listing` (`id`, `client_guid`, `ticket_guid`, `ticket_serial`, `ticket_amount`, `sold_state`, `sold_by`, `bought_by`, `used_date`, `event_booked`, `status`, `created_by`, `created_on`) VALUES
+(354, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000254', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
 (355, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000255', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
 (356, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000256', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
 (357, '244444', 'E8i4N1G0SqzcotKhBsxInkd7R6aZ9Le3', 'ER000257', 100.00, '0', NULL, NULL, NULL, NULL, 'pending', NULL, '2020-07-05 17:06:57'),
@@ -1130,7 +1131,11 @@ INSERT INTO `ticket_purchases` (`id`, `ticket_id`, `event_id`, `fullname`, `cont
 (7, '46', '2', 'Emmanuella Darko', '04849940049', 'jauntybae@gmail.com', '2020-07-29 07:06:50'),
 (8, '19', '2', 'Emmanuel Obeng', '0550107770', 'emmallob14@gmail.com', '2020-07-29 07:06:50'),
 (9, '8', '2', 'Name of Person', '0203317732', 'nameofperson@mail.com', '2020-07-29 07:07:54'),
-(10, '26', '2', 'The name of the person', '0550107770', 'thenameoftheperson@gmail.com', '2020-07-30 06:14:17');
+(10, '26', '2', 'The name of the person', '0550107770', 'thenameoftheperson@gmail.com', '2020-07-30 06:14:17'),
+(11, '72', '2', 'Frank Obeng', '0550107770', 'emmallob14@gmail.com', '2020-08-11 10:29:05'),
+(12, '73', '2', 'Grace Obeng Hyde', '0240553604', 'graciellaob@gmail.com', '2020-08-11 10:33:52'),
+(13, '32', '2', 'George Asamoah', '0203317732', 'georgeasamoah@mail.com', '2020-08-11 10:34:31'),
+(14, '9', '2', 'Last Tester', '0302909890', 'testmail@mail.com', '2020-08-11 10:36:48');
 
 -- --------------------------------------------------------
 
@@ -1167,7 +1172,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `client_guid`, `user_guid`, `name`, `gender`, `email`, `username`, `password`, `access_level`, `theme`, `status`, `deleted`, `dashboard_settings`, `verify_token`, `last_login`, `last_login_attempts_time`, `contact`, `created_on`, `created_by`, `image`, `user_type`) VALUES
-(1, '244444', 'KidkkL949', 'Demo User', 'Male', 'admin@mail.com', 'adminuser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', '{\"navbar\":\"visible\",\"theme\":\"light-theme\"}', NULL, '2020-07-30 17:07:48', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/profiles/nj7PqWXzRAcQH8mVKOurb1TYF.png', 'holder'),
+(1, '244444', 'KidkkL949', 'Demo User', 'Male', 'admin@mail.com', 'adminuser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', '{\"navbar\":\"visible\",\"theme\":\"light-theme\"}', NULL, '2020-08-11 10:22:10', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/profiles/nj7PqWXzRAcQH8mVKOurb1TYF.png', 'holder'),
 (2, '244444', 'KidkkL9491', 'Voucher User', 'Male', 'demouser@mail.com', 'demouser', '$2y$10$CsTd71XkkvbkgMwyZgyZ3.TtJ4LKj1yCQNkvswgbinVvD8JaJyJ/y', 1, '2', '1', '0', '{\"navbar\":\"\",\"theme\":\"light-theme\"}', NULL, '2020-07-17 09:43:44', '2020-07-16 22:13:54', '44444444444', '2020-07-16 22:13:54', NULL, 'assets/img/avatar.png', 'holder'),
 (3, '244444', 'FW917546832', 'Emmanuel Obeng Hyde', NULL, 'moderator@mail.com', 'moderator', '$2y$10$Q/MWA6VjnrmAHI3ZVPPi.O.2clgVSw6EvXeeRrn3t5VZAKp7ETBRa', 2, '2', '1', '0', '{\"navbar\":\"\",\"theme\":\"light-theme\"}', NULL, '2020-07-17 10:04:42', '2020-07-17 10:00:37', '334343434343', '2020-07-17 10:00:37', 'KidkkL9491', 'assets/img/avatar.png', 'user');
 
@@ -1206,6 +1211,8 @@ CREATE TABLE `users_accounts` (
   `client_key` varchar(500) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
+  `client_email_host` varchar(255) DEFAULT NULL,
+  `client_email_password` varchar(255) DEFAULT NULL,
   `phone` varchar(255) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
   `city` varchar(255) DEFAULT NULL,
@@ -1221,8 +1228,8 @@ CREATE TABLE `users_accounts` (
 -- Dumping data for table `users_accounts`
 --
 
-INSERT INTO `users_accounts` (`id`, `client_guid`, `client_abbr`, `client_key`, `name`, `email`, `phone`, `address`, `city`, `country`, `account_logo`, `date_created`, `activated`, `subscription`, `status`) VALUES
-(1, '244444', 'kdm', NULL, 'Kwesi Dickson Memorial Methodist Society - Adjiringanor', 'testmailer@mail.com', '0550107770', 'test address', 'Accra City', 13, 'assets/img/meth_logo.jpg', '2020-07-01 21:18:18', '0', '{\"halls_created\":5,\"halls\":10,\"users\":12,\"users_created\":3,\"account_type\":\"basic\",\"expiry_date\":\"2021-01-01\"}', '1');
+INSERT INTO `users_accounts` (`id`, `client_guid`, `client_abbr`, `client_key`, `name`, `email`, `client_email_host`, `client_email_password`, `phone`, `address`, `city`, `country`, `account_logo`, `date_created`, `activated`, `subscription`, `status`) VALUES
+(1, '244444', 'kdm', NULL, 'Kwesi Dickson Memorial Methodist Society -', 'testmailer@mail.com', 'mail.supremecluster.com', 'tRandom29', '0550107770', 'test address', 'Accra City', 13, 'assets/img/meth_logo.jpg', '2020-07-01 21:18:18', '0', '{\"halls_created\":5,\"halls\":10,\"users\":12,\"users_created\":3,\"account_type\":\"basic\",\"expiry_date\":\"2021-01-01\"}', '1');
 
 -- --------------------------------------------------------
 
@@ -1256,7 +1263,32 @@ INSERT INTO `users_activity_logs` (`id`, `client_guid`, `user_guid`, `page`, `it
 (14, '244444', 'KidkkL949', 'ticket', '2', '2020-07-30 06:09:39', 'Windows 10 | Chrome | ::1', 'The ticket sold out to Emmanuel Obeng (0550107770) was returned.'),
 (15, '244444', 'KidkkL949', 'ticket', 'DZ000026', '2020-07-30 06:14:18', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to The name of the person'),
 (16, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-30 21:11:29', 'Windows 10 | Chrome | ::1', 'You have updated your account information.'),
-(17, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-30 21:11:49', 'Windows 10 | Chrome | ::1', 'You have updated your account information.');
+(17, '244444', 'KidkkL949', 'users', 'KidkkL949', '2020-07-30 21:11:49', 'Windows 10 | Chrome | ::1', 'You have updated your account information.'),
+(18, '244444', 'KidkkL949', 'ticket', 'DZ000072', '2020-08-11 10:29:05', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to Frank Obeng'),
+(19, '244444', 'KidkkL949', 'ticket', 'DZ000073', '2020-08-11 10:33:52', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to Grace Obeng Hyde'),
+(20, '244444', 'KidkkL949', 'ticket', 'DZ000032', '2020-08-11 10:34:31', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to George Asamoah'),
+(21, '244444', 'KidkkL949', 'ticket', 'DZ000009', '2020-08-11 10:36:48', 'Windows 10 | Chrome | ::1', 'Event: Ticket Based Event Ticket was sold out to Last Tester'),
+(22, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:44:48', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(23, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:45:35', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(24, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:45:50', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(25, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:46:50', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(26, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:47:31', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(27, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:47:43', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(28, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:48:09', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(29, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:48:16', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(30, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:48:44', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(31, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:49:56', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(32, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:50:40', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(33, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:50:44', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(34, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:50:51', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(35, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:51:03', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(36, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 10:51:13', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(37, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 11:13:46', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(38, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 11:13:50', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(39, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 11:14:20', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(40, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 11:17:19', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(41, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 11:17:31', 'Windows 10 | Chrome | ::1', 'Updated the Account details.'),
+(42, '244444', 'KidkkL949', 'account', '244444', '2020-08-11 11:23:31', 'Windows 10 | Chrome | ::1', 'Updated the Account details.');
 
 -- --------------------------------------------------------
 
@@ -1302,7 +1334,11 @@ CREATE TABLE `users_email_list` (
 
 INSERT INTO `users_email_list` (`id`, `client_guid`, `template_type`, `item_guid`, `recipients_list`, `date_requested`, `sent_status`, `subject`, `message`, `request_performed_by`, `deleted`, `date_sent`) VALUES
 (1, '244444', 'recovery', 'KidkkL949', '{\"recipients_list\":[{\"fullname\":\"Emmanuel Obeng\",\"email\":\"admin@mail.com\",\"customer_id\":\"KidkkL949\"}]}', '2020-07-02 08:24:57', '0', '[BookingLog] Change Password', 'Hi Emmanuel Obeng<br>You have requested to reset your password at BookingLog<br><br>Before you can reset your password please follow this link.<br><br><a class=\"alert alert-success\" href=\"http://localhost/booking/verify?password&token=q7FMh7moPzkLBiYud18cfdi6UF5RktJNTASgZUALDwHMqvOQpjBCwuhN8a6ExEXG5W1t\">Click Here to Reset Password</a><br><br>If it does not work please copy this link and place it in your browser url.<br><br>http://localhost/booking/verify?password&token=q7FMh7moPzkLBiYud18cfdi6UF5RktJNTASgZUALDwHMqvOQpjBCwuhN8a6ExEXG5W1t', 'KidkkL949', '0', NULL),
-(2, '244444', 'recovery', 'FW651874392', '{\"recipients_list\":[{\"fullname\":\"testuser name\",\"email\":\"testusername@mail.com\",\"customer_id\":\"FW651874392\"}]}', '2020-07-16 21:56:10', '0', '[BookingLog] Change Password', 'Hi testuser name<br>You have successfully changed your password at BookingLog<br><br>Do ignore this message if your rightfully effected this change.<br><br>If not, do <a class=\"alert alert-success\" href=\"http://localhost/booking/recover\">Click Here</a> if you did not perform this act.', 'FW651874392', '0', NULL);
+(2, '244444', 'recovery', 'FW651874392', '{\"recipients_list\":[{\"fullname\":\"testuser name\",\"email\":\"testusername@mail.com\",\"customer_id\":\"FW651874392\"}]}', '2020-07-16 21:56:10', '0', '[BookingLog] Change Password', 'Hi testuser name<br>You have successfully changed your password at BookingLog<br><br>Do ignore this message if your rightfully effected this change.<br><br>If not, do <a class=\"alert alert-success\" href=\"http://localhost/booking/recover\">Click Here</a> if you did not perform this act.', 'FW651874392', '0', NULL),
+(3, '244444', 'ticket', 'DZ000072', '{\"recipients_list\":[{\"fullname\":\"Frank Obeng\",\"email\":\"emmallob14@gmail.com\",\"contact\":\"0550107770\"}]}', '2020-08-11 10:29:05', '0', 'Event: Ticket Based Event Ticket', 'Hi Frank Obeng, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000072. Thank you.', 'KidkkL949', '0', NULL),
+(4, '244444', 'ticket', 'DZ000073', '{\"recipients_list\":[{\"fullname\":\"Grace Obeng Hyde\",\"email\":\"graciellaob@gmail.com\",\"contact\":\"0240553604\"}]}', '2020-08-11 10:33:52', '0', 'Event: Ticket Based Event Ticket', 'Hi Grace Obeng Hyde, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000073. Thank you.', 'KidkkL949', '0', NULL),
+(5, '244444', 'ticket', 'DZ000032', '{\"recipients_list\":[{\"fullname\":\"George Asamoah\",\"email\":\"georgeasamoah@mail.com\",\"contact\":\"0203317732\"}]}', '2020-08-11 10:34:31', '0', 'Event: Ticket Based Event Ticket', 'Hi George Asamoah, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000032. Thank you.', 'KidkkL949', '0', NULL),
+(6, '244444', 'ticket', 'DZ000009', '{\"recipients_list\":[{\"fullname\":\"Last Tester\",\"email\":\"testmail@mail.com\",\"contact\":\"0302909890\"}]}', '2020-08-11 10:36:48', '0', 'Event: Ticket Based Event Ticket', 'Hi Last Tester, <br>Your Serial Number for the Event: Ticket Based Event \r\n            scheduled on 2020-07-31 is DZ000009. Thank you.', 'KidkkL949', '0', NULL);
 
 -- --------------------------------------------------------
 
@@ -1352,7 +1388,12 @@ INSERT INTO `users_login_history` (`id`, `client_guid`, `user_guid`, `username`,
 (4, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-29 21:32:47', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
 (5, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 05:52:08', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89'),
 (6, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 16:28:52', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
-(7, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 17:07:48', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10');
+(7, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 17:07:48', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
+(8, '244444', 'KidkkL949', 'admin@mail.com', '2020-07-30 23:45:49', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
+(9, '244444', 'KidkkL949', 'admin@mail.com', '2020-08-01 17:00:39', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
+(10, '244444', 'KidkkL949', 'admin@mail.com', '2020-08-02 09:46:28', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
+(11, '244444', 'KidkkL949', 'admin@mail.com', '2020-08-10 19:00:09', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10'),
+(12, '244444', 'KidkkL949', 'admin@mail.com', '2020-08-11 10:22:10', '::1', 'Chrome|Windows 10', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.10');
 
 -- --------------------------------------------------------
 
@@ -1667,7 +1708,7 @@ ALTER TABLE `tickets_listing`
 -- AUTO_INCREMENT for table `ticket_purchases`
 --
 ALTER TABLE `ticket_purchases`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1691,7 +1732,7 @@ ALTER TABLE `users_accounts`
 -- AUTO_INCREMENT for table `users_activity_logs`
 --
 ALTER TABLE `users_activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `users_data_monitoring`
@@ -1703,7 +1744,7 @@ ALTER TABLE `users_data_monitoring`
 -- AUTO_INCREMENT for table `users_email_list`
 --
 ALTER TABLE `users_email_list`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users_gender`
@@ -1715,7 +1756,7 @@ ALTER TABLE `users_gender`
 -- AUTO_INCREMENT for table `users_login_history`
 --
 ALTER TABLE `users_login_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `users_reset_request`

@@ -401,6 +401,7 @@ class Api {
                             "website" => "The webiste url of the company",
                             "address" => "required - The Address of the company",
                             "logo" => "The Company Logo",
+                            "client_abbr" => "required - This is the url for making the reservation",
                             "color_picker" => "The preset colour option",
                             "color" => "The the preset colors",
                             "background_color" => "The the background color to use",
@@ -457,6 +458,9 @@ class Api {
                             "account_type" => "This is the Brand Id to add",
                             "account_industry" => "The industry where the account falls",
                             "phone" => "required - The contact number of the account",
+                            "client_abbr" => "required - This is the url for making the reservation",
+                            "email_host" => "This is the Host for sending Emails",
+                            "email_password" => "This is the Host Password of the Email Account for sending Emails",
                             "email" => "required - The default email of the account.",
                             "country" => "The country of the registering user account.",
                             "city" => "The city of the registering user account."
@@ -976,7 +980,6 @@ class Api {
                 if(is_array($request)) {
                     $code = 200;
                     $result['result'] = $request['result'];
-                    $result['remote_request']['reload'] = true;
                     $result['additional'] = $request['event_data'];
                     $result['remote_request']['href'] = $this->config->base_url("tickets-list");
                 } else {

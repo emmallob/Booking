@@ -65,10 +65,16 @@ if($accessObject->hasAccess('subscription', 'account')) {
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-lg-12">
+                                        <div class="col-lg-9">
                                             <div class="form-group pb-3">
-                                                <label>COMPANY NAME <span class="required">*</span></label>
+                                                <label>Company Name <span class="required">*</span></label>
                                                 <input style="color:black" type="text" class="form-control profile-input" name="name" value="<?= $accountInfo->name ?>" placeholder="" aria-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="form-group pb-3">
+                                                <label>Reservation URL <span class="required">*</span></label>
+                                                <input style="color:black" type="text" class="form-control profile-input" name="client_abbr" value="<?= $accountInfo->client_abbr ?>" placeholder="" aria-required="true">
                                             </div>
                                         </div>
                                     </div>
@@ -87,7 +93,21 @@ if($accessObject->hasAccess('subscription', 'account')) {
                                         </div>
                                     </div>
                                     <div class="row">
-                                    <div class="col-lg-6">
+                                        <div class="col-lg-6">
+                                            <div class="form-group pb-3">
+                                                <label>Email Host</label>
+                                                <input style="color:black" type="text" value="<?= $accountInfo->client_email_host ?>" class="form-control profile-input" name="email_host" placeholder="" aria-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group pb-3">
+                                                <label>Email Password <?= ((!empty($accountInfo->client_email_password)) ? '<i class="fa fa-check-circle text-success"></i>' : null); ?></label>
+                                                <input style="color:black" type="password" value="" class="form-control profile-input" name="email_password" placeholder="" aria-required="true">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
                                             <div class="form-group pb-3">
                                                 <label>Country</label>
                                                 <select class="form-control" name="country" id="country_select">

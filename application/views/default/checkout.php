@@ -15,9 +15,9 @@ if(!confirm_url_id(1, 'callback')) {
     // make the request
     switch($request) {
         case "sms": 
-            $query = $bookingClass->getAllRows(
-                "sms_purchases a LEFT JOIN settings b ON b.client_guid = a.client_guid", 
-                "a.package_price, a.transaction_id, b.client_email AS email, a.client_guid",
+            $query = $bookingClass->pushQuery(
+                "a.package_price, a.transaction_id, b.email, a.client_guid",
+                "sms_purchases a LEFT JOIN users_accounts b ON b.client_guid = a.client_guid", 
                 "a.request_status = 'Pending' AND a.request_unique_id='{$token}'"
             );
             $column = "package_price";
@@ -27,7 +27,7 @@ if(!confirm_url_id(1, 'callback')) {
         default:
             $query = [];
         break;
-    }
+    }   
 
     // if the request is empty then show the error message
     (empty($query)) ? server_log() : null;
@@ -109,7 +109,7 @@ else {
                             
                             // redirect
                             print "<script>setTimeout(() => {
-                                window.location.href='".$config->base_url("settings/sms-topup")."'
+                                window.location.href='".$config->base_url("configuration")."'
                             }, 2000);</script>";
                         }                       
 
