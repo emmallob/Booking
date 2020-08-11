@@ -22,11 +22,11 @@ require "headtags.php";
         <div class="card">
             <div class="card-header">
                 <div class="row" style="width:100%">
-                    <div class="col-lg-8 col-md-8"></div>
+                    <div class="col-lg-8 col-md-8"><button class='btn btn-outline-success btn-sm' data-request='execute-emails'>Execute Pending Emails</button> <span class="execute-loader"></span></div>
                     <?php if($accessObject->hasAccess("manage", "communications")) { ?>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
                         <a href="<?= $baseUrl ?>emails-compose" class="btn btn-sm btn-outline-primary"><i class="fa fa-reply"></i>&nbsp;Send Mail</a>
-                    </div>1
+                    </div>
                     <?php } ?>
                 </div>
             </div>

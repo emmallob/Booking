@@ -357,7 +357,7 @@ class Emails extends Booking {
             if(isset($params->message_guid)) {
 
                 $recipient = "";
-                $eachMail->recipients_list = json_decode($eachMail->recipient);
+                $eachMail->recipient = json_decode($eachMail->recipient);
 
                 $recipientNames = array_column($eachMail->recipient, 'fullname');
                 $recipientEmail = array_column($eachMail->recipient, 'email');
@@ -395,7 +395,8 @@ class Emails extends Booking {
             // print this if not a remote request
             if(!$params->remote) {
                 $eachMail->option = "<div align=\"center\"><span title=\"{$eachMail->subject}\" class=\"title msg-details cursor btn btn-sm btn-outline-success\" onclick=\"return showEmailContent('{$eachMail->email_guid}')\"><i class=\"fa fa-eye\"></i></span> <a title=\"{$eachMail->subject}\" class=\"btn btn-outline-primary btn-sm cursor\" title=\"Forward Email\" href=\"".$this->baseUrl."emails-compose/fwd/{$eachMail->email_guid}\"><i class=\"fa fa-reply\"></i></a></div>";
-                $eachMail->email_status = (($eachMail->email_status == "Pending") ? "<span class='btn btn-sm btn-warning'>Pending</span>" : (($eachMail->email_status == "Sent") ? "<span class='btn btn-sm btn-success'>Sent</span>" : (($eachMail->email_status == "Failed") ? "<span class='btn btn-danger'>Failed</span>" : "<span class='btn btn-info'>{$eachMail->email_status}</span>")));
+                $eachMail->email_status = (($eachMail->email_status == "Pending") ? "&nbsp; <span class='badge badge-warning'>Pending</span>" : (($eachMail->email_status == "Sent") ? "<span class='badge badge-success'>Sent</span>" : (($eachMail->email_status == "Failed") ? "<span class='badge badge-danger'>Failed</span>" : "<span class='badge badge-info'>{$eachMail->email_status}</span>")));
+                $eachMail->main_subject = $eachMail->main_subject.$eachMail->email_status;
             } else {
                 $eachMail->recipient = json_decode($eachMail->recipient);
             }

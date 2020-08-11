@@ -4,23 +4,30 @@ class Crons {
 
 	private $dbConn;
 	private $storeContent;
-	public $rootUrl = "/absolute/path/to/website/root";
+	public $rootUrl = "C:\\xampp\\htdocs\\booking\\";
 	private $siteName = "BookingLog - Emmallen Networks";
 	private $siteHost;
 	private $sitePassword;
 
-	public function addToMailList(stdClass $mailData) {
-		global $evelyn;
+	public $db_host;
+	public $db_name;
+	public $db_username;
+	public $db_password;
+
+	public function __construct()
+	{
+		require $this->rootUrl."/system/libraries/Phpmailer.php";
+		require $this->rootUrl."/system/libraries/Smtp.php";
 	}
 
 	public function dbConn() {
 		
 		// CONNECT TO THE DATABASE
 		$connectionArray = array(
-			'hostname' => "localhost",
-			'database' => 'database_name',
-			'username' => 'database_username',
-			'password' => 'password'
+			'hostname' => $this->db_host,
+			'database' => $this->db_name,
+			'username' => $this->db_username,
+			'password' => $this->db_password
 		);
 
 		$conn_name = $connectionArray['username'];
@@ -38,7 +45,7 @@ class Crons {
 
 	}
 
-	private function generateGeneralMessage($message, $subject, $template_type) {
+	private function generateGeneralMessage($message, $subject) {
 
 		$mailerContent = '
 		<!DOCTYPE html>
@@ -71,7 +78,7 @@ class Crons {
                             <tr>
                                 <td colspan="4">
                                     <hr style="border: dashed 1px #ccc; text-align: center;">
-                                    <img width="150px" src="'.$this->baseUrl.'assets/images/'.$this->storeContent->client_logo.'"  alt="logo-small" class="logo-sm">
+                                    <img width="150px" src="'.config_item('base_url').$this->storeContent->account_logo.'"  alt="logo-small" class="logo-sm">
                                 </td>
                             </tr>
                         </tbody>
@@ -134,13 +141,14 @@ class Crons {
     			// set the mail status to true
     			if($mailing) {
     				$this->dbConn->query("UPDATE users_email_list SET sent_status = '1', date_sent=now() WHERE id='{$result->id}'");
-    				print "Mails successfully sent\n";
-    			}
-
+    			} else {
+					return false;
+				}
+				
         	}
         }
 
-
+		return true;
 	}
 
 	/** Send emails generated under the communication section */
@@ -179,7 +187,7 @@ class Crons {
 
         	// commence the processing
 			$subject = $result->subject;
-			$dataToUse = $this->generateGeneralMessage($result->message, $subject, $result->template_type);
+			$dataToUse = $this->generateGeneralMessage($result->message, $subject, "general");
 
         	// use the content submitted
         	if(!empty($dataToUse)) {
@@ -193,18 +201,18 @@ class Crons {
     			// set the mail status to true
     			if($mailing) {
     				$this->dbConn->query("UPDATE emails SET a.email_status='Pending', date_sent=now() WHERE id='{$result->id}'");
-    				print "Mails successfully sent\n";
-    			}
-
+    			} else {
+					return false;
+				}
+				
         	}
         }
+
+		return true;
 
 	}
 
 	private function cronSendMail($recipient_list, $subject, $message) {
-
-		require $this->rootUrl."/system/libraries/Phpmailer.php";
-		require $this->rootUrl."/system/libraries/Smtp.php";
 
 		$mail = new Phpmailer();
 		$smtp = new Smtp();
@@ -253,9 +261,4 @@ class Crons {
 	}
 
 }
-
-// create new object
-$cronJobs = new Crons;
-$cronJobs->loadCommunicationEmails();
-$cronJobs->loadEmailRequests();
 ?>

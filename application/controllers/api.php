@@ -529,6 +529,10 @@ class Api {
                             "mail_attachment" => "required - This must be a file document to upload"
                         ]
                     ],
+                    "execute" => [
+                        "description" => "Send all pending mails",
+                        "params" => []
+                    ],
                     "remove-attachment" => [
                         "description" => "Remove an attachment from the list",
                         "params" => [
@@ -1248,6 +1252,20 @@ class Api {
                 if($request) {
                     $result['result'] = $request;
                     $code = 200;
+                }
+            }
+
+            // execute email
+            elseif($this->outer_url == "execute") {
+
+                // create a new communcation class
+                $commObj = load_class('communication', 'controllers');
+
+                // parse the request
+                $request = $commObj->executeEmail($params);
+                if($request) {
+                    $code = 200;
+                    $result['result'] = $request;
                 }
             }
 

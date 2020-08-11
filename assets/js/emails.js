@@ -253,7 +253,7 @@ var showEmailContent = (messageId) => {
                         </div>
                     </div>
 
-                    <h4 class="mt-0"><strong>${resp.data.result.result[0].subject}</strong></h4>
+                    <h4 class="mt-0"><strong>${resp.data.result.result[0].subject} ${resp.data.result.result[0].email_status}</strong></h4>
                     <div style="border:dashed 1px #ccc;" class="p-2 mb-4">
                         ${resp.data.result.result[0].message}
                         <div class="row mt-4 justify-content-start">
@@ -330,3 +330,22 @@ var listEmails = (contact_guid = null, message_type = null) => {
 if ($(`table[class~="emailsList"]`).length) {
     listEmails();
 }
+
+$(`button[data-request='execute-emails']`).on("click", function() {
+    let container = $(`span[class="execute-loader"]`);
+    let button = $(`button[data-request='execute-emails']`);
+    button.prop('disabled', true);
+    container.fadeIn().html(`Executing <i class="fa fa-spin fa-spinner"></i>`);
+
+    $.post(`${baseUrl}api/emails/execute`, function(resp) {
+        if (resp.code == 200) {
+            container.html(`Success <i class="fa fa-check text-success"></i>`).fadeOut(5000);
+        } else {
+            container.html(`<span class="text-danger">Failed</span>`).fadeOut(5000);
+        }
+        button.prop('disabled', false);
+    }).catch(() => {
+        button.prop('disabled', true);
+        container.html(`Failed`).fadeOut(5000);
+    });
+});

@@ -626,5 +626,27 @@ class Communication extends Booking {
         }
     }
 
+    /**
+     * Execute all pending emails
+     */
+    public function executeEmail() {
+        /** Create a new object of the crons class */
+        $cronJob = load_class("crons", "models");
+
+        /** Set the database variables */
+        $cronJob->db_host = DB_HOST;
+        $cronJob->db_name = DB_NAME;
+        $cronJob->db_username = DB_USER;
+        $cronJob->db_password = DB_PASS;
+        
+        /** make the request */
+        if($cronJob->loadCommunicationEmails()) {
+            if($cronJob->loadEmailRequests()) {
+                return true;
+            }
+            return true;
+        }
+    }
+
 }
 ?>
