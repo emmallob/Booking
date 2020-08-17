@@ -121,8 +121,8 @@ if($eventsId) {
                         <div class="col-lg-3 col-md-4">
                             <div class="form-group">
                                 <label for="bookink_starttime">Booking Start Time <span class="required">*</span></label>
-                                <input type="datetime-local" value="<?= $eventData->booking_start_time ?>" name="booking_starttime" id="booking_starttime" class="form-control">
-                            </div>
+                                <input type="datetime-local" value="<?= $eventData-> ?>" name="booking_starttime" id="booking_starttime" class="form-control">
+                            </div>booking_start_time
                         </div>
                         <div class="col-lg-3 col-md-4">
                             <div class="form-group">
