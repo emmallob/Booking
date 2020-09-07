@@ -200,7 +200,7 @@ class Crons {
 
     			// set the mail status to true
     			if($mailing) {
-    				$this->dbConn->query("UPDATE emails SET a.email_status='Pending', date_sent=now() WHERE id='{$result->id}'");
+    				$this->dbConn->query("UPDATE emails SET a.email_status='Sent', date_sent=now() WHERE id='{$result->id}'");
     			} else {
 					return false;
 				}
