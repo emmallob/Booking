@@ -589,6 +589,12 @@ $(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
         let halls_guid = serializeSelect($(`select[name="halls_guid"]`));
         formData.append("halls_guid", halls_guid);
     }
+    if ($(`textarea[name="description"]`).length) {
+        formData.delete("description");
+
+        let description = htmlEntities($(`textarea[name="description"]`).val());
+        formData.append("description", description);
+    }
 
     $.ajax({
         type: `POST`,

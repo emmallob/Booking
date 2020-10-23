@@ -27,8 +27,7 @@ $(`div[id="layoutAuthentication"] div[class~="event-selector"]`).on('click', fun
     $(`div[id="eventDialogModal"]`).modal("show");
 });
 
-$(`div[id="layoutAuthentication"] div[id="eventDialogModal"] button[type="submit"]`).on("click", function() {
-    var event_halls_guid = $(`input[name="event_halls_guid"]`).val();
+var set_UserContact = (event_halls_guid) => {
     $.post(`${baseUrl}auth/reserve/`, { payload: $(`input[name="contact_number"]`).val() }, function(response) {
         if (response.status == 200) {
             window.location.href = `${event_halls_guid}`;
@@ -40,6 +39,20 @@ $(`div[id="layoutAuthentication"] div[id="eventDialogModal"] button[type="submit
             $(`input[name="contact_number"]`).focus();
         }
     }, 'json');
+}
+$(`div[id="layoutAuthentication"] div[id="eventDialogModal"] button[type="submit"]`).on("click", function() {
+    let event_halls_guid = $(`input[name="event_halls_guid"]`).val();
+    set_UserContact(event_halls_guid);
+});
+
+$(`div[id="layoutAuthentication"] div[id="eventDialogModal"] input[name="contact_number"]`).on("keyup", function(evt) {
+    let event_halls_guid = $(`input[name="event_halls_guid"]`).val(),
+        contact_number = $(this).val();
+    if (contact_number.length > 8) {
+        if (evt.keyCode == 13 && !evt.shiftKey) {
+            set_UserContact(event_halls_guid);
+        }
+    }
 });
 
 function remove(array) {

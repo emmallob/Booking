@@ -331,13 +331,27 @@ $session->set("current_url", current_url());
                                 } else {
                                     /** Get the halls list */
                                     $hallsList = array_column($eventData->event_halls, "guid");
-
+                                    
                                     /** Get the current hall key */
                                     $hallKey = array_search($hallId, $hallsList);
 
                                     /** Load the data at that key */
                                     $hallData = $eventData->event_halls[$hallKey];
                                     $hallConf = $hallData->configuration;
+                                    $booked_array = [];
+                                    
+                                    /** Get the booked seats */
+                                    try {
+                                        $booked_list = $booking->prepare("SELECT seat_guid, seat_name FROM events_booking WHERE deleted=? AND event_guid=? AND hall_guid = ?");
+                                        $booked_list->execute([0, $eventId, $hallId]);
+                                        $booked_result = $booked_list->fetchAll(PDO::FETCH_OBJ);
+
+                                        foreach($booked_result as $each) {
+                                            $booked_array[$each->seat_guid] = $each->seat_name;
+                                        }
+                                    } catch(\Exception $e) {
+                                        print $e->getMessage();
+                                    }
 
                                     /** Settings passed */
                                     $settingsPassed = true;
@@ -427,6 +441,7 @@ $session->set("current_url", current_url());
                                                 </h4>
                                             </div>
                                             <div style="padding:1rem" class="slim-scroll seats-table">
+                                            
                                                 <table class="p-0 m-0">
                                                     <?php
                                                     // start the counter
@@ -446,7 +461,7 @@ $session->set("current_url", current_url());
                                                             if(!in_array($label, $hallConf["removed"])) {
                                                                 /** list the items */
                                                                 print "<div data-label=\"{$label}\" ".(in_array($label, $hallConf["blocked"]) ? "" : null)." id=\"seat-item_{$label}\" class=\"p-2 mt-1 seat-item ".(in_array($label, $hallConf["blocked"]) ? "unavailable" : null)."\">
-                                                                    <span data-label=\"{$label}\" class=\"booking-item\">".(isset($hallConf["labels"][$label]) ? $hallConf["labels"][$label] : $counter)."</span>
+                                                                    <span data-label=\"{$label}\" class=\"booking-item\">".(isset($hallConf["labels"][$label]) ? $hallConf["labels"][$label] : ($booked_array[$label] ?? $label))."</span>
                                                                 </div>";
                                                             }
                                                             print "</td>\n";

@@ -236,8 +236,8 @@ class Events extends Booking {
         }
 
         // check the event date and the booking start and end dates
-        $book_start = date("Y-m-d", strtotime($params->booking_starttime));
-        $book_end = date("Y-m-d", strtotime($params->booking_endtime));
+        $book_start = date("Y-m-d H:i:s", strtotime($params->booking_starttime));
+        $book_end = date("Y-m-d H:i:s", strtotime($params->booking_endtime));
 
         // if the booking start is lesser than the event date
         if(strtotime($book_start) > strtotime($params->event_date)) {

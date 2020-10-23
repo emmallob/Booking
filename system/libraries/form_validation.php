@@ -7,7 +7,7 @@
  * @package		Libraries
  * @subpackage	Form Validation
  * @category	Core Functions
- * @author		VisamiNet Solutions Dev Team
+ * @author		Analitica Innovare Dev Team
  */
 
 class Form_validation {
