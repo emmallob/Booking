@@ -37,7 +37,7 @@ class Insight extends Booking {
                 // run the query
                 $stmt = $this->db->prepare("
                     SELECT 
-                        a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
+                        a.id, a.event_guid, a.event_title, a.event_date, a.start_time, a.end_time, a.booking_start_time, a.booking_end_time,
                         a.is_payable, a.allow_multiple_booking, a.maximum_multiple_booking, a.description,
                         (SELECT b.ticket_title FROM tickets b WHERE b.ticket_guid = a.ticket_guid) AS ticket_applicable,
                         a.state, a.created_on, 
@@ -130,7 +130,7 @@ class Insight extends Booking {
                     CASE WHEN a.status IS NULL THEN 'booked' ELSE 'confirmed' END AS booked_state, a.status
                 FROM events_booking a
                 LEFT JOIN halls b ON b.hall_guid = a.hall_guid
-                WHERE event_guid = '{$event_guid}' AND a.deleted = ? ORDER BY seat_guid
+                WHERE event_guid = '{$event_guid}' AND a.deleted = ? ORDER BY a.seat_guid
             ");
             $stmt->execute([0]);
 

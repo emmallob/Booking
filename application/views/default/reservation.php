@@ -155,8 +155,8 @@ $session->set("current_url", current_url());
                                                     <?php } ?>
                                                 </div>
                                                 <div style="display: inline-flex">
-                                                    <div style="text-overflow:ellipsis; overflow:hidden; height: 4rem">
-                                                        <em><?= $eachEvent->description ?>...</em>
+                                                    <div style="text-overflow:ellipsis; overflow:hidden; height: 4.5rem">
+                                                        <em><?= $eachEvent->description ?></em>
                                                     </div>
                                                 </div>
                                                 <div class="mt-2 border-top text-gray-700">
@@ -303,8 +303,9 @@ $session->set("current_url", current_url());
                                     </div>
                                 <?php } ?>
                                 <div style="width:90%" class="mt-3 mb-4 row">
-                                    <div class="col-lg-12 text-right">
-                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>"><i class="fa fa-list"></i>    Go Back</a>
+                                    <div class="col-md-6 text-left"></div>
+                                    <div class="col-lg-6 text-right">
+                                        <a href="<?= $baseUrl ?>reservation/<?= $theId ?>"><i class="fa fa-home"></i>  Back to Events List</a>
                                     </div>
                                 </div>
                             <?php } ?>
@@ -349,9 +350,7 @@ $session->set("current_url", current_url());
                                         foreach($booked_result as $each) {
                                             $booked_array[$each->seat_guid] = $each->seat_name;
                                         }
-                                    } catch(\Exception $e) {
-                                        print $e->getMessage();
-                                    }
+                                    } catch(\Exception $e) {}
 
                                     /** Settings passed */
                                     $settingsPassed = true;
@@ -375,7 +374,7 @@ $session->set("current_url", current_url());
                                                 </h5>
                                             </div>
                                             <div class="mt-4 text-center">
-                                                <p>You have reserved <?= $eventData->user_booking_count ?> out of <?= $eventData->maximum_multiple_booking ?> seats for this event with the provided contact number.</p>
+                                                <p>You have reserved <?= $eventData->user_booking_count ?> out of <?= $eventData->maximum_multiple_booking ?> seats for this event with the provided contact number: <strong><?= $userId ?></strong>.</p>
                                                 <h4 class="text-center">Booking History</h4>
                                                 <div class="table-responsive">
                                                     <table style="font-size:15px" class="table nowrap table-bordered table-hover" width="100%">
@@ -400,14 +399,17 @@ $session->set("current_url", current_url());
                                                                         WHERE a.hall_guid = b.hall_guid AND b.event_guid = a.event_guid
                                                                     ) AS configuration
                                                                 FROM events_booking a 
-                                                                WHERE a.event_guid = ? AND a.created_by = ?
+                                                                WHERE (a.event_guid = ? AND a.created_by = ?) OR (a.event_guid = ? AND a.booked_by = ?)
                                                             ");
-                                                            $seatsBooked->execute([$eventId, $session->loggedInUser]);
+                                                            $seatsBooked->execute([$eventId, $session->loggedInUser, $eventId, $session->loggedInUser]);
 
                                                             /** Loop through the list */
                                                             while($result = $seatsBooked->fetch(PDO::FETCH_OBJ)) { ?>
                                                             <tr>
-                                                                <td class="text-left"><?= $result->fullname ?></td>
+                                                                <td class="text-left">
+                                                                    <?= $result->fullname ?>
+                                                                    <p class="text-primary"><small><i class="fa fa-phone"></i> <?= $result->created_by ?></small></p>
+                                                                </td>
                                                                 <td class="text-left">
                                                                     <strong>Hall</strong>: <?= $result->hall_name ?><br>
                                                                     <strong>Seat</strong>: <?= $result->seat_name ?>
@@ -426,7 +428,7 @@ $session->set("current_url", current_url());
                                                 </a>
                                                 <?php } else { ?>
                                                 <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
-                                                    Book Seat
+                                                    Book Another Seat
                                                 </a>
                                                 <?php } ?>
                                             </div>
@@ -475,12 +477,15 @@ $session->set("current_url", current_url());
                                             </div>
                                         </div>
                                         <div class="col-lg-3 mt-2 col-md-3">
-                                            <div class="mb-2 col-lg-12 text-center">
-                                                <h6 class="text-uppercase border-bottom border-cyan-soft">
-                                                    <div>
+                                            <div class="mb-2 col-lg-12">
+                                                <h6 class="border-bottom border-cyan-soft">
+                                                    <div class="text-uppercase text-center">
                                                         <strong><?= $eventData->event_title ?></strong>
-                                                    </div>                                           
-                                                    <div class="mt-2 pb-2">
+                                                    </div>
+                                                    <div class="text-justify mt-2 mb-3 border-cyan-soft border-top pt-2 pb-2 border-bottom">
+                                                        <?= $eventData->description ?>
+                                                    </div>
+                                                    <div class="mt-2 pb-2 text-uppercase text-center">
                                                         <small style="font-size: 15px">
                                                             <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
                                                             | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
@@ -525,8 +530,11 @@ $session->set("current_url", current_url());
                             <?php } ?>
 
                             <div style="width:90%" class="mt-3 mb-4 row">
-                                <div class="col-lg-12 text-center">
-                                    <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eventId ?>"><i class="fa fa-list"></i>  Go Back</a>
+                                <div class="col-md-6 text-left">
+                                    <a href="<?= $baseUrl ?>reservation/<?= $theId ?>"><i class="fa fa-home"></i>  Go Home</a>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eventId ?>"><i class="fa fa-arrow-left"></i>  Back to Halls List</a>
                                 </div>
                             </div>
 

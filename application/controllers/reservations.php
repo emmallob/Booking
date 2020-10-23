@@ -37,13 +37,13 @@ class Reservations extends Booking {
                         SELECT COUNT(*) 
                         FROM events_booking b 
                         WHERE 
-                            b.created_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid
+                            (b.created_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid) || (b.booked_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid)
                     ) AS user_booking_count,
                     (
                         SELECT GROUP_CONCAT(hall_guid) 
                         FROM events_booking b 
                         WHERE 
-                            b.created_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid
+                            (b.created_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid) || (b.booked_by = '{$params->loggedInUser}' AND b.event_guid = a.event_guid)
                     ) AS user_halls_booked
                 "; 
             }
@@ -137,14 +137,14 @@ class Reservations extends Booking {
                         SELECT COUNT(*) 
                         FROM events_booking b 
                         WHERE 
-                            b.created_by = ? AND b.event_guid = a.event_guid
+                            (b.created_by = ? AND b.event_guid = a.event_guid) || (b.booked_by = ? AND b.event_guid = a.event_guid)
                     ) AS user_booking_count
                 FROM events a
                 WHERE 
                     a.deleted = ? AND a.event_guid= ?
                 ORDER BY DATE(a.event_date) ASC
             ");
-            $stmt->execute([$contact, 0, $event_guid]);
+            $stmt->execute([$contact, $contact, 0, $event_guid]);
 
             return ($stmt->rowCount() > 0) ? $stmt->fetch(PDO::FETCH_OBJ)->user_booking_count : 0;
 

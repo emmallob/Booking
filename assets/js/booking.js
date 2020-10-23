@@ -849,6 +849,7 @@ var populateBookedEventsList = (data) => {
 
         $(`input[name="event_title"]`).val(data.detail.event_title).prop("disabled", true);
         $(`input[name="event_date"]`).val(data.detail.event_date).prop("disabled", true);
+        $(`textarea[name="description"]`).val(data.detail.description);
         $(`input[name="event_time"]`).val(`${data.detail.start_time} to ${data.detail.end_time}`).prop("disabled", true);
         deleteItem();
     }

@@ -216,7 +216,7 @@ class Events extends Booking {
         $params->event_is_payable = !empty($params->event_is_payable) ? $params->event_is_payable : 0;
 
         // departments checker 
-        if(!empty($params->department_guid) && empty($this->pushQuery("id", "departments", "department_guid='{$params->department_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
+        if(!empty($params->department_guid) && ($params->department_guid !== "null") && empty($this->pushQuery("id", "departments", "department_guid='{$params->department_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
             return "Sorry! An invalid department guid was submitted.";
         }
 
@@ -471,7 +471,7 @@ class Events extends Booking {
         $params->event_is_payable = !empty($params->event_is_payable) ? $params->event_is_payable : 0;
 
         // departments checker 
-        if(!empty($params->department_guid) && empty($this->pushQuery("id", "departments", "department_guid='{$params->department_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
+        if(!empty($params->department_guid) && ($params->department_guid !== "null") && empty($this->pushQuery("id", "departments", "department_guid='{$params->department_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
             return "Sorry! An invalid department guid was submitted.";
         }
 

@@ -43,7 +43,7 @@ if(confirm_url_id(1, "event")) {
         $bug = true;
         
     }
-
+    
     /** if not bug */
     if(!$bug) {
 
@@ -96,7 +96,7 @@ if(confirm_url_id(1, "event")) {
             // Increment the Excel row counter
             $rowCount++; 
         }
-        $file_name = "assets/event_booking__".date("Y_m_d").".xlsx";
+        $file_name = "event_booking__".date("Y_m_d")."_".$eventData["detail"]->id.".xlsx";
 
 
         // Rename worksheet

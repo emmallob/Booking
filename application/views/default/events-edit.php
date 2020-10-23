@@ -65,9 +65,9 @@ if($eventsId) {
                 <div class="row" style="width:100%">
                     <div class="col-lg-8 col-md-8"></div>
                     <div class="col-lg-4 col-md-4 text-right pr-0 mr-0">
-                        <a href="<?= $baseUrl ?>events" class="btn btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Events</a>
+                        <a href="<?= $baseUrl ?>events" class="btn mb-2 btn-sm btn-outline-primary"><i class="fa fa-list"></i>&nbsp;List Events</a>
                         <?php if($itemFound) { ?>
-                        <a href="<?= $baseUrl ?>events-insight/<?= $eventsId ?>" class="btn btn-sm btn-outline-success"><i class="fa fa-chart-bar"></i> &nbsp; Booked List</a>
+                        <a href="<?= $baseUrl ?>events-insight/<?= $eventsId ?>" class="btn mb-2 btn-sm btn-outline-success"><i class="fa fa-chart-bar"></i> &nbsp; Booked List</a>
                         <?php } ?>
                     </div>
                 </div>
@@ -121,8 +121,8 @@ if($eventsId) {
                         <div class="col-lg-3 col-md-4">
                             <div class="form-group">
                                 <label for="bookink_starttime">Booking Start Time <span class="required">*</span></label>
-                                <input type="datetime-local" value="<?= $eventData-> ?>" name="booking_starttime" id="booking_starttime" class="form-control">
-                            </div>booking_start_time
+                                <input type="datetime-local" value="<?= $eventData->booking_start_time ?>" name="booking_starttime" id="booking_starttime" class="form-control">
+                            </div>
                         </div>
                         <div class="col-lg-3 col-md-4">
                             <div class="form-group">

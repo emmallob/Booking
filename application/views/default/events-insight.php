@@ -77,8 +77,8 @@ if($eventsId) {
                     <?= pageNotFound($baseUrl) ?>
                 <?php } else { ?>
                     <?= form_loader() ?>
-                    <div class="row" id="bookedEventDetails">
-                        <div class="col-lg-6 mb-5 col-md-6">
+                    <div class="row mb-5" id="bookedEventDetails">
+                        <div class="col-lg-6 col-md-6">
                             <label for="event_title">Event Title</label>
                             <input type="text" class="form-control" name="event_title">
                         </div>
@@ -89,6 +89,10 @@ if($eventsId) {
                         <div class="col-lg-3 col-md-3">
                             <label for="event_time">Event Time</label>
                             <input type="text" name="event_time" id="event_time" class="form-control">
+                        </div>
+                        <div class="col-lg-12 mt-2 col-md-12">
+                            <label for="description">Event Description</label>
+                            <textarea type="text" name="description" id="description" readonly class="form-control"></textarea>
                         </div>
                     </div>
                     <div class="row">

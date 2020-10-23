@@ -110,7 +110,7 @@ function appendToArray(itemLabel) {
 
     $(`input[name="phone_number"]:first`)
         .val(loggedContact)
-        .prop("disabled", true);
+        // .prop("disabled", true);
 
 }
 
