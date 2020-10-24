@@ -73,7 +73,7 @@ if($eventsId) {
                 </div>
             </div>
             <div class="card-body">
-            <?php if(!$itemFound || !$accessObject->hasAccess("update", "events")) { ?>
+            <?php if(!$itemFound || !$accessObject->hasAccess("list", "events")) { ?>
                 <?= pageNotFound($baseUrl) ?>
             <?php } else { ?>
                 <form autocomplete="Off" id="saveRecordWithAttachment" action="<?= $baseUrl ?>api/events/update" method="POST" enctype="multipart/form-data">
@@ -249,7 +249,7 @@ if($eventsId) {
                             </div>
                         </div>
                         <div class="col-lg-12"><hr></div>
-                        <?php if(in_array($eventData->state, ["pending"])) { ?>
+                        <?php if(in_array($eventData->state, ["pending"]) && $accessObject->hasAccess("update", "events")) { ?>
                         <div class="col-lg-12 text-right">
                             <input type="hidden" name="event_guid" value="<?= $eventsId ?>">
                             <button class="btn btn-sm btn-outline-success"><i class="fa fa-save"></i>&nbsp; Save Record</button>

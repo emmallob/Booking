@@ -36,6 +36,7 @@ $session->set("current_url", current_url());
 
 // create a new object for the access level
 $accessObject->userId = $userId;
+$accessObject->userPermits = $userData->user_permissions;
 ?>
 <!DOCTYPE html>
 <html>
