@@ -20,7 +20,7 @@ class Events extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) {
+    public function list(stdClass $params) {
         
         global $accessObject;
 
@@ -204,7 +204,7 @@ class Events extends Booking {
      * 
      * @return Array
      */
-    public function addItem(stdClass $params) {
+    public function add(stdClass $params) {
         
         // update directory
         $uploadDir = 'assets/events/';
@@ -421,7 +421,10 @@ class Events extends Booking {
                 /** Format the response to parse */
                 return [
                     "state" => 200,
-                    "msg" => "Event details was successfully inserted"
+                    "msg" => "Event details was successfully inserted",
+                    "additional" => [
+                        "clear" => true
+                    ]
                 ];
             }
 
@@ -459,7 +462,7 @@ class Events extends Booking {
      * 
      * @return Array
      */
-    public function updateItem(stdClass $params) {
+    public function update(stdClass $params) {
 
         // update directory
         $uploadDir = 'assets/events/';

@@ -20,7 +20,7 @@ class Halls extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params, $item = false) {
+    public function list(stdClass $params, $item = false) {
 
         global $accessObject;
 
@@ -147,7 +147,7 @@ class Halls extends Booking {
      * 
      * @return Array
      */
-    public function activateHall(stdClass $params) {
+    public function activate(stdClass $params) {
         
         try {
 
@@ -175,7 +175,7 @@ class Halls extends Booking {
      * 
      * @return Array
      */
-    public function addItem(stdClass $params) {
+    public function add(stdClass $params) {
 
         // load the user session key to be used for all the queries
 		$cSubscribe = json_decode( $this->clientData($params->clientId)->subscription, true );
@@ -252,7 +252,10 @@ class Halls extends Booking {
                 /** Format the response to parse */
                 return [
                     "state" => 200,
-                    "msg" => "Hall details was successfully inserted"
+                    "msg" => "Hall details was successfully inserted",
+                    "additional" => [
+                        "clear" => true
+                    ]
                 ];
             }
 
@@ -273,7 +276,7 @@ class Halls extends Booking {
      * 
      * @return String
      */
-    public function configureHall(stdClass $params) {
+    public function configure(stdClass $params) {
 
         // load the hall data
         $hallData = $this->pushQuery("*", "halls", "hall_guid='{$params->hall_guid}' && client_guid='{$params->clientId}'");
@@ -366,7 +369,7 @@ class Halls extends Booking {
      * 
      * @return Array
      */
-    public function resetHall(stdClass $params) {
+    public function reset(stdClass $params) {
         
         // load the hall data
         $hallData = $this->pushQuery("`rows`, `columns`", "halls", "hall_guid='{$params->hall_guid}' && client_guid='{$params->clientId}'");
@@ -422,7 +425,7 @@ class Halls extends Booking {
      * 
      * @return Array
      */
-    public function updateItem(stdClass $params) {
+    public function update(stdClass $params) {
 
         // load the hall information
         $hallQuery = $this->pushQuery("`configuration`, `hall_name`, `id`, `rows`, `columns`", "`halls`", "`hall_guid`='{$params->hall_guid}' AND client_guid='{$params->clientId}' AND deleted='0'");

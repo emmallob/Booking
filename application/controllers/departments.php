@@ -20,7 +20,7 @@ class Departments extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) {
+    public function list(stdClass $params) {
         
         global $accessObject;
 
@@ -97,7 +97,7 @@ class Departments extends Booking {
      *                      $params->description
      * @return Array
      */
-    public function addItem(stdClass $params) {
+    public function add(stdClass $params) {
 
         // ensure that new lines are replaced with breaks
         $params->description = !empty($params->description) ? $params->description : null;
@@ -125,7 +125,10 @@ class Departments extends Booking {
                 /** Format the response to parse */
                 return [
                     "state" => 200,
-                    "msg" => "Department details was successfully inserted"
+                    "msg" => "Department details was successfully inserted",
+                    "additional" => [
+                        "clear" => true
+                    ]
                 ];
             }
 
@@ -144,7 +147,7 @@ class Departments extends Booking {
      *                      $params->department_guid
      * @return Array
      */
-    public function updateItem(stdClass $params) {
+    public function update(stdClass $params) {
 
         // ensure that new lines are replaced with breaks
         $params->description = !empty($params->description) ? $params->description : null;

@@ -1,6 +1,6 @@
 <?php
 
-class Communication extends Booking {
+class Sms extends Booking {
 
     private $_key = "rMOWeGxqRy3MOqa683c4hUbnv";
     
@@ -15,7 +15,7 @@ class Communication extends Booking {
      * 
      * @return String
      */
-    public function checkBalance(stdClass $params) {
+    public function check_balance(stdClass $params) {
         
         $balance = 0;
 
@@ -108,7 +108,7 @@ class Communication extends Booking {
     /**
      * Get the recipient category
      */
-    public function recipientCategory(stdClass $params) {
+    public function category(stdClass $params) {
         
         switch ($params->recipient) {
 
@@ -231,7 +231,7 @@ class Communication extends Booking {
      * 
      * @return Array
      */
-    public function smsHistory(stdClass $params) {
+    public function history(stdClass $params) {
 
         // confirm that the group parameter has been parsed
         if ($params->group == "single") {
@@ -379,7 +379,7 @@ class Communication extends Booking {
     /**
      * Send SMS Message
      */
-    public function smsSend(stdClass $params) {
+    public function send(stdClass $params) {
         
         $logMessage = 'Sent messages to some contacts';
 
@@ -392,7 +392,7 @@ class Communication extends Booking {
 
                 // ensure that the recipient list is not empty
                 if(!isset($params->recipients)) {
-                    return "Sorry! The event guid cannot be empty.";
+                    return ["code" => 203, "msg" => "Sorry! The event guid cannot be empty."];
                 }
 
                 // the people to receive the message
@@ -403,7 +403,7 @@ class Communication extends Booking {
 
                 // count the number of rows found
                 if(empty($eventData)) {
-                    return "Sorry! An invalid event guid has been supplied.";
+                    return ["code" => 203, "msg" => "Sorry! An invalid event guid has been supplied."];
                 }
 
                 // get the list of contacts depending on the data parsed
@@ -448,7 +448,7 @@ class Communication extends Booking {
 
                 // count the number of rows found
                 if(empty($usersList)) {
-                    return "Sorry! No recipients were found for the selected category.";
+                    return ["code" => 203, "msg" => "Sorry! No recipients were found for the selected category."];
                 }
                 // contacts list
                 $contacts_list = [];
@@ -482,7 +482,7 @@ class Communication extends Booking {
             $recipientCount = count($recipient_list);
 
             if(!$recipientCount) {
-                return "Sorry! The recipients count cannot be nil.";
+                return ["code" => 203, "msg" => "Sorry! The recipients count cannot be nil."];
             }
 
             $smsMsg = strip_tags($params->message);
@@ -496,8 +496,8 @@ class Communication extends Booking {
             $totalUnitInvolved = ($recipientCount * $unit);
 
             // Check Company SMS Credit Left
-            if ($this->checkBalance($params) < $totalUnitInvolved) {
-                return "Sorry! Your Balance Is Insufficient To Send This Message.";
+            if ($this->check_balance($params) < $totalUnitInvolved) {
+                return ["msg" => "Sorry! Your Balance Is Insufficient To Send This Message."];
             }
             
             // Prepare Message & Recipient Details In Database
@@ -519,13 +519,15 @@ class Communication extends Booking {
                 $this->userLogs('sms', $params->recipients, $logMessage, $params->userId, $params->clientId);
 
                 return [
-                    "result" => "Message Successfully Sent.",
-                    "recipient_id" => $commonID
+                    "msg" => "Message Successfully Sent.",
+                    "additional" => [
+                        "recipient_id" => $commonID
+                    ]
                 ];
             }
 
         } else {
-            return "Error processing request.";
+            return ["code" => 203, "msg" => "Error processing request."];
         }
 
     }
@@ -539,7 +541,7 @@ class Communication extends Booking {
      * 
      * @return String
      */
-    public function topupSMS(stdClass $params) {
+    public function topup(stdClass $params) {
 
         // if the amount is more than 1000 then revert to 1000
         if ($params->amount > 1000) {
@@ -561,7 +563,7 @@ class Communication extends Booking {
             
             // execute the statement
             if($stmt->execute([random_string('alnum', mt_rand(50, 64)), $transaction_id, $params->clientId, $params->userId, $smsunit, $params->amount])) {
-                return "Congrats! The request was successfully processed. Please proceed to make payment at under the settings Tab.";
+                return ["msg" => "Congrats! The request was successfully processed. Please proceed to make payment at under the settings Tab."];
             }
 
         }
@@ -570,8 +572,10 @@ class Communication extends Booking {
 
     /**
      * Topup request list
+     * 
+     * @return Array
      */
-    public function topupList(stdClass $params) {
+    public function topup_list(stdClass $params) {
 
         // insert the record into the database
 		$stmt = $this->db->prepare("
@@ -623,28 +627,6 @@ class Communication extends Booking {
             
             return $message;
 
-        }
-    }
-
-    /**
-     * Execute all pending emails
-     */
-    public function executeEmail() {
-        /** Create a new object of the crons class */
-        $cronJob = load_class("crons", "models");
-
-        /** Set the database variables */
-        $cronJob->db_host = DB_HOST;
-        $cronJob->db_name = DB_NAME;
-        $cronJob->db_username = DB_USER;
-        $cronJob->db_password = DB_PASS;
-        
-        /** make the request */
-        if($cronJob->loadCommunicationEmails()) {
-            if($cronJob->loadEmailRequests()) {
-                return true;
-            }
-            return true;
         }
     }
 

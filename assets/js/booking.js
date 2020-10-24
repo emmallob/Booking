@@ -306,6 +306,9 @@ function clear() {
     $(`form[class~='appForm'] input, form[class~='appForm'] textarea`).val('');
     $(`form[class~='appForm'] select`).val('null').change();
     $(`div[id="newModalWindow"]`).modal('hide');
+
+    $(`form[id="saveRecordWithAttachment"] input, form[id="saveRecordWithAttachment"] textarea`).val('');
+    $(`form[id="saveRecordWithAttachment"] select`).val('null').change();
 }
 
 var activateItem = () => {
@@ -391,9 +394,11 @@ $("form[class~='appForm']").on("submit", function(e) {
                 $(`div[class="sample-data"]`).html(table);
                 $(`form div[class="form-content-loader"]`).css("display", "none");
 
-                setTimeout(() => {
-                    window.location.href = response.data.remote_request.href;
-                }, 20000);
+                if (response.data.additional.reload) {
+                    setTimeout(() => {
+                        window.location.href = response.data.additional.href;
+                    }, 2000);
+                }
             }
 
         },
@@ -616,7 +621,9 @@ $(`form[id="saveRecordWithAttachment"]`).on('submit', function(evt) {
                     $(`input[id="attachment"]`).val('');
                 }
             }
-
+            if (response.data.additional.clear) {
+                clear();
+            }
             if (response.data.remote_request) {
                 if (response.data.remote_request.reload) {
                     setTimeout(() => {
@@ -1003,7 +1010,7 @@ if ($(`table[class~="ticketsSoldList"]`).length) {
 
     $(`div[class="form-content-loader"]`).css("display", "flex");
 
-    $.get(`${baseUrl}api/tickets/sales-list`).then((resp) => {
+    $.get(`${baseUrl}api/tickets/sales_list`).then((resp) => {
 
         if (resp.code == 200) {
             $(`table[class~="ticketsSoldList"]`).dataTable().fnDestroy();
@@ -1058,7 +1065,7 @@ async function fetchTopupList() {
     if ($(`table[class~="smsTopupList"]`).length) {
 
         $.ajax({
-            url: baseUrl + "api/sms/topup-list",
+            url: baseUrl + "api/sms/topup_list",
             type: "GET",
             dataType: "json",
             success: function(response) {

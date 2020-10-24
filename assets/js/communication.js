@@ -198,7 +198,7 @@ var loadBulkMessageHistory = (historyId) => {
 var checkSMSBalance = () => {
     if ($("#get-sms-balance").length) {
         $.ajax({
-            url: `${baseUrl}api/sms/check-balance`,
+            url: `${baseUrl}api/sms/check_balance`,
             type: "GET",
             dataType: "json",
             beforeSend: function() {
@@ -518,7 +518,7 @@ var populateTopupList = (data) => {
 async function fetchTopupList() {
     if ($(`table[class~="smsTopupList"]`).length) {
         $.ajax({
-            url: baseUrl + "apis/sms/topup-list",
+            url: baseUrl + "api/sms/topup_list",
             type: "GET",
             dataType: "json",
             success: function(response) {

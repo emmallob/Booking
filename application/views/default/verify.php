@@ -238,8 +238,11 @@ $baseUrl = $config->base_url();
                                             print_msg("danger", "Sorry! An unknown request was parsed.");
                                         }
                                         ?>
-
+                                        <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
+                                            <a class="small" href="<?= $baseUrl ?>login">Login</a>
+                                        </div>
                                     </div>
+                                    
                                 </div>
                             </div>
                         </div>

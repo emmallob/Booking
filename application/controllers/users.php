@@ -50,6 +50,16 @@ class Users extends Booking {
 	 * 
 	 * @param stdClass	$params		This is an object of all the parameters to use for the query
 	 */
+	public function list(stdClass $params) {
+
+		return $this->listUsers($params);
+	}
+
+	/**
+	 * This method lists all users
+	 * 
+	 * @param stdClass	$params		This is an object of all the parameters to use for the query
+	 */
 	public function listUsers(stdClass $params) {
 
 		global $accessObject;
@@ -59,74 +69,81 @@ class Users extends Booking {
 
 		$condition = !empty($params->user_guid) ? "AND a.user_guid='{$params->user_guid}'" : null;
 
-		$query = $this->booking->prepare("
-			SELECT a.*, b.access_level_name
-				FROM users a 
-			LEFT JOIN users_access_levels b
-				ON a.access_level = b.id
-				WHERE a.client_guid = ? && a.deleted = ? {$condition}
-			LIMIT {$params->limit}
-		");
+		try {
+			$query = $this->booking->prepare("
+				SELECT a.*, b.access_level_name, 
+					(SELECT b.permissions FROM users_roles b WHERE b.user_guid = a.user_guid AND b.client_guid=a.client_guid LIMIT 1) AS user_permissions
+					FROM users a 
+				LEFT JOIN users_access_levels b
+					ON a.access_level = b.id
+					WHERE a.client_guid = ? && a.deleted = ? {$condition}
+				LIMIT {$params->limit}
+			");
 
-		$manageUsers = $accessObject->hasAccess('manage', 'users');
-		$deleteUsers = $accessObject->hasAccess('delete', 'users');
-		$userAccessLevels = $accessObject->hasAccess('accesslevel', 'users');
+			$manageUsers = $accessObject->hasAccess('manage', 'users');
+			$deleteUsers = $accessObject->hasAccess('delete', 'users');
+			$userAccessLevels = $accessObject->hasAccess('accesslevel', 'users');
 
-		if ($query->execute([$params->clientId, 0])) {
-			$i = 0;
+			if ($query->execute([$params->clientId, 0])) {
+				$i = 0;
 
-			while ($data = $query->fetch(PDO::FETCH_OBJ)) {
-				$i++;
+				while ($data = $query->fetch(PDO::FETCH_OBJ)) {
+					$i++;
 
-				$date = date('jS F, Y', strtotime($data->created_on));
+					$date = date('jS F, Y', strtotime($data->created_on));
 
-				$action = '<div width="100%" align="center">';
+					$action = '<div width="100%" align="center">';
 
-				if($manageUsers) {
-					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+					if($manageUsers) {
+						if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+								$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
+								<i class=\"fa fa-edit\"></i>
+							</a> ";
+						} elseif(!in_array($data->access_level, [1, 2])) {
 							$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
-							<i class=\"fa fa-edit\"></i>
-						</a> ";
-					} elseif(!in_array($data->access_level, [1, 2])) {
-						$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
-							<i class=\"fa fa-edit\"></i>
-						</a> ";
+								<i class=\"fa fa-edit\"></i>
+							</a> ";
+						}
 					}
-				}
 
-				if($deleteUsers) {
-					if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
-						if($data->user_guid != $this->session->userId) {
+					if($deleteUsers) {
+						if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+							if($data->user_guid != $this->session->userId) {
+								$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+									<i class=\"fa fa-trash\"></i>
+								</a> ";
+							}
+						} elseif(!in_array($data->access_level, [1, 2])) {
 							$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
 								<i class=\"fa fa-trash\"></i>
 							</a> ";
 						}
-					} elseif(!in_array($data->access_level, [1, 2])) {
-						$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
-							<i class=\"fa fa-trash\"></i>
-						</a> ";
 					}
+
+					$action .= "</div>";
+
+					$result[] = (object) [
+						'user_id' => $data->user_guid,
+						'row_id' => $i,
+						'fullname' => $data->name . ((!$data->status) ? "<br><span class='badge badge-danger'>Inactive</span>" : "<br><span class='badge badge-success'>Active</span>"),
+						'access_level' => $data->access_level_name,
+						'access_level_id' => $data->access_level,
+						'gender' => $data->gender,
+						'contact' => $data->contact,
+						'email' => $data->email,
+						'registered_date' => $date,
+						'user_permissions' => $data->user_permissions,
+						'action' => $action,
+						'deleted' => 0
+					];
+
 				}
-
-				$action .= "</div>";
-
-				$result[] = [
-					'user_id' => $data->user_guid,
-					'row_id' => $i,
-					'fullname' => $data->name . ((!$data->status) ? "<br><span class='badge badge-danger'>Inactive</span>" : "<br><span class='badge badge-success'>Active</span>"),
-					'access_level' => $data->access_level_name,
-					'access_level_id' => $data->access_level,
-					'gender' => $data->gender,
-					'contact' => $data->contact,
-					'email' => $data->email,
-					'registered_date' => $date,
-					'action' => $action,
-					'deleted' => 0
-				];
-
 			}
+			return $result;
+
+		} catch(PDOException $e) {
+			return $e->getMessage();
 		}
-		return $result;
 	}
 
 	/**
@@ -253,50 +270,6 @@ class Users extends Booking {
 	}
 
 	/**
-	 * Add_user method is called by the auth.php file when the signUp endpoint is accessed.
-	 * This creates a user account and a user profile for the new user,
-	 * An authentication token is sent to the users email address for verification of the account.
-	 * 
-	 * The user is automatically logged in after all the process is completed.
-	 * 
-	 * @return bool
-	 */
-	public function add_user($user){
-
-		try {
-			
-			$this->db->beginTransaction();
-
-			if(empty($user)) return false;
-			
-			$user->userId = $this->generate_user_id();
-			$user->clientId = random_string('nozero', 16);
-			$user->verifyToken = $this->generate_verification_code();
-
-			if($this->insert_client($user)){
-
-				$this->insert_user($user);
-				
-				// auto sign in after registering
-				$this->session->set("userLoggedIn", random_string('alnum', 50));
-                $this->session->set("userId", $user->userId);
-                $this->session->set("userName", $user->username);
-                $this->session->set("userRole", 1);
-                $this->session->set("clientId", $user->clientId);
-                $this->session->set("instanceIds", $user->instanceId);
-
-				$this->db->commit();
-
-				return $user->userId;
-			}
-			else return false;
-		} catch(PDOException $e) {
-			$this->db->rollBack();
-			return $e->getMessage();
-		}
-	}
-
-	/**
 	 * Get the list of access levels
 	 * @param Int $id		This is an Id to exempty from the query list
 	 * 
@@ -320,138 +293,6 @@ class Users extends Booking {
 		return $sql->fetch(PDO::FETCH_OBJ);
 	}
 
-	/**
-	 * Insert the User Account (Client) Details.
-	 * This method is runned when a new user signs up to use booking
-	 * 
-	 * An account is created for the company and a user account with admin privileges is also created.
-	 * The use is automatically logged in once that is done.
-	 * The Subscription details is set in a session there after
-	 * 
-	 * @return bool
-	 */
-	public function insert_client($user) {
-
-		$subscription = (Object) [
-			'brands' => 5,
-			'users' => 5,
-			'account_type' => 'trial',
-			'registered_date' => date("Y-m-d"),
-			'expiry_date' => date("Y-m-d", strtotime("today + 14 days")),
-			'brands_created' => 0,
-			'users_created' => 1
-		];
-
-		$keys = (Object) [
-			'key' => random_string('alnum', 75),
-			'expiry' => date("Y-m-d", strtotime("today + 3 months"))
-		];
-
-		// form the email message
-        $emailSubject = "Setup - {$user->brand} \[".config_item('site_name')."\]\n";
-        $emailMessage = "Hello {$user->fullname},\n";
-        $emailMessage .= "Thank you for registering your Brand <strong>{$user->brand}</strong> with ".config_item('site_name').". We are pleased to have you join and experiment with our platform.\n\n";
-        $emailMessage .= "One of our personnel will get in touch shortly to assist you with additional setup processes that is required to aid you quick start the usage of the application.\n\n";
-      	$emailMessage .= "<a href='".$this->config->base_url('verify/account?token='.$user->verifyToken)."'><strong>Click Here</strong></a> to verify your Email Address\n\n";
-        
-        $userEmail = [
-            "recipients_list" => [
-                [
-                    "fullname" => $user->fullname,
-                    "email" => $user->email,
-                    "customer_id" => $user->userId
-                ]
-            ]
-        ];
-            
-        // record the email sending to be processed by the cron job
-        $sms = $this->db->prepare("
-            INSERT INTO users_email_list 
-            SET clientId = ?, template_type = ?, item_guid = ?, recipients_list = ?,
-                request_performed_by = ?, message = ?, subject = ?
-        ");
-        $sms->execute([
-            $user->clientId, 'general', $user->clientId, json_encode($userEmail), 
-            $user->userId, $emailMessage, $emailSubject
-		]);
-		
-		// save the subscription package in an array session
-		$this->session->set("accountPackage", (array) $subscription);
-
-		// prepare the user account details and execute the statement
-		$client = $this->db->prepare("
-			INSERT INTO users_accounts
-			SET clientId = ?, name = ?, email = ?, phone = ?, country = ?, city = ?,
-			account_type = ?, industry = ?, subscription = ?, client_key = ?, created_by = ?
-		");
-		return $client->execute([
-			$user->clientId, $user->brand, $user->email, $user->phone, $user->country, $user->city,
-			$user->account_type, $user->industry, json_encode($subscription), json_encode($keys), $user->userId
-		]);
-
-	}
-
-	/**
-	 * Inserts data into `users` table
-	 * @param  stdClass $user - Object containing user's information
-	 * @return boolean	true if data successfully inserted. false otherwise.
-	 */
-	private function insert_user($user){
-
-		global $accessObject;
-
-		$initialAccess = 1;
-		$createdOn = date("Y-m-d H:i:s");
-		$verificationEmailCode = $user->verifyToken;
-		$verificationSMSCode = $this->generate_sms_code();
-		$accessPermissions = $accessObject->getPermissions($initialAccess);
-
-		$params = [
-			$user->clientId,
-			$user->userId,
-			$user->fullname,
-			$user->gender,
-			$user->email,
-			$user->username,
-			password_hash($user->password, PASSWORD_DEFAULT),
-			$initialAccess,		// Initial Access Level
-			$user->phone,
-			$user->country,		// Country Id
-			$user->city,		// City Id
-			$user->instanceId,
-			$createdOn,
-			(!empty($user->created_by) ? $user->created_by : $user->userId),
-			$verificationSMSCode,
-			$verificationEmailCode
-		];
-
-		$sql = "
-		INSERT INTO users (
-			clientId, user_id, `name`, gender, 
-			email, `login`, `password`, 
-			access_level,phone_number,country,
-			city, instance_ids,
-			created_on, created_by, verification_sms_code, 
-			verification_email_code
-		) VALUES (" . str_repeat('?,', 15) . "?)";
-
-		try {
-			$stmt = $this->db->prepare($sql);
-			$stmt->execute($params);
-			
-			// load the access level permissions
-			$accessPermissions = $accessPermissions[0]->access_level_permissions;
-			
-			// log the user access level
-			$stmt2 = $this->db->prepare("
-				INSERT INTO users_roles SET clientId = ?, user_id = ?, permissions = ?
-			");
-			return $stmt2->execute([$user->clientId, $user->userId, $accessPermissions]);
-		}
-		catch(PDOException $e){
-			return false;
-		}
-	}
 
 	/**
 	 * Add a new user account
@@ -459,7 +300,7 @@ class Users extends Booking {
 	 * 
 	 * @return String
 	 */
-	public function addUserProfile(stdClass $params) {
+	public function add(stdClass $params) {
 
 		// update directory
         $uploadDir = 'assets/img/profiles/';
@@ -470,30 +311,30 @@ class Users extends Booking {
 
 		// confirm that the user has not reached the subscription ratio
 		if($cSubscribe['users_created'] >= $cSubscribe['users']) {
-			return "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['users']} users";
+			return ["code" => 203, "msg" => "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['users']} users"];
 		}
 
 		// confirm that the username is already existing
 		if(empty($params->email) || !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
 			// return error message
-			return "Sorry! Enter a valid email address.";
+			return ["code" => 203, "msg" => "Sorry! Enter a valid email address."];
 		}
 
 		// confirm that the email address does not belong to this client already
 		if($this->check_existing("users", "email", $params->email, "AND client_guid='{$params->clientId}' AND deleted='0'")) {
-			return "Sorry! This email address have already been linked to this Account.";
+			return ["code" => 203, "code" => 203, "msg" => "Sorry! This email address have already been linked to this Account."];
 		}
 
 		// confirm a valid contact number
 		if(!empty($params->contact) && !preg_match("/^[0-9+]+$/", $params->contact)) {
 			// return error message
-			return "Sorry! Enter a valid contact number.";
+			return ["code" => 203, "msg" => "Sorry! Enter a valid contact number."];
 		}
 
 		// contact number should be at most 15 characters long
 		if(strlen($params->contact) > 15) {
 			// return error message
-			return "Sorry! The contact number must be at most 15 characters long.";
+			return ["code" => 203, "msg" => "Sorry! The contact number must be at most 15 characters long."];
 		}
 
 		// get the username only from the email address
@@ -501,7 +342,7 @@ class Users extends Booking {
 
 		// confirm username is not already taken
 		if($this->check_existing("users", "login", $params->username, "AND client_guid='{$params->clientId}' AND deleted='0' AND user_type='user'")) {
-			return "Sorry! The username already exist.";
+			return ["code" => 203, "msg" => "Sorry! The username already exist."];
 		}
 
 		//** set the access level id */
@@ -513,12 +354,12 @@ class Users extends Booking {
 
 		// confirm valid access levels list
 		if(!empty($params->access_level) && !is_array($params->access_level)) {
-			return "An invalid Access Level Permissions were parsed";
+			return ["code" => 203, "msg" => "An invalid Access Level Permissions were parsed"];
 		}
 
 		// confirm valid access levels list
 		if(empty($params->access_level_id) || !preg_match("/^[0-9]+$/", $params->access_level_id)) {
-			return "An invalid Access Level Permission ID was parsed";
+			return ["code" => 203, "msg" => "An invalid Access Level Permission ID was parsed"];
 		}
 
 		// initialiate
@@ -653,7 +494,13 @@ class Users extends Booking {
 			
 			$this->db->commit();
 
-			return "account-created";
+			return [
+				"code" => 200, 
+				"msg" => "User account successfully created", 
+				"additional" => [
+					"clear" => true
+				]
+			];
 			
 		} catch(PDOException $e) {
 			$this->db->rollBack();
@@ -671,7 +518,7 @@ class Users extends Booking {
 	 * 
 	 * @return String
 	 */
-	public function updateUserProfile(stdClass $userData){
+	public function update(stdClass $userData){
 		
 		// update directory
         $uploadDir = 'assets/img/profiles/';
@@ -684,17 +531,17 @@ class Users extends Booking {
 
 		// confirm valid contact number
 		if(isset($userData->contact) && !preg_match("/^[0-9+]+$/", $userData->contact)) {
-			return "invalid-phone";
+			return ["code" => 203, "msg" => "invalid-phone"];
 		}
 
 		// confirm valid email address
 		if(!filter_var($userData->email, FILTER_VALIDATE_EMAIL)) {
-			return "invalid-email";
+			return ["code" => 203, "msg" => "invalid-email"];
 		}
 
 		// confirm valid access levels list
 		if(!empty($userData->access_level) && !is_array($userData->access_level)) {
-			return "invalid-access_levels";
+			return ["code" => 203, "msg" => "invalid-access_levels"];
 		}
 
 		// run this section if the access level permissions were parsed
@@ -783,12 +630,12 @@ class Users extends Booking {
 					}
 				}
 
-				return "User Details Have Been Successfully Updated.";
+				return ["msg" => "User Details Have Been Successfully Updated."];
 			} else {
-				return "Sorry! User Records Failed To Update.";
+				return ["msg" => "Sorry! User Records Failed To Update."];
 			}
 		} else {
-			return "invalid";
+			return ["code" => 203, "msg" => "invalid"];
 		}
 	}
 
@@ -799,16 +646,16 @@ class Users extends Booking {
 	 * @param String $password 		The password
 	 * @param String $password_2 	The second password to match
 	 */
-	public function changePassword($params) {
+	public function change_password($params) {
 
 		/** Matching test */
 		if($params->password != $params->password_2) {
-			return "match-error";
+			return ["code" => 203, "msg" => "match-error"];
 		}
 
 		/** Strength test */
 		if(!passwordTest($params->password)) {
-			return "strength-error";
+			return ["code" => 203, "msg" => "strength-error"];
 		}
 
 		// Check If User ID Exists
@@ -827,7 +674,7 @@ class Users extends Booking {
 
 			/** Logout if the user who changed the password is the same person logged in */
 			if($params->remote) {
-				return "User password successfully changed";
+				return ["code" => 203, "msg" => "User password successfully changed"];
 			} else {
 				// the print the alert to logout
 				if($params->user_guid == $this->session->userId) {
@@ -835,13 +682,13 @@ class Users extends Booking {
 					$this->session->destroy();
 
 					// return the success message
-					return "Your password successfully changed. You have been automatically logged out from the system.";
+					return ["code" => 203, "msg" => "Your password successfully changed. You have been automatically logged out from the system."];
 				} else {
-					return "User password was successfully changed";
+					return ["code" => 203, "msg" => "User password was successfully changed"];
 				}
 			}
 		} else {
-			return "user-error";
+			return ["code" => 203, "msg" => "user-error"];
 		}
 		
 	}
@@ -963,7 +810,7 @@ class Users extends Booking {
      * @return Array        Empty if an error occurs or data from the file
      * 
      */
-    public function userActivityLogs(stdClass $params) {
+    public function history(stdClass $params) {
         try {
             
 			$stmt = $this->db->prepare("SELECT `page`, `date_recorded`, `description`, `user_agent` FROM users_activity_logs WHERE client_guid = ? AND user_guid = ? ORDER BY id DESC LIMIT {$params->limit}");
@@ -993,7 +840,7 @@ class Users extends Booking {
 	 * 
 	 * @return Bool
 	 */
-	public function updateUserTheme(array $data) {
+	public function theme(array $data) {
 
 		// confirm that the theme variable was parsed
 		if( isset($data['theme']) ) {
@@ -1018,7 +865,7 @@ class Users extends Booking {
 	 * 
 	 * @return String
 	 */
-	public function userAccessLevels($params) {
+	public function access_levels_list($params) {
 
 		try {
 
@@ -1074,7 +921,7 @@ class Users extends Booking {
 				}
 				$level_data .= "</div>";
 
-				return $level_data;
+				return ["msg" => $level_data];
 			}
 		} catch(PDOException $e) {
 			return false;
@@ -1082,28 +929,11 @@ class Users extends Booking {
 		
 	}
 
-
-	public function remove_user($user_id){
-		$stmt = $this->db->prepare("
-			UPDATE `users` SET
-			status = ? WHERE user_guid = ? LIMIT 1");
-		return $stmt->execute([self::REMOVED_USER_STATUS, $user_id]);
-	}
-
-	public function generate_user_id(){
-		$userId = $this->user_id_prefix.random_string('nozero', 12);
-		return !$this->data_unique("users", "user_guid", $userId) ? $this->generate_user_id() : $userId;
-	}
-
-	private function generate_verification_code(){
-		return random_string('alnum', mt_rand(55, 75));
-	}
-
-	private function generate_sms_code(){
-		$code = random_string('numeric', 6);
-		return !$this->data_unique("users", "verification_sms_code", $code) ? $this->generate_sms_code() : $code;
-	}
-
+	/**
+	 * Confirm if the record is already existing
+	 * 
+	 * @return Bool
+	 */
 	public function check_existing($table, $column, $data, $addWhere = null){
 		try {
 			$stmt = $this->db->prepare("
@@ -1119,6 +949,40 @@ class Users extends Booking {
 		}
 	}
 
+	/**
+	 * Generate a new user id
+	 * 
+	 * @return String
+	 */
+	public function generate_user_id(){
+		$userId = $this->user_id_prefix.random_string('nozero', 12);
+		return !$this->data_unique("users", "user_guid", $userId) ? $this->generate_user_id() : $userId;
+	}
+
+	/**
+	 * Generate a new verification code
+	 * 
+	 * @return String
+	 */
+	private function generate_verification_code(){
+		return random_string('alnum', mt_rand(55, 75));
+	}
+
+	/**
+	 * Generate a new SMS verification code
+	 * 
+	 * @return String
+	 */
+	private function generate_sms_code(){
+		$code = random_string('numeric', 6);
+		return !$this->data_unique("users", "verification_sms_code", $code) ? $this->generate_sms_code() : $code;
+	}
+
+	/**
+	 * Confirm if the record is unique
+	 * 
+	 * @return Bool
+	 */
 	public function data_unique($table, $column, $data){
 		try {
 			$stmt = $this->db->query("
@@ -1133,6 +997,11 @@ class Users extends Booking {
 		}
 	}
 
+	/**
+	 * Display if the user has not yet activated the account
+	 * 
+	 * @return String
+	 */
 	public function accountActivation() {
 		if( !$this->session->activated ) { ?>
 		<div class="row justify-content-center">

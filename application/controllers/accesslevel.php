@@ -6,7 +6,9 @@ class Accesslevel {
 
     private $_status = false;
     public $userId;
+    public $clientId;
     public $currentPage;
+    public $userPermits = null;
 
     private $_message = '';
 
@@ -51,8 +53,9 @@ class Accesslevel {
     public function getUserPermissions()
     {
         $this->_message = false;
+        $clientId = !empty($this->clientId) ? $this->clientId : $this->session->clientId;
 
-        $stmt = $this->db->prepare("SELECT * FROM users_roles WHERE user_guid = '{$this->userId}' AND client_guid = '{$this->session->clientId}'");
+        $stmt = $this->db->prepare("SELECT * FROM users_roles WHERE user_guid = '{$this->userId}' AND client_guid = '{$clientId}'");
 
         if ($stmt->execute()) {
             $this->_message = $stmt->fetchAll(PDO::FETCH_OBJ);
@@ -72,6 +75,7 @@ class Accesslevel {
     public function assignUserRole($userID, $accessLevel, $permissions = false)
     {
         $this->_message = false;
+        $clientId = !empty($this->clientId) ? $this->clientId : $this->session->clientId;
 
         if ($permissions == false) {
 
@@ -80,7 +84,7 @@ class Accesslevel {
                 $this->getPermissions($accessLevel)[0]->access_level_permissions : null;
 
             $stmt = $this->db->prepare("
-                INSERT INTO users_roles SET clientId='{$this->session->clientId}', user_guid = '{$userID}', permissions = '{$permissions}'
+                INSERT INTO users_roles SET clientId='{$clientId}', user_guid = '{$userID}', permissions = '{$permissions}'
             ");
 
             if ($stmt->execute()) {
@@ -102,58 +106,29 @@ class Accesslevel {
     }
 
     public function hasAccess($role, $currentPage = null) {
-
+        
         // Check User Roles Table
-        if ($this->userPermission($role, $currentPage) == false) {
+        $permits = !empty($this->userPermits) ? $this->userPermits : $this->getUserPermissions();
+        
+        // user permissions
+        if ($permits != false) {
 
-            return false;
-
-        }
-
-        return true;
-    }
-
-    protected function userPermission($role, $currentPage = null) {
-
-        // force the setting of the current page
-        if(!empty($currentPage)) {
-            $this->currentPage = $currentPage;
-        }
-
-        $permissions = $this->getUserPermissions();
-
-        if ($permissions != false) {
-            
-            $permissions = json_decode($permissions[0]->permissions, true);
-
-            if(!is_array($permissions)) {
-                return;
-            }
-
-            $i = 0;
-            $permissions = $permissions['permissions'];
-            $arrKeys = array_keys($permissions);
+            // code the user permissions section
+            $permit = empty($this->userPermits) ? json_decode($permits[0]->permissions) : json_decode($this->userPermits);
+            $permissions = $permit->permissions;
             
             // confirm that the requested page exists
-            if(!isset($permissions[$this->currentPage])) {
-
+            if(!isset($permissions->$currentPage)) {
                 return false;
-
-            } else {
-
-                if(isset($permissions[$this->currentPage][$role])) {
-                    if($permissions[$this->currentPage][$role] == 1) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-                
             }
 
+            // confirm that the role exists
+            if(isset($permissions->$currentPage->$role)) {
+                return (bool) ($permissions->$currentPage->$role == 1) ? true : false;
+            } else {
+                return false;
+            }
         }
-
     }
+
 }

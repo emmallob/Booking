@@ -55,7 +55,7 @@ $(function() {
 
 function temporaryAttachments() {
     $.ajax({
-        url: `${baseUrl}api/emails/temp-attachments`,
+        url: `${baseUrl}api/emails/temp_attachments`,
         type: 'GET',
         dataType: 'json',
         success: function(resp) {
@@ -105,7 +105,7 @@ function removeItem() {
         let payload = `{"document_id":"${document_id}"}`;
 
         $.ajax({
-            url: `${baseUrl}api/emails/remove-attachment`,
+            url: `${baseUrl}api/emails/remove_attachment`,
             type: 'post',
             data: payload,
             dataType: 'json',

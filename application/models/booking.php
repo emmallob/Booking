@@ -25,6 +25,7 @@ class Booking {
 	public $client_guid;
 	public $user_guid;
 	public $clientData;
+	public $global_limit = 1000;
 
 	public function __construct() {
 		global $booking, $session, $config;

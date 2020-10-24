@@ -21,7 +21,7 @@ class Emails extends Booking {
      * 
      * @return Array
      */
-    public function tempAttachments() {
+    public function temp_attachments() {
 
         // List the attached documents
         $attachments = '';
@@ -61,7 +61,7 @@ class Emails extends Booking {
      * 
      * @return Array
      */
-    public function uploadAttachment(stdClass $params) {
+    public function attach(stdClass $params) {
         
         // get the current attachment session id
         $curId = $this->session->tempAttachment;
@@ -120,7 +120,7 @@ class Emails extends Booking {
      * 
      * @return Array
      */
-    public function removeTempAttachment(stdClass $params) {
+    public function remove_attachment(stdClass $params) {
 
         //: Total attachments
         $totalAttachments = 0;
@@ -151,7 +151,7 @@ class Emails extends Booking {
      * 
      * @return Bool
      */
-    public function discardEmail() {
+    public function discard() {
 
         //: create a new session
         $sessionClass = load_class('sessions', 'controllers');
@@ -182,7 +182,7 @@ class Emails extends Booking {
      * 
 	 * @return Bool
 	 **/
-    public function sendEmail(stdClass $params) {
+    public function send(stdClass $params) {
 
         // assign variables
         $content = isset($params->content) ? trim($params->content) : null;
@@ -333,12 +333,17 @@ class Emails extends Booking {
 
 
     /**
+     * List emails that have been sent to users
      * 
+     * @param \stdClass $params
+     * 
+     * @return Array
      */
-    public function listEmails(stdClass $params) {
+    public function list(stdClass $params) {
 
         $emails =  $this->loadEmails($params);
         $row = 1;
+        $data = [];
         $trashCount = 0;
         $allMailsCount = 0;
 
@@ -542,6 +547,28 @@ class Emails extends Booking {
 		}
 
 	}
+
+    /**
+     * Execute all pending emails
+     */
+    public function execute() {
+        /** Create a new object of the crons class */
+        $cronJob = load_class("crons", "models");
+
+        /** Set the database variables */
+        $cronJob->db_host = DB_HOST;
+        $cronJob->db_name = DB_NAME;
+        $cronJob->db_username = DB_USER;
+        $cronJob->db_password = DB_PASS;
+        
+        /** make the request */
+        if($cronJob->loadCommunicationEmails()) {
+            if($cronJob->loadEmailRequests()) {
+                return true;
+            }
+            return true;
+        }
+    }
 
 }
 ?>

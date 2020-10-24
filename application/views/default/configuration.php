@@ -196,7 +196,7 @@ if($accessObject->hasAccess('subscription', 'account')) {
                                 <th>Amount</th>
                                 <th>SMS Unit</th>
                                 <th class="text-center">Status</th>
-                                <th class="text-center" width="10%"></th>
+                                <th class="text-center" width="13%"></th>
                             </tr>
                         </thead>
                         <tbody></tbody>

@@ -388,8 +388,7 @@ if ( ! function_exists('create_slug')) {
 	 * @param	extension	$ext	Extension to add to the string
 	 * @return	text
 	 */
-	function create_slug($str, $ext=''){     
-		$replace = '-';
+	function create_slug($str, $replace = '-', $ext=''){
 		$str = strtolower($str);     
 		
 		//remove query string     
@@ -405,7 +404,7 @@ if ( ! function_exists('create_slug')) {
 		$str = preg_replace("/[^a-z0-9_\s-]/", "", $str);     
 		
 		//remove multiple dashes or whitespaces     
-		$str = preg_replace("/[\s-]+/", " ", $str);     
+		$str = preg_replace("/[\s-]+/", " ", $str);
 		
 		//convert whitespaces and underscore to $replace     
 		$str = preg_replace("/[\s_]/", $replace, $str);    

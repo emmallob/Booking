@@ -20,7 +20,7 @@ class Tickets extends Booking {
      * 
      * @return Array
      */
-    public function listItems(stdClass $params) {
+    public function list(stdClass $params) {
         
         try {
             
@@ -118,7 +118,7 @@ class Tickets extends Booking {
      * 
      * @return Array
      */
-    public function generateTickets(stdClass $params) {
+    public function generate(stdClass $params) {
         
         try {
 
@@ -208,12 +208,12 @@ class Tickets extends Booking {
             return [
                 "state" => 200,
                 "msg" => "Tickets were successfully generated",
-                "data" => [
+                "additional" => [
                     "list" => array_slice($tickets, 0, 10),
                     "guid" => $ticket_guid,
-                    "item" => "ticket_guid",
-                    "redirect" => "tickets",
-                    "url" => "api/tickets/activate"
+                    "clear" => true,
+                    "reload" => true,
+                    "href" => "{$this->baseUrl}tickets"
                 ]
             ];
 
@@ -231,7 +231,7 @@ class Tickets extends Booking {
      * 
      * @return Array
      */
-    public function activateTicket(stdClass $params) {
+    public function activate(stdClass $params) {
         
         try {
 
@@ -243,7 +243,19 @@ class Tickets extends Booking {
             /** Log the user activity */
             $this->userLogs('tickets', $params->ticket_guid, "Activated the ticket.", $params->userId, $params->clientId);
 
-            return $stmt->execute([1, $params->clientId, $params->ticket_guid]);
+            $stmt->execute([1, $params->clientId, $params->ticket_guid]);
+
+            /** Slice a part of the result and push back */
+            return [
+                "state" => 200,
+                "msg" => "Tickets were successfully activated",
+                "additional" => [
+                    "reload" => true,
+                    "clear" => true,
+                    "href" => "{$this->baseUrl}tickets"
+                ]
+            ];
+
 
         } catch(\Exception $e) {
             return false;
@@ -260,7 +272,7 @@ class Tickets extends Booking {
      * 
      * @return Bool
      */
-    public function validateTicket(stdClass $params) {
+    public function validate(stdClass $params) {
 
         /** confirm a valid event guid was parsed */
         $eventData = $this->pushQuery("*", "events", "event_guid='{$params->event_guid}'");
@@ -323,7 +335,7 @@ class Tickets extends Booking {
      * 
      * @return Array
      */
-    public function sellTicket(stdClass $params) {
+    public function sell(stdClass $params) {
 
         // confirm valid contact number
 		if(!preg_match("/^[0-9+]+$/", $params->contact) || (strlen($params->contact) < 10)) {
@@ -399,7 +411,7 @@ class Tickets extends Booking {
 
             // return the success response
             return [
-                "event_data" => [
+                "additional" => [
                     "Event Name" => $eventData[0]->event_title,
                     "Event Date" => $eventData[0]->event_date,
                     "Serial Number" => $ticketsList[0]->ticket_serial,
@@ -407,7 +419,7 @@ class Tickets extends Booking {
                     "Fullname" => $params->fullname,
                     "Contact" => $params->contact
                 ],
-                "result" => "Congrats! The request was successfully processed."
+                "msg" => "Congrats! The request was successfully processed."
             ];
 
         } catch(PDOException $e) {
@@ -419,7 +431,7 @@ class Tickets extends Booking {
     /**
      * Sales list
      */
-    public function listSales(stdClass $params) {
+    public function sales_list(stdClass $params) {
         
         global $accessObject;
         

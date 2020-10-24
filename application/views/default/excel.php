@@ -41,9 +41,9 @@ if(confirm_url_id(1, "event")) {
     // count the number of rows found
     if(empty($eventData)) {
         $bug = true;
-        
+
     }
-    
+
     /** if not bug */
     if(!$bug) {
 

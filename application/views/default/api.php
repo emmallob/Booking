@@ -5,164 +5,170 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
 header("Access-Control-Max-Age: 3600");
 
-global $followinClass, $SITEURL;
+// global variables
+global $bookingClass, $SITEURL, $usersClass;
 
 // incoming inputs from the request
 // and convert the request into an array using the PHP Standard Input
 $incomingData = json_decode( file_get_contents("php://input"), true );
 
 // get the request method that was parsed by the user
-$requestMethod = strtoupper( $_SERVER["REQUEST_METHOD"] );
+$method = strtoupper( $_SERVER["REQUEST_METHOD"] );
+
+//: initializing
+$response = (object) [
+    "code" => 401,
+    "description" => "Error Processing The Request",
+    "method" => $method,
+    "endpoint" => $_SERVER['REQUEST_URI'],
+];
 
 // get the request url for pattern matching and request payload matching
 $requestUri = $_SERVER["REQUEST_URI"];
 
-// example http://testurl.com/api/smp/facebook
-$inner_url = ( isset($SITEURL[1]) ) ? $SITEURL[1] : null;  // smp
-$outer_url = ( isset($SITEURL[2]) ) ? $SITEURL[2] : null; // facebook
+// The api url will go a maximum of 2 variables long
+$inner_url = ( isset($SITEURL[1]) ) ? $SITEURL[1] : null;
+$outer_url = ( isset($SITEURL[2]) ) ? $SITEURL[2] : null;
 
-// initiate an empty array of the parameters parsed
+//: create a new object
+$apisObject = load_class('api_validate', 'models');
+
+// init the params variable
+$bugs = false;
+$remote = false;
 $userId = $session->userId;
 $clientId = $session->clientId;
 
-// set the global variables
-$bookingClass->user_guid = $userId;
-$bookingClass->clientId = $clientId;
+// validate the user api keys parsed
+$apiAccessValues = $apisObject->validateApiKey();
 
-$remote = false;
+// get the parameters
+$params = $apisObject->paramFormat($method, $incomingData, $_POST, $_GET, $_FILES);
 
-// load the user data
-$userData = (Object) $usersClass->item_by_id("users", $userId);
+// control
+if((($inner_url == "devlog") && ($outer_url == "auth")) || ($inner_url == "auth" && !$outer_url) || ($inner_url == "auth" && $outer_url == "logout")) {
+    // get the list access token
+    $response = (object) [
+        "result" => "Sorry! User credentials could not be authenticated"
+    ];
 
-// init the params variable
-$params = [];
+    // Auth object
+    $logObj = load_class("auth", "controllers");
+    // if the parameters were parsed
+    if($method !== "POST") {
+        $response->result = "Sorry! The method must be POST.";
+    } elseif($outer_url == "logout") { 
+        // append the user id and 
+        $params->userId = $userId;
+        // logout the user
+        $response->result = $logObj->logout($params);
+    } elseif(isset($params->username, $params->password) && !isset($params->firstname)) {
+        // remote login
+        $remote_login = (isset($params->verify)) ? false : true;
+        // set the parameters as an object
+        $parameters = (object)[
+            "username" => $params->username,
+            "password" => $params->password,
+            "remote" => $remote_login,
+            "rememberme" => $params->rememberme ?? null
+        ];
+        // Auth the user credentials
+        $response->result = $logObj->processLogin($parameters);
+    } elseif(isset($params->recover, $params->email)) {
+        // request password reset
+        $response->result = $logObj->sendPasswordResetToken($params);
+    } elseif(isset($params->reset_token, $params->password, $params->password_2)) {
+        // request password reset
+        $response->result = $logObj->resetUserPassword($params);
+    } elseif(isset($params->firstname, $params->password, $params->firstname)) {
+        // add additional parameter
+        $params->portal_registration = true;
+        // request password reset
+        $response->result = $usersClass->add($params);
+    }
 
-// confirm that the incoming data is not empty
-if( !empty($incomingData) ) {
+    // print the error description
+    echo json_encode($response);
+    // Auth the user and regenerate an access token for use
+    exit;
+}
 
-    // loop through the list if its a valid array
-    if( is_array($incomingData) ) {
+// confirm that the access token parameter was parsed but did not pass the test
+// confirm if a valid api access key was parsed
+if((!isset($apiAccessValues->user_id) && empty($session->userId)) || (isset($_GET['access_token']) && !isset($apiAccessValues->user_id))) {
+	// set the bug good
+    $bugs = true;
+    // set the http header
+    http_response_code(401);
+    // set the description
+	$response->description = "Sorry! An invalid Access Token was supplied or the Access Token has expired.";
+} else {
+    // if the user is making the request from an api endpoint
+    if(isset($apiAccessValues->user_id)) {
+        
+        // initiate an empty array of the parameters parsed
+        $userId = $apiAccessValues->user_id;
+        $clientId = $apiAccessValues->client_guid;
 
-        // populate the user data using the request method parsed
-        // however first of all loop through the data
-        foreach( $incomingData as $key => $value ) {
+        // set the remote access to true
+        $remote = true;
+        // convert the item into an integer
+        $dailyRequestLimit = (int) $apiAccessValues->requests_limit;
+        $totalRequests = (int) $apiAccessValues->requests_count;
 
-            // if the value is not an array in itself
-            if( !is_array($value))  {
-
-                // add to list if the value is not empty
-                if(!empty($value)) {
-                    $params[$key] = xss_clean($value);
-                }
-            }
-            // else if the value is an array then loop through the array
-            elseif( is_array($value) ) {
-                
-                // perform the loop
-                foreach( $value as $nkey => $nvalue ) {
-                    
-                    //: add the data to the array list
-                    if(!is_array($nvalue)) {
-                        
-                        // only add to list if the value is not empty
-                        if(!empty($nvalue)) {
-                            $params[$key][$nkey] = xss_clean($nvalue);
-                        }
-                    } else {
-
-                        // loop through the array values
-                        foreach($nvalue as $hhKey => $hhValue) {
-                           
-                            // only add to list if the value is not empty
-                            if(!empty($hhValue)) {
-                                $params[$key][$nkey][$hhKey] = is_array($hhValue) ? array_map('xss_clean', $hhValue) : $hhValue;
-                            }
-                        }
-
-                    }
-                    
-                }
-
-            }
-
+        // if the total request is greater or equal to the request limit
+        // then return false
+        if($totalRequests >= $dailyRequestLimit) {
+            $bugs = true;
+            // set the too many requests header
+            http_response_code(429);
+            // set the information to return to the user
+            $response->description = "Sorry! You have reached the maximum of {$dailyRequestLimit} requests that can be made daily.";
         }
         
     }
+
+    // set the userId
+    $bookingClass->user_guid = !empty($session->userId) ? $session->userId : $userId;
+    $bookingClass->client_guid = !empty($session->clientId) ? $session->clientId : $clientId;
 }
 
-else if( empty($incomingData) && in_array($inner_url, ["halls", "users", "events", "tickets", "reports", "reservations", "insight", "sms", "emails"]) && ($requestMethod == "GET") ) {
-    // empty the parameters list
-    $params = [];
+// confirm that a bug was found
+if($bugs) {
 
-    // run this section if the content is not empty
-    if(!empty($_GET)) {
-        // loop through the url items
-        foreach($_GET as $key => $value) {
-            // only parse if the value is not empty
-            if( !empty($value) ) {
-                // append the parameters
-                $params[$key] = xss_clean(strip_tags($value));
-            }
-        }
-    }
-}
+    // parse the remote request
+    !empty($params) ? $response->remote_request['payload'] = $params : null;
 
-else if(
-    empty($incomingData) && 
-    (
-        (($inner_url == "emails") && ($outer_url == "attach") && ($requestMethod == "POST")) ||
-        (($inner_url == "account") && ($outer_url == "update") && ($requestMethod == "POST")) ||
-        (($inner_url == "users") && ($outer_url == "add") && ($requestMethod == "POST")) ||
-        (($inner_url == "users") && ($outer_url == "update") && ($requestMethod == "POST")) ||
-        (($inner_url == "halls") && ($outer_url == "configure") && ($requestMethod == "POST")) ||
-        (($inner_url == "events") && ($outer_url == "add") && ($requestMethod == "POST")) || 
-        (($inner_url == "events") && ($outer_url == "update") && ($requestMethod == "POST")) ||
-        (($inner_url == "reservations") && ($outer_url == "reserve") && ($requestMethod == "POST")) 
-    )
-) {
-    // empty the parameters list
-    $params = [];
-
-    // run this section if the content is not empty
-    if(!empty($_POST)) {
-        // loop through the url items
-        foreach($_POST as $key => $value) {
-            // only parse if the value is not empty
-            if(!empty($value) || in_array($key, ["hall_guid_key"])) {
-                // append the parameters
-                $params[$key] = is_array($value) ? $value : xss_clean($value);
-            }
-        }
-    }
-    
-    // if the files is not empty
-    if(!empty($_FILES)) {
-        // append files to the parameters
-        foreach($_FILES as $key => $value) {
-            // only parse if the value is not empty
-            if(!empty($value)) {
-                // append the parameters
-                $params[$key] = is_array($value) ? $value : xss_clean($value);
-            }
-        }
-    }
+    // print the error description
+    echo json_encode($response);
+    exit;
 }
 
 /* Usage of the Api Class */
-$Api = load_class('api', 'controllers', 
-    ["userId" => $userId, "clientId" => $clientId]
-);
+$Api = load_class('api', 'models', ["userId" => $userId, "clientId" => $clientId]);
 
-// echo json_encode($params);exit; 
 /**
  * Test examples using the inner url of users
  */
 $Api->inner_url = $inner_url;
 $Api->outer_url = $outer_url;
-$Api->method = $requestMethod;
+$Api->method = $method;
+$Api->uri = $requestUri;
+
+/** Revert the params back into an array */
+$params = (array) $params;
+
+// get the endpoints
+$endpoint = "{$inner_url}/{$outer_url}/";
+$endpoint = trim($endpoint, "/");
+
+/** Load the parameters */
+$Api->endpoints = $apisObject->apiEndpoint($endpoint, $method, $outer_url);
 
 /* Run a check for the parameters and method parsed by the user */
 $paramChecker = $Api->keysChecker($params);
+
+$remote = isset($params["remote"]) ? (bool) $params["remote"] : $remote;
 
 // in continuing your script then you can also do the following
 // if an error was found
@@ -170,17 +176,30 @@ if( $paramChecker['code'] !== 100) {
     // check the message to parse
     $paramChecker['data']['result'] = $paramChecker['data']['result'] ?? $paramChecker['description'];
 
+    // unacceptable query made
+    if($remote) {
+        http_response_code(405);
+    }
+
     // print the json output
     echo json_encode($paramChecker);
 } else {
-    /** 
-     * you can call the class to process your request here
-     * you can run an if statement to check which class to call
-     * 
-     * Example for users
-     */
+    
+    /** Set the default parameters */
+    $Api->default_params = $params;
+    /** Revert the params back into an array */
+    $param = (object) $params;
+    $param->remote = $remote;
+
     // run the request
-    $ApiRequest = $Api->apiHandler($params, $remote);
+    $ApiRequest = $Api->requestHandler($param, $method);
+
+    /** Set the headers */
+    if($remote) {
+        http_response_code($ApiRequest["code"]);
+    }
+    // set the request payload parsed
+    $ApiRequest["data"]["remote_request"]["payload"] = $params;
 
     // print out the response
     echo json_encode($ApiRequest);

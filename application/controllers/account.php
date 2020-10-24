@@ -3,7 +3,7 @@
 
 if( !defined( 'SITE_URL' ) && !defined( 'SITE_DATE_FORMAT' ) ) die( 'Restricted access' );
 
-class Accounts extends Booking {
+class Account extends Booking {
 
 	public $userBrands;
 
@@ -20,7 +20,7 @@ class Accounts extends Booking {
 	 * 
 	 * @return Bool
 	 */
-	public function updateAccount(stdClass $account){
+	public function update(stdClass $account){
 
         // update directory
         $uploadDir = 'assets/img/accounts/';
@@ -80,9 +80,15 @@ class Accounts extends Booking {
 		$this->userLogs("account", $account->clientId, "Updated the Account details.", $account->userId, $account->clientId);
 
         if(isset($uploadedFile)) {
-            return "refresh";
+            return [
+				"msg" => "Account successfully updated",
+				"additional" => [
+					"reload" => true,
+					"href" => "{$this->baseUrl}configuration"
+				] 
+			];
         } else {
-            return $stmt->execute($params);
+            return ["msg" => "Account successfully updated"];
         }
 
 	}

@@ -124,6 +124,7 @@
     <script src="<?= $rootDir ?>assets/libs/select/select.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
+    <script src="<?= $rootDir ?>assets/js/endpoints.js"></script>
     <?php if(in_array($SITEURL[0], ["events-add", "events-edit", "halls-add", "halls-edit", "emails-compose"])) { ?>
     <script src="<?= $rootDir ?>assets/libs/summernote/dist/summernote-bs4.min.js"></script>
     <?php } ?>
@@ -152,6 +153,9 @@
             username = $(this).val().split("@")[0];
             $(`input[name="username"]`).val(username);
         });
+        <?php } ?>
+        <?php if(isset($_GET["end_id"]) && preg_match("/^[a-z0-9]+$/", $_GET["end_id"])) { ?>
+            // $(`button[data-function="update"][data-item="<?= $_GET["end_id"] ?>"]`).trigger("click");
         <?php } ?>
     </script>
 </body>

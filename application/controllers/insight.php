@@ -19,7 +19,7 @@ class Insight extends Booking {
      * 
      * @param stdClass $params
      */
-    public function generateInsight(stdClass $params) {
+    public function report(stdClass $params) {
         
         try {
             
