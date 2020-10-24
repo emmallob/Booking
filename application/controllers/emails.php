@@ -2,573 +2,1737 @@
 
 class Emails extends Booking {
 
-    public function __construct() {
+    private $labels;
+    private $other_labels;
+    private $the_user_type;
+    private $the_user_id;
+
+    public function __construct()
+    {
         parent::__construct();
 
-        // Allow certain file formats 
-        $this->allowedFileTypes = [
-            'jpg', 'png', 'jpeg', 'txt', 'pdf', 
-            'sql', 'docx', 'doc', 'xls', 'xlsx', 
-            'ppt', 'pptx', 'php', 'html', 'css',
-            'csv', 'rtf', 'gif', 'pub'
+        $this->labels = ["inbox", "sent", "draft"];
+        $this->other_labels = [
+            "important" => "important_list",
+            "favorite" => "favorite_list",
+            "trash" => "trash_list"
         ];
     }
 
     /**
-     * List the temporary attachments to a specify email
+     * This function will be the main endpoint to process any request to the endpoint
      * 
-     * Loops through the session value and populates the list of attachments and gets its size
+     * @param stdClass $params
      * 
-     * @return Array
+     * @return Array 
      */
-    public function temp_attachments() {
+    public function action(stdClass $params) {
 
-        // List the attached documents
-        $attachments = '';
-        // append the list
-        if(!empty($this->session->tempAttachments) && is_array($this->session->tempAttachments)) {
-            // using foreach loop to get the list of attached documents
-            foreach($this->session->tempAttachments as $key => $values) {
-                // check if the name is more than 35 characters
-                if(strlen($values['item_value']) > 30) {
-                    $name = substr($values['item_value'], 0, 30)."...";
-                } else {
-                    $name = substr($values['item_value'], 0, 30);
-                }
-                // print the name
-                $attachments .= "<div data-value=\"{$values['item_id']}\" class=\"row mt-2 justify-content-between\">";
-                $attachments .= "<div style=\"overflow:hidden\" class='mt-1'>";
-                $attachments .= "<a title=\"{$values['item_value']}\" class=\"font-weight-bolder cursor\" style=\"color:#000;\" target=\"_blank\">{$name} <span class=\"text-muted font-weight-light\">({$values['item_name']})</span></a>";
-                $attachments .= "</div><div class=\"text-right\">";
-                $attachments .= "<i title=\"Delete Item Attached\" data-value=\"{$values['item_id']}\" class=\"fa delete-document text-danger cursor fa-trash\"></i>";
-                $attachments .= "</div></div>";
-            }
-        }
+        // convert the label into an array
+        $params->action = is_array($params->action) ? $params->action : $this->stringToArray($params->action);
 
-        $totalAttachments = (!empty($this->session->tempAttachments)) ? ($this->tempAttachmentsSize()) : 0;
-
-        return [
-            'files' => $attachments,
-            'total' => ((!empty($this->session->tempAttachments)) ? count($this->session->tempAttachments) : 0)." Files - <strong ".(($totalAttachments > 25) ? 'class="text-danger cursor" title="Maximum file size exceeded."' : 'class="text-success cursor"').">Total Size: ".$totalAttachments." MB</strong>"
-        ];
-
-    }
-
-    /**
-     * Upload a temporary document to be attached to a mail
-     * 
-     * @param stdClass $params      This contains the file to upload
-     * 
-     * @return Array
-     */
-    public function attach(stdClass $params) {
-        
-        // get the current attachment session id
-        $curId = $this->session->tempAttachment;
-
-        //: create a new session
-        $sessionClass = load_class('sessions', 'controllers');
-
-        // set the upload dir
-        $uploadDir = 'assets/emails/tmp/';
-
-        // if there is not any name key
-        if(!isset($params->mail_attachment["name"])) {
+        // end query if no action was parsed
+        if(!isset($params->action["action"])) {
             return;
         }
+
+        // assign variable
+        $action = $params->action["action"];
+
+        // start the filter
+        $filter = "";
+
+        // perform some checks
+        $this->the_user_id = $params->userData->user_id;
+
+        // if insurance company user
+        $filter .= " AND ( (a.user_guid = '{$params->userId}') OR (a.recipient_list LIKE '%{$this->the_user_id}%') OR (a.copy_recipients_list LIKE '%{$this->the_user_id}%') ) AND (a.deleted_list IS NOT NULL AND a.deleted_list NOT LIKE '%{$this->the_user_id}%' AND a.status = '1') AND (a.archive_list  IS NOT NULL AND a.archive_list NOT LIKE '%{$this->the_user_id}%' AND a.status = '1')";
         
-        // File path config 
-        $fileName = basename($params->mail_attachment["name"]); 
+        
+        // the action to perform
+        if($action == "mails_count") {
 
-        $newFileName = random_string('alnum', 25);
-        $targetFilePath = $uploadDir . $fileName;
-        $n_FileTitle_Real = preg_replace('/\\.[^.\\s]{3,4}$/', '', $fileName);
-        $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
-
-        // check if its a valid image
-        if(!empty($fileName) && in_array($fileType, $this->allowedFileTypes)){
-
-            // set a new filename
-            $uploadPath = $uploadDir . $newFileName;
-
-            // Upload file to the server 
-            if(move_uploaded_file($params->mail_attachment["tmp_name"], $uploadPath)){ 
-                $uploadStatus = 1;
-
-                //: set this session data
-                $sessionClass->addSessionData('tempAttachments', $newFileName, $n_FileTitle_Real, $curId, file_size_convert("{$uploadDir}{$newFileName}", true), $fileType);
-
-            } else { 
-                $uploadStatus = 0; 
+            // end the query if the request was not parsed
+            if(!isset($params->action["labels"])) {
+                return;
             }
 
-        } else { 
-            $uploadStatus = 2;
+            // mails counter
+            $mails_count = [];
+            // convert to array if not an array
+            $labels = is_array($params->action["labels"]) ? $params->action["labels"] : $this->stringToArray($params->action["labels"]);
+
+            // if count mails is in the list
+            if(in_array("labels_count", $labels)) {
+
+                // append to the filter
+                $t_filter = "";
+                $t_filter .= " AND (a.trash_list IS NOT NULL AND a.trash_list NOT LIKE '%{$this->the_user_id}%')";
+
+                // loop through each label
+                foreach($this->labels as $the_label) {
+
+                    try {
+
+                        // set the each label variable
+                        $eachLabel = $the_label;
+
+                        // if sent then show the information
+                        if($the_label == "sent") {
+                            $the_label = "inbox";
+                            $t_filter .= " AND a.user_guid = '{$this->the_user_id}'";
+                        } else if($the_label == "inbox") {
+                            $t_filter .= " AND a.user_guid != '{$this->the_user_id}'";
+                        }
+
+                        $n_filter = $filter.$t_filter;
+
+                        // run the query
+                        $stmt = $this->db->prepare("SELECT COUNT(*) AS mails_count FROM users_emails a WHERE a.label=? {$n_filter}");
+                        $stmt->execute([$the_label]);
+                        
+                        // fetch the results
+                        $result = $stmt->fetch(PDO::FETCH_OBJ);
+
+                        // append the the mials count array
+                        $mails_count[$eachLabel] = isset($result->mails_count) ? $result->mails_count : 0;
+
+                    } catch(PDOException $e) {}
+                }
+            }
+
+            // get unread messages
+            if(in_array("unread_count", $labels)) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) AS unread_count FROM users_emails a WHERE (a.user_guid != '{$this->the_user_id}') AND (a.label=? AND a.read_list NOT LIKE '%{$this->the_user_id}%') {$filter}");
+                $stmt->execute(['inbox']);
+                // fetch the results
+                $result = $stmt->fetch(PDO::FETCH_OBJ);
+                // append the the mials count array
+                $mails_count["unread_count"] = isset($result->unread_count) ? $result->unread_count : 0;
+            }
+            
+            // get read messages
+            if(in_array("read_count", $labels)) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) AS read_count FROM users_emails a WHERE (a.label=? AND a.read_list LIKE '%{$this->the_user_id}%') {$filter}");
+                $stmt->execute(['inbox']);
+                // fetch the results
+                $result = $stmt->fetch(PDO::FETCH_OBJ);
+                // append the the mials count array
+                $mails_count["read_count"] = isset($result->read_count) ? $result->read_count : 0;
+            }
+
+            // get favourite count
+            if(in_array("favorite_count", $labels)) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) AS favorite_count FROM users_emails a WHERE (a.label=? AND a.favorite_list LIKE '%{$this->the_user_id}%') {$filter}");
+                $stmt->execute(['inbox']);
+                // fetch the results
+                $result = $stmt->fetch(PDO::FETCH_OBJ);
+                // append the the mials count array
+                $mails_count["favorite"] = isset($result->favorite_count) ? $result->favorite_count : 0;
+            }
+
+            // get important count
+            if(in_array("important_count", $labels)) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) AS important_count FROM users_emails a WHERE (a.label=? AND a.important_list LIKE '%{$this->the_user_id}%') {$filter}");
+                $stmt->execute(['inbox']);
+                // fetch the results
+                $result = $stmt->fetch(PDO::FETCH_OBJ);
+                // append the the mials count array
+                $mails_count["important"] = isset($result->important_count) ? $result->important_count : 0;
+            }
+
+            // get trash count
+            if(in_array("trash_count", $labels)) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) AS trash_count FROM users_emails a WHERE (a.label=? AND a.trash_list LIKE '%{$this->the_user_id}%') {$filter}");
+                $stmt->execute(['inbox']);
+                // fetch the results
+                $result = $stmt->fetch(PDO::FETCH_OBJ);
+                // append the the mials count array
+                $mails_count["trash"] = isset($result->trash_count) ? $result->trash_count : 0;
+            }
+
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $mails_count
+            ];
+
         }
 
-        return [
-            'upload_status' => $uploadStatus,
-            'allowed_types' => implode(',', $this->allowedFileTypes)
-        ];
-		
+        // list the emails
+        elseif($action == "mails_list") {
+
+            // end the query if the request was not parsed
+            if(!isset($params->action["labels"])) {
+                return;
+            }
+            
+            // assign the label
+            $data = (object) [
+                "label" => xss_clean($params->action["labels"]),
+                "order_by" => isset($action["order_by"]) ? xss_clean($action["order_by"]) : "a.id DESC",
+                "thread_id" => isset($action["thread_id"]) ? xss_clean($action["thread_id"]) : null,
+                "search" => isset($params->action["q"]) ? xss_clean($params->action["q"]) : null,
+                "start_point" => isset($action["start_id"]) ? xss_clean($action["start_id"]) : 0,
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+
+            // set the result
+            $result = $this->list($data);
+            
+            // return the success response
+            return [
+                "code" => empty($result["list"]) ? 203 : 200,
+                "msg" => $result
+            ];
+        }
+
+        // move the messages to trash
+        elseif($action == "move_to_trash") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->move_to_trash($data)
+            ];
+        }
+
+        // move the messages from trash to inbox
+        elseif($action == "move_to_inbox") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->move_to_inbox($data)
+            ];
+        }
+
+        // move the messages to archive list
+        elseif($action == "move_to_archive") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->toggle_archive($data)
+            ];
+        }
+
+        // delete the messages
+        elseif($action == "delete_message") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->delete_message($data)
+            ];
+        }
+
+        // mark emails as read
+        elseif($action == "mark_as_read") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->mark_as_read($data)
+            ];
+        }
+
+        // mark emails as unread
+        elseif($action == "mark_as_unread") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->mark_as_unread($data)
+            ];
+        }
+
+        // mark emails as favorite
+        elseif($action == "mark_as_favorite") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->toggle_favorite($data)
+            ];
+        }
+
+        // mark emails as important
+        elseif($action == "mark_as_important") {
+            
+            // if not set thread_ids then return 
+            if(!isset($params->action["thread_id"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "thread_id" => $this->stringToArray($params->action["thread_id"]),
+                "userData" => $params->userData,
+                "filter" => $filter
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->toggle_important($data)
+            ];
+        }
+
+        // discard composing of emails
+        elseif($action == "discard_email_composer") {
+            
+            // end the query if the request was not parsed
+            if(!isset($params->action["labels"])) {
+                return;
+            }
+
+            // assign the label
+            $data = (object) [
+                "label" => $params->action["labels"],
+                "userData" => $params->userData,
+                "module" => "emails_{$params->userId}"
+            ];
+            
+            // return the success response
+            return [
+                "code" => 200,
+                "msg" => $this->discard_email($data)
+            ];
+        }
+
+        // send email messages to the list of recipients
+        elseif($action == "send_email") {
+
+            // end the query if the request was not parsed
+            if(!isset($params->action["labels"])) {
+                return;
+            }
+
+            // send the message
+            $send = $this->send_email($params);
+            
+            // return the success response
+            return [
+                "code" => $send == "sent" ? 200 : 203,
+                "msg" => $send
+            ];
+
+        }
+
     }
 
     /**
-     * Remove a temporary email attachment
+     * Send the email message
+     * Decode the labels parameter and get the list of all recipients to receive the message
      * 
-     * @param String $params->document_id       This is the temp document id
-     * 
-     * @return Array
-     */
-    public function remove_attachment(stdClass $params) {
-
-        //: Total attachments
-        $totalAttachments = 0;
-        //: Ensure the array is not empty
-        if(!empty($this->session->tempAttachments) && is_array($this->session->tempAttachments)) {
-            
-            //: create a new session
-            $sessionClass = load_class('sessions', 'controllers');
-            
-            // get the total file size
-            $totalAttachments = (!empty($this->session->tempAttachments)) ? ($this->tempAttachmentsSize()) : 0;
-
-            // set the data record
-            $postData = (object) $params;
-
-            //: remove the attached document
-            $sessionClass->removeSessionValue('tempAttachments', $postData->document_id, 'assets/emails/tmp/');
-        }
-
-        return [
-            'total' => ((!empty($this->session->tempAttachments)) ? count($this->session->tempAttachments) : 0)." Files - <strong ".(($totalAttachments > 25) ? 'class="text-danger cursor" title="Maximum file size exceeded."' : 'class="text-success cursor"').">Total Size: ".$totalAttachments." MB</strong>",
-            'result' => 'Attachment Removed'
-        ];
-    }
-
-    /**
-     * Discard The Email message Composing
+     * @param \stdClass $params
      * 
      * @return Bool
      */
-    public function discard() {
+    private function send_email(stdClass $params) {
 
-        //: create a new session
-        $sessionClass = load_class('sessions', 'controllers');
+        // convert the labels into an object
+        $labels = is_object($params->action["labels"]) ? $params->action["labels"] : json_decode($params->action["labels"]);
 
-        // unset the sessions
-        $this->session->remove("emailsList");
-        $this->session->remove("newListNames");
-        
-        //: remove the attached documents
-        if(!empty($this->session->tempAttachments) && is_array($this->session->tempAttachments)) {
-            $sessionClass->removeAllItems('tempAttachments', 'assets/emails/tmp/');
+        // confirm that the content parameter was parsed
+        if(!isset($labels->mail_content)) {
+            return "Sorry! The content of the mail.";
         }
 
-        // remove all sessions
-        $this->session->remove('tempAttachments');
+        // return if the email subject was not set
+        if(!isset($labels->mail_content->subject)) {
+            return "Sorry! The subject of this mail was not set.";
+        }
 
-        return true;
+        // return if the email subject was not set
+        if(empty($labels->mail_content->subject)) {
+            return "Sorry! Please enter a subject for this mail.";
+        }
 
-    }
-    
-    /**
-	 * Send out messages to a list of recipients
-     * 
-     * @param String $params->recipients    The list of receipients to receive the mail
-     * @param String $params->subject       The subject of the email message
-     * @param String $params->content       The content of the mail
-     * @param String $params->sender        The email address to send the mail from
-     * 
-	 * @return Bool
-	 **/
-    public function send(stdClass $params) {
+        // confirm that the recipients parameter was parsed
+        if(!isset($labels->recipients)) {
+            return "Sorry! The recipients parameter must be parsed";
+        }
 
-        // assign variables
-        $content = isset($params->content) ? trim($params->content) : null;
-        $subject = isset($params->subject) ? $params->subject : null;
-        $sender = isset($params->sender) ? $params->sender : null;
+        // confirm that the copied list was parsed
+        if(!isset($labels->recipients->primary)) {
+            return "Sorry! Please enter that the main recipient list is not empty.";
+        }
 
-        //: the attachments list
-        $totalAttachments = (!empty($this->session->emailAttachment)) ? ($this->tempAttachmentsSize()) : 0;
+        // init variables
+        $cc_list = [];
+        $recipient_list = [];
 
-        // Email Recipients
-        $bugs = [];
-        $mailingList = [];
-        $recipients = explode(",", $params->recipients);
+        // loop through the list to properly format it well
+        foreach($labels->recipients->primary as $each) {
+            $recipient_list[] = [
+                "user_id" => $each->user_id,
+                "email" => $each->email ?? $each->name,
+                "fullname" => $each->name
+            ];
+        }
 
-        // loop through the list
-        foreach($recipients as $receiver) {
-            // confirm that a valid email was parsed
-            if(!filter_var($receiver, FILTER_VALIDATE_EMAIL)) {
-                $bugs[] = $receiver; 
-            } else {
-                $mailingList[] = [
-                    "fullname" => $receiver,
-                    "email" => $receiver
+        // loop through the copied list if set and a valid array
+        if(isset($labels->recipients->copied) && is_object($labels->recipients->copied)) {
+            foreach($labels->recipients->copied as $each) {
+                $cc_list[] = [
+                    "user_id" => $each->user_id,
+                    "email" => $each->email ?? $each->name,
+                    "fullname" => $each->name
                 ];
             }
         }
 
-        // if the attachment is more than 25mb
-        if(!empty($bugs)) {
-            return 'Please ensure that all emails are valid: '.implode(",", $bugs);
-        } elseif(($totalAttachments > 25)) {
-            return 'Maximum attachment allowed is 25MB.';
-        } else { 
-            //: Looping through the list to insert the data
-            $content = htmlspecialchars_decode($content);
-            $content = htmlspecialchars($content);
-            
-            //: push the information into the database
-            $data = $this->sendBulkEmails($params, $mailingList);
+        // get the user ids of the recipients_list and the copied_list
+        $recipient_ids = array_column($recipient_list, "user_id");
+        $copied_ids = array_column($cc_list, "user_id");
 
-            //: If the response is true
-            if($data) {
+        // set the subject and content
+        $subject = xss_clean($labels->mail_content->subject);
+        $content = isset($labels->mail_content->content) ? xss_clean($labels->mail_content->content) : null;
+        $label = isset($labels->mail_content->label) ? xss_clean($labels->mail_content->label) : "inbox";
+        $scheduler = ($labels->mail_content->scheduler == "send_now") ? "send_now" : date("Y-m-d H:i:s", strtotime($labels->mail_content->scheduler));
+        
+        // continue processing
+        $thread_id = random_string("alnum", 32);
 
-                //: remove all sessions
-                $this->session->remove('emailsList');
-                $this->session->remove('newListNames');
-                $this->session->remove('tempAttachments');
-                
-                //: Set new values
-                return 'Sent';
+        $module = "emails";
+
+        // the details of the sender
+        $sender = [
+            "fullname" => $params->userData->fullname,
+            "email" => $params->userData->email,
+            "user_id" => $params->userData->user_guid,
+        ];
+
+        // append the attachments
+        $filesObj = load_class("files", "controllers");
+        $attachments = $filesObj->prep_attachments("{$module}", $params->userData->user_guid, $thread_id);
+        
+        try {
+
+            // begin the transaction
+            $this->db->beginTransaction();
+
+            // prepare the statement
+            $stmt = $this->db->prepare("
+                INSERT INTO users_emails SET thread_id = ?, client_guid = ?, user_guid = ?, subject = ?, message = ?, sender_details = ?, 
+                recipient_details = ?, recipient_list = ?, copy_recipients = ?, copy_recipients_list = ?, label = ?, attachment_size = ?
+                ".(($scheduler !== "send_now") ? ",schedule_send = 'true'" : null)."
+                ".(($scheduler !== "send_now") ? ",schedule_date = '{$scheduler}'" : null)."
+                , trash_list = ?, deleted_list = ?, archive_list = ?, read_list = ?, favorite_list = ?, important_list = ?, mode = 'sent'
+            ");
+            $stmt->execute([
+                $thread_id, $params->userData->client_guid, $params->userId, $subject, $content, json_encode($sender), json_encode($recipient_list), 
+                json_encode($recipient_ids), json_encode($cc_list), json_encode($copied_ids), $label, $attachments["raw_size_mb"],
+                '["NULL"]', '["NULL"]', '["NULL"]', '["NULL"]', '["NULL"]', '["NULL"]'
+            ]);
             
+            // only insert attachment record if there was an attachment to the comment
+            if(!empty($attachments["files"])) {
+                // insert attachment
+                $files = $this->db->prepare("INSERT INTO files_attachment SET resource= ?, resource_id = ?, description = ?, record_id = ?, created_by = ?, attachment_size = ?");
+                $files->execute(["messaging_emails", $thread_id, json_encode($attachments), "{$thread_id}", $params->userId, $attachments["raw_size_mb"]]);
             }
+            
+            // notify all persons within the selected group
+            $query = json_encode($recipient_list);
+            $this->db->query("INSERT INTO cron_scheduler SET notice_code='5', active_date=now(), item_id='{$thread_id}', query='{$query}', user_id='{$params->userId}', cron_type='email', subject = 'Email Message'");
 
-            return "Sorry! There was an error while processing the request.";
+            // log the user activity
+            $this->userLogs("messaging_emails", $thread_id, null, "<strong>{$params->userData->name}</strong> sent out a mail to: ".count($recipient_ids)." contacts.", $params->userId);
+
+            // commit the transaction
+            $this->db->commit();
+
+            // return the success response
+            return "sent";
+
+        } catch(PDOException $e) {
+            $this->db->rollBack();
         }
+
     }
 
-    /**
-     * Send the mail
-     * 
-     * @param stdClass $params
-     * @param String $mailingList
+    /** 
+     * Discard the composing of email content
      * 
      * @return Bool
      */
-    private function sendBulkEmails($params, $mailingList){
-        
-        // begin transaction
-		$this->db->beginTransaction();
+    private function discard_email(stdClass $params) {
 
-		try {
+        // create new file object
+        return load_class("files", "controllers")->attachments($params);
 
-			//: if is array the mailing list
-			if(is_array($mailingList)) {
-
-				//: Generate a new token id
-				$emailId = random_string('alnum', mt_rand(25, 35));
-
-				$this->addEmailAttachment($emailId, $params->clientId);
-
-				//: Process the form
-				$stmt = $this->db->prepare("
-					INSERT INTO emails 
-					SET client_guid = ?, email_guid = ?, 
-						user_guid=?, sent_via = ?, 
-						recipient = ?, subject = ?, message = ?,
-						date_log = now()
-				");
-				$stmt->execute([
-					$params->clientId, $emailId, 
-					$params->userId, $params->sender, json_encode($mailingList),
-					$params->subject, $params->message
-				]);
-
-				$this->db->commit();
-
-				return true;
-			}
-
-			return false;
-
-		} catch(PDOException $e) {
-			$this->db->rollBack();
-			return $e->getMessage();
-		}
     }
 
     /**
-     * Add the email attachments
+     * Move messages from trash to inbox
+     * 
+     * @return Array
      */
-    public function addEmailAttachment($emailId = null, $clientId) {
+    private function move_to_inbox(stdClass $params) {
+        // filter
+        $filter = "";
 
-		try {
-			//: Process the email attachments
-			if(!empty($this->session->tempAttachments) && is_array($this->session->tempAttachments)) {
-				
-				// using foreach loop to get the list of attached documents
-				foreach($this->session->tempAttachments as $key => $values) {
-					
-					//: Insert the documents
-					$stmt = $this->db->prepare("
-						INSERT INTO emails_attachments SET 
-							client_guid = ?, email_guid = ?, document_name = ?, document_link = ?,
-							document_type = ?, document_size = ?
-					");
-					$stmt->execute([
-						$clientId, $emailId, $values['item_value'],
-						$values['item_id'], $values['fifth_item'], $values['item_name']
-					]);
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+       
+        // regroup the list
+        $trash_array = [];
 
-					// copy each file and send it into the main directory
-					$file_newname = 'assets/emails/docs/'.$values['item_id'];
-					$file_oldname = 'assets/emails/tmp/'.$values['item_id'];
-					
-					// first copy the file to a separate folder
-					copy($file_oldname, $file_newname);
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
 
-					// delete the old file
-					unlink($file_oldname);
-				}
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT recipient_list, copy_recipients_list, trash_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
 
-			}
-		} catch(PDOException $e) {
-			return false;
-		}
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
 
-	}
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $trash_list = !empty($result->trash_list) ? json_decode($result->trash_list, true) : [];
 
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($trash_list)) {
+
+                // is found is false by default
+                $is_found = false;
+                $is_found_key = null;
+
+                // loop through the list
+                foreach($trash_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        $is_found_key = $key;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if($is_found) {
+
+                    // remove the value
+                    unset($trash_list[$is_found_key]);
+
+                    // array to the array list
+                    $trash_array[] = $eachThread;
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET trash_list='".json_encode($trash_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            }
+
+        }
+
+        // return true at the end of the query
+        return $trash_array;
+
+    }
 
     /**
-     * List emails that have been sent to users
+     * Move messages to trash
+     * 
+     * @return Array
+     */
+    private function move_to_trash(stdClass $params) {
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+        
+        // regroup the list
+        $trash_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT recipient_list, copy_recipients_list, trash_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $trash_list = !empty($result->trash_list) ? json_decode($result->trash_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($trash_list)) {
+
+                // is found is false by default
+                $is_found = false;
+
+                // loop through the list
+                foreach($trash_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if(!$is_found) {
+                    // append the user id
+                    array_push($trash_list, $this->the_user_id);
+
+                    // array to the array list
+                    $trash_array[] = $eachThread;
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET trash_list='".json_encode($trash_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            } else {
+                // create a new array list
+                $trash_list[] = $this->the_user_id;
+                
+                // push to the array list
+                $trash_array[] = $eachThread;
+
+                // update the database table
+                $this->db->query("UPDATE users_emails SET trash_list='".json_encode($trash_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+            }
+
+        }
+
+        // return true at the end of the query
+        return $trash_array;
+
+    }
+
+    /**
+     * Move messages to trash
+     * 
+     * @return Array
+     */
+    private function delete_message(stdClass $params) {
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+      
+        // regroup the list
+        $trash_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT recipient_list, copy_recipients_list, deleted_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $deleted_list = !empty($result->deleted_list) ? json_decode($result->deleted_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($deleted_list)) {
+
+                // is found is false by default
+                $is_found = false;
+
+                // loop through the list
+                foreach($deleted_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if(!$is_found) {
+                    // append the user id
+                    array_push($deleted_list, $this->the_user_id);
+
+                    // array to the array list
+                    $trash_array[] = $eachThread;
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET deleted_list='".json_encode($deleted_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            } else {
+                // create a new array list
+                $deleted_list[] = $this->the_user_id;
+                
+                // push to the array list
+                $trash_array[] = $eachThread;
+
+                // update the database table
+                $this->db->query("UPDATE users_emails SET deleted_list='".json_encode($deleted_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+            }
+
+        }
+
+        // return true at the end of the query
+        return $trash_array;
+
+    }
+
+    /**
+     * Mark emails as important (Toggle the result - Unmark if already in array list)
+     * 
+     * @param \stdClass $params
+     * 
+     * @return String
+     */
+    private function toggle_important(stdClass $params) {
+
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+       
+        // regroup the list
+        $important_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT user_guid, recipient_list, copy_recipients_list, important_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $important_list = !empty($result->important_list) ? json_decode($result->important_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found && ($this->the_user_id !== $result->user_guid)) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($important_list)) {
+
+                // is found is false by default
+                $is_found = false;
+                $is_found_key = null;
+
+                // loop through the list
+                foreach($important_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        $is_found_key = $key;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if(!$is_found) {
+                    // append the user id
+                    array_push($important_list, $this->the_user_id);
+
+                    // array to the array list
+                    $important_array[$eachThread] = ["class" => "<span class='txt-10'><i title='Marked as important' class='fa text-warning fa-tags'></i></span>", "is_important" => 1];
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET important_list='".json_encode($important_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                } else {
+                    // remove the value
+                    unset($important_list[$is_found_key]);
+
+                    // push to the array list
+                    $important_array[$eachThread] = ["class" => "", "is_important" => 0];
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET important_list='".json_encode($important_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            } else {
+                // create a new array list
+                $important_list[] = $this->the_user_id;
+                
+                // push to the array list
+                $important_array[$eachThread] = ["class" => "<span class='txt-10'><i title='Marked as important' class='fa text-warning fa-tags'></i></span>", "is_important" => 1];
+
+                // update the database table
+                $this->db->query("UPDATE users_emails SET important_list='".json_encode($important_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+            }
+
+        }
+
+        // return true at the end of the query
+        return $important_array;
+
+    }
+
+    /**
+     * Mark emails as favorited
+     * 
+     * @param \stdClass $params
+     * 
+     * @return String
+     */
+    private function toggle_favorite(stdClass $params) {
+
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+        
+        // regroup the list
+        $favorite_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT user_guid, recipient_list, copy_recipients_list, favorite_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $favorite_list = !empty($result->favorite_list) ? json_decode($result->favorite_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found && ($this->the_user_id !== $result->user_guid)) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($favorite_list)) {
+
+                // is found is false by default
+                $is_found = false;
+                $is_found_key = null;
+
+                // loop through the list
+                foreach($favorite_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        $is_found_key = $key;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if(!$is_found) {
+                    // append the user id
+                    array_push($favorite_list, $this->the_user_id);
+
+                    // array to the array list
+                    $favorite_array[$eachThread] = ["class" => "text-warning", "is_favorited" => 1];
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET favorite_list='".json_encode($favorite_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                } else {
+                    // remove the value
+                    unset($favorite_list[$is_found_key]);
+
+                    // push to the array list
+                    $favorite_array[$eachThread] = ["class" => "text-secondary", "is_favorited" => 0];
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET favorite_list='".json_encode($favorite_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            } else {
+                // create a new array list
+                $favorite_list[] = $this->the_user_id;
+                
+                // push to the array list
+                $favorite_array[$eachThread] = ["class" => "text-warning", "is_favorited" => 1];
+
+                // update the database table
+                $this->db->query("UPDATE users_emails SET favorite_list='".json_encode($favorite_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+            }
+
+        }
+
+        // return true at the end of the query
+        return $favorite_array;
+
+    }
+    
+    /**
+     * Move the messages to archive (This will toggle between archive state and inbox state)
+     * 
+     * @param \stdClass $params
+     * 
+     * @return String
+     */
+    private function toggle_archive(stdClass $params) {
+
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+        
+        // regroup the list
+        $archive_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT user_guid, recipient_list, copy_recipients_list, archive_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $archive_list = !empty($result->archive_list) ? json_decode($result->archive_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($archive_list)) {
+
+                // is found is false by default
+                $is_found = false;
+                $is_found_key = null;
+
+                // loop through the list
+                foreach($archive_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        $is_found_key = $key;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if(!$is_found) {
+                    // append the user id
+                    array_push($archive_list, $this->the_user_id);
+
+                    // array to the array list
+                    $archive_array[] = $eachThread;
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET archive_list='".json_encode($archive_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                } else {
+                    // remove the value
+                    unset($archive_list[$is_found_key]);
+
+                    // push to the array list
+                    $archive_array[] = $eachThread;
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET archive_list='".json_encode($archive_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            } else {
+                // create a new array list
+                $archive_list[] = $this->the_user_id;
+                
+                // push to the array list
+                $archive_array[$eachThread] = $eachThread;
+
+                // update the database table
+                $this->db->query("UPDATE users_emails SET archive_list='".json_encode($archive_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+            }
+
+        }
+
+        // return true at the end of the query
+        return $archive_array;
+
+    }
+
+    /**
+     * Mark emails as read
+     * 
+     * @param \stdClass $params
+     * 
+     * @return String
+     */
+    private function mark_as_read(stdClass $params) {
+
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+        
+        // regroup the list
+        $thread_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT recipient_list, copy_recipients_list, read_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $read_list = !empty($result->read_list) ? json_decode($result->read_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($read_list)) {
+
+                // is found is false by default
+                $is_found = false;
+
+                // loop through the list
+                foreach($read_list as $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if(!$is_found) {
+                    // append the user id
+                    array_push($read_list, $this->the_user_id);
+
+                    // append to array list
+                    $thread_array[] = $eachThread;
+
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET read_list='".json_encode($read_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            } else {
+                // create a new array list
+                $read_list[] = $this->the_user_id;
+
+                // append to array list
+                $thread_array[] = $eachThread;
+
+                // update the database table
+                $this->db->query("UPDATE users_emails SET read_list='".json_encode($read_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+            }
+
+        }
+
+        // return true at the end of the query
+        return $thread_array;
+
+    }
+
+    /**
+     * Mark emails as read
+     * 
+     * @param \stdClass $params
+     * 
+     * @return String
+     */
+    private function mark_as_unread(stdClass $params) {
+
+        // filter
+        $filter = "";
+
+        // go ahead
+        $filter .= " AND ((user_guid = '{$this->the_user_id}' AND status = '1') OR (((recipient_list LIKE '%{$this->the_user_id}%') OR (copy_recipients_list LIKE '%{$this->the_user_id}%'))) AND  status = '1')";
+        
+        // empty array list
+        $thread_array = [];
+
+        // loop through the mails thread
+        foreach($params->thread_id as $eachThread) {
+
+            // get the email
+            $receivers_list = $this->db->prepare("SELECT recipient_list, copy_recipients_list, read_list FROM users_emails WHERE thread_id = ? {$filter} LIMIT 1");
+            $receivers_list->execute([$eachThread]);
+            $result = $receivers_list->fetch(PDO::FETCH_OBJ);
+
+            /** return if empty */
+            if(empty($result)) {
+                return;
+            }
+
+            /** Convert the list into an array */
+            $recipient_list = !empty($result->recipient_list) ? json_decode($result->recipient_list, true) : [];
+            $copy_recipients_list = !empty($result->copy_recipients_list) ? json_decode($result->copy_recipients_list, true) : [];
+            
+            // the read list in array
+            $read_list = !empty($result->read_list) ? json_decode($result->read_list, true) : [];
+
+            // if the recipient list and the copy list are empty the end the query
+            if(empty($recipient_list) and empty($copy_recipients_list)) {
+                return;
+            }
+
+            // loop through the list of the recipients
+            $item_found = false;
+            $column = null;
+
+            // loop through the recipient list
+            foreach($recipient_list as $each) {
+                if($each == $this->the_user_id) {
+                    $column = "recipient_list";
+                    $item_found = true;
+                    break;
+                }
+            }
+
+            // loop through the copied list if the user was not found in the reciepient list
+            if(empty($column)) {
+                foreach($copy_recipients_list as $each) {
+                    if($each == $this->the_user_id) {
+                        $column = "copy_recipients_list";
+                        $item_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // end query if not found in either columns
+            if(!$item_found) {
+                return;
+            }
+
+            // then lets check if the user is in the read list
+            if(!empty($read_list)) {
+
+                // is found is false by default
+                $is_found = false;
+                $is_found_key = null;
+
+                // loop through the list
+                foreach($read_list as $key => $value) {
+                    // if the username is found
+                    if($value == $this->the_user_id) {
+                        // remove the key from the list
+                        $is_found = true;
+                        $is_found_key = $key;
+                        break;
+                    }
+                }
+                
+                // if the key was found
+                if($is_found) {
+                    // remove the value
+                    unset($read_list[$is_found_key]);
+                    // append to array list
+                    $thread_array[] = $eachThread;
+                    // update the database table
+                    $this->db->query("UPDATE users_emails SET read_list='".json_encode($read_list)."' WHERE thread_id='{$eachThread}' LIMIT 1");
+                }
+            }
+
+        }
+
+        // return true at the end of the query
+        return $thread_array;
+
+    }
+
+    /**
+     * Confirm that the user has read the mail
+     * 
+     * @param \stdClass $read_list
+     * @param String $user_id
+     */
+    private function is_read($read_list, $user_id) {
+
+        if(empty($read_list)) {
+            return false;
+        }
+
+        // convert the list into an array
+        $read_list = (array) $read_list;
+
+        // return boolean
+        return (bool) in_array($user_id, $read_list);
+    }
+
+    /**
+     * Confirm that the user has favorited the mail
+     * 
+     * @param \stdClass $favorite_list
+     * @param String $user_id
+     */
+    private function is_favorited($favorite_list, $user_id) {
+
+        if(empty($favorite_list)) {
+            return false;
+        }
+
+        // convert the list into an array
+        $favorite_list = (array) $favorite_list;
+
+        // return boolean
+        return (bool) in_array($user_id, $favorite_list);
+    }
+
+    /**
+     * Confirm that the user has marked the mail as important
+     * 
+     * @param \stdClass $important_list
+     * @param String $user_id
+     */
+    private function is_important($important_list, $user_id) {
+
+        if(empty($important_list)) {
+            return false;
+        }
+
+        // convert the list into an array
+        $important_list = (array) $important_list;
+
+        // return boolean
+        return (bool) in_array($user_id, $important_list);
+    }
+
+    /**
+     * Confirm that the user has been archived
+     * 
+     * @param \stdClass $archive_list
+     * @param String $user_id
+     */
+    private function is_archived($archive_list, $user_id) {
+
+        if(empty($archive_list)) {
+            return false;
+        }
+
+        // convert the list into an array
+        $archive_list = (array) $archive_list;
+
+        // return boolean
+        return (bool) in_array($user_id, $archive_list);
+    }
+
+    /**
+     * List emails
      * 
      * @param \stdClass $params
      * 
      * @return Array
      */
     public function list(stdClass $params) {
+        
+        // filters
+        $query = "1";
+        $query .= !empty($params->search) ? " AND (a.subject LIKE '%{$params->search}%' OR a.message LIKE '%{$params->search}%')" : null;
+        $query .= !empty($params->thread_id) ? " AND a.thread_id = '{$params->thread_id}'" : null;
 
-        $emails =  $this->loadEmails($params);
-        $row = 1;
-        $data = [];
-        $trashCount = 0;
-        $allMailsCount = 0;
+        // if the label is inbox, then exempt the user who shared the message from the list
+        if($params->label == "inbox") {
+            $query .= " AND (a.user_guid != '{$this->the_user_id}') AND (a.trash_list IS NOT NULL AND a.trash_list NOT LIKE '%{$this->the_user_id}%') AND (a.archive_list IS NOT NULL AND a.archive_list NOT LIKE '%{$this->the_user_id}%')";
+        }
 
-        foreach($emails as $eachMail) {
+        // if the label is draft or sent
+        elseif(in_array($params->label, ["draft", "sent"])) {
+            // form the query string
+            $query .= " AND mode='{$params->label}' AND a.user_guid = '{$this->the_user_id}' AND (a.trash_list IS NOT NULL AND a.trash_list NOT LIKE '%{$this->the_user_id}%') AND (a.archive_list IS NOT NULL AND a.archive_list NOT LIKE '%{$this->the_user_id}%')";
+            
+            // set the label to empty
+            $params->label = null;
+        }
 
-            // assign some more variables
-            $trashCount = $eachMail->trashCount;
+        // if important or favorite list is requested
+        if(in_array($params->label, array_keys($this->other_labels))) {
+            $query .= " AND a.{$this->other_labels[$params->label]} LIKE '%{$this->the_user_id}%'";
+        }
 
-            if(!isset($params->message_guid)) {
-                $eachMail->message = strip_tags(limit_words(htmlspecialchars_decode($eachMail->message), 10))."...";
-            } else {
-                $eachMail->message = htmlspecialchars_decode($eachMail->message);
+        // if the label is in the array list
+        if(in_array($params->label, $this->labels)) {
+            $query .= !empty($params->label) ? " AND a.label = '{$params->label}'" : null;
+        }
+
+        try {
+
+            // set the label module
+            $limit_count = 25;
+            $module = "mails_{$params->label}";
+            
+            // mails counter
+            if(empty($this->session->$module)) {
+                
+                // get the full list of all items 
+                $count_list = $this->db->prepare("SELECT 
+                    a.*, u.name AS sender_name, u.image AS sender_image,
+                        (SELECT b.description FROM files_attachment b WHERE b.record_id = a.thread_id ORDER BY b.id DESC LIMIT 1) AS attachment
+                    FROM users_emails a
+                    LEFT JOIN users u ON u.user_guid = a.user_guid
+                    WHERE {$query} {$params->filter} ORDER BY {$params->order_by}
+                ");
+                $count_list->execute();
+
+                // set the full list count into the session
+                $this->session->$module = $count_list->rowCount();
             }
 
-            // if a single message was queried
-            if(isset($params->message_guid)) {
+            // prepare and execute the sql statement
+            $stmt = $this->db->prepare("SELECT 
+                a.*, u.name AS sender_name, u.image AS sender_image,
+                    (SELECT b.description FROM files_attachment b WHERE b.record_id = a.thread_id ORDER BY b.id DESC LIMIT 1) AS attachment
+                FROM users_emails a
+                LEFT JOIN users u ON u.user_guid = a.user_guid
+                WHERE {$query} {$params->filter} ORDER BY {$params->order_by} LIMIT {$limit_count}
+            ");
+            $stmt->execute();
 
-                $recipient = "";
-                $eachMail->recipient = json_decode($eachMail->recipient);
+            // create a new object
+            $data = [];
+            $filesObject = load_class("files", "controllers");
 
-                $recipientNames = array_column($eachMail->recipient, 'fullname');
-                $recipientEmail = array_column($eachMail->recipient, 'email');
+            // loop through the results list
+            while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
 
-                $joinedEmailNames = array_combine($recipientNames, $recipientEmail);
+                // unset the id
+                unset($result->id);
 
-                foreach($joinedEmailNames as $key => $value) {
-                    $recipient .= "<small class=\"text-muted cursor\" title=\"{$key} ({$value})\">{$key} &lt;{$value}&gt;</small>, "; 
+                // recipients list
+                $result->recipient_list = json_decode($result->recipient_list);
+                $result->recipient_details = json_decode($result->recipient_details, true);
+
+                $result->copy_recipients = json_decode($result->copy_recipients);
+                $result->copy_recipients_list = json_decode($result->copy_recipients_list);
+
+                $result->read_list = json_decode($result->read_list);
+                $result->favorite_list = json_decode($result->favorite_list);
+                $result->important_list = json_decode($result->important_list);
+                $result->archive_list = json_decode($result->archive_list);
+
+                $result->sender_details = json_decode($result->sender_details, true);
+
+                // clean date
+                $result->email_date = date("jS M", strtotime($result->date_created));
+                $result->email_fulldate = date("M jS, Y, h:i A", strtotime($result->date_created));
+                $result->days_ago = time_diff($result->date_created);
+                
+                // clean the message
+                $result->message = custom_clean(htmlspecialchars_decode($result->message));
+                $result->caption = limit_words($result->message, 22)."...";
+
+                // if the user has read the message
+                if($this->the_user_id == $result->user_guid) {
+                    $result->is_read = true;
+                } else {
+                    $result->is_read = (int) $this->is_read($result->read_list, $this->the_user_id);
+                }
+                $result->is_favorited = (int) $this->is_favorited($result->favorite_list, $this->the_user_id);
+                $result->is_important = (int) $this->is_important($result->important_list, $this->the_user_id);
+                $result->is_archived = (int) $this->is_archived($result->archive_list, $this->the_user_id);
+
+                // if attachment variable was parsed
+                if(isset($result->attachment)) {
+                    $result->attachment_html = "";
+                    $result->attachment = json_decode($result->attachment);
                 }
 
-                $eachMail->recipient = substr($recipient, 0, -2);
-                $eachMail->date_sent = date("jS M Y - h:iA", strtotime($eachMail->date_log));
-
-                $mailAttachments = $this->listEmailAttachments($params->message_guid, $params->clientId, $params->remote);
-
-                $eachMail->attachments = (empty($mailAttachments)) ? '<span class="p-2"><em>No attached documents</em></span>' : $mailAttachments;
-
-            } else {
-                $eachMail->date_sent = date("jS M - h:iA", strtotime($eachMail->date_log));
+                // unset some relevant parameters that must not be seen by the user
+                unset($result->read_list);
+                unset($result->deleted_list);
+                unset($result->trash_list);
+                unset($result->favorite_list);
+                unset($result->important_list);
+                unset($result->archive_list);
+                
+                // attachment html list
+                if(isset($result->attachment->files)) {
+                    // format the attachements list
+                    $result->attachment_html = $filesObject->list_uploaded_attachments($result->attachment->files, $this->the_user_id, "col-lg-4 col-md-6", false, false);
+                } else {
+                    $result->attachment_html = "";
+                    $result->attachment = $this->fake_files;
+                }
+                
+                $data[] = $result;
             }
 
-            // print this if not a remote request
-            if(!$params->remote) {
-                $eachMail->row_id = "
-                    <div class=\"col-mail col-mail-1\">
-                        <div class=\"checkbox-wrapper-mail\">
-                            <input id=\"chk_{$eachMail->email_guid}\" class=\"chk_msgs\" data-value=\"{$eachMail->email_guid}\" type=\"checkbox\">
-                            <label for=\"chk_{$eachMail->email_guid}\" class=\"toggle\"></label>
-                        </div>
-                    </div>";
-            }
+            // listing algorithm
+            $total_result = count($data);
+            $total_count = $this->session->$module;
 
-            $eachMail->main_subject = ($params->remote) ? $eachMail->subject : "<span title=\"{$eachMail->subject}\" class=\"title msg-details cursor\" onclick=\"return showEmailContent('{$eachMail->email_guid}')\"><strong>{$eachMail->subject}</strong></span>";
-            
-            // print this if not a remote request
-            if(!$params->remote) {
-                $eachMail->option = "<div align=\"center\"><span title=\"{$eachMail->subject}\" class=\"title msg-details cursor btn btn-sm btn-outline-success\" onclick=\"return showEmailContent('{$eachMail->email_guid}')\"><i class=\"fa fa-eye\"></i></span> <a title=\"{$eachMail->subject}\" class=\"btn btn-outline-primary btn-sm cursor\" title=\"Forward Email\" href=\"".$this->baseUrl."emails-compose/fwd/{$eachMail->email_guid}\"><i class=\"fa fa-reply\"></i></a></div>";
-                $eachMail->email_status = (($eachMail->email_status == "Pending") ? "&nbsp; <span class='badge badge-warning'>Pending</span>" : (($eachMail->email_status == "Sent") ? "<span class='badge badge-success'>Sent</span>" : (($eachMail->email_status == "Failed") ? "<span class='badge badge-danger'>Failed</span>" : "<span class='badge badge-info'>{$eachMail->email_status}</span>")));
-                $eachMail->main_subject = $eachMail->main_subject.$eachMail->email_status;
-            } else {
-                $eachMail->recipient = json_decode($eachMail->recipient);
-            }
-            
-            $data[] = $eachMail;
+            // return the final result
+            return [
+                "list" => $data,
+                "pagination" => [
+                    "total_count" => $total_count,
+                    "start_point" => !$params->start_point ? 1 : $params->start_point,
+                    "end_point" => ($params->start_point + $total_result),
+                ]
+            ];
+
+        } catch(PDOException $e) {
+            return $e->getMessage();
         }
 
-        // print the reponse data
-        return [
-            "result" => $data,
-            "trashCount" => $trashCount,
-            "mailsCount" => count($emails)
-        ];                
-    }
-
-    /**
-     * Load the email attachments
-     * 
-     * @return Array
-     */
-    public function listEmailAttachments($emailId, $clientId, $remote) {
-
-		try {
-
-			//: Fetch the list of attachments
-			$stmt = $this->db->prepare("
-				SELECT 
-					document_name, document_link,
-					document_type, document_size, date_log
-				FROM 
-					emails_attachments 
-				WHERE email_guid = ? AND email_guid = ?
-			");
-			$stmt->execute([$emailId, $clientId]);
-
-			// favicon to be used in place of the milestone type
-			$faviconArray = [
-				'jpg' => 'fa fa-file-image', 'png' => 'fa fa-file-image',
-				'jpeg' => 'fa fa-file-image', 'gif' => 'fa fa-file-image',
-				'pdf' => 'fa fa-file-pdf', 'doc' => 'fa fa-file-word',
-				'docx' => 'fa fa-file-word', 'mp3' => 'fa fa-file-audio',
-				'txt' => 'fa fa-file-alt', 'csv' => 'fa fa-file-csv',
-				'rtf' => 'fa fa-file-alt', 'xls' => 'fa fa-file-excel',
-				'xlsx' => 'fa fa-file-excel', 'php' => 'fa fa-file-alt',
-				'css' => 'fa fa-file-alt', 'ppt' => 'fa fa-file-powerpoint',
-				'pptx' => 'fa fa-file-powerpoint', 'sql' => 'fa fa-file-alt',
-			];
-
-			$results = [];
-			$color = 'danger';
-			//: using the while loop
-			while($result = $stmt->fetch(PDO::FETCH_OBJ)) {
-				//: Prepare each file for processing
-				$result->favicon = $faviconArray[$result->document_type];
-				
-				//: Background color of the icon
-				if(in_array($result->document_type, ['doc', 'docx'])) {
-					$color = 'primary';
-				} elseif(in_array($result->document_type, ['xls', 'xlsx'])) {
-					$color = 'success';
-				} elseif(in_array($result->document_type, ['txt', 'rtf', 'sql', 'css', 'php'])) {
-					$color = 'default';
-				}
-
-				if($remote) {
-					$results[] = [
-						"color" => $color,
-						"favicon" => $result->favicon,
-						"document_name" => $result->document_name,
-						"download_link" => "assets/emails/docs/{$result->document_link}"
-					];
-				} else {
-					$results[] = "<div class=\"col-lg-2 p-2 text-center cursor col-md-4\" data-document-link=\"{$result->document_link}\" title=\"Click to Download {$result->document_name}\" style=\"height: 150px\">
-							<div class=\"card p-1\" style=\"height:100%\">
-								<div class=\"card-file-thumb text-{$color}\">
-									<i class=\"{$result->favicon} fa-3x\"></i>
-								</div>
-								<div class=\"text-center\">
-									".substr($result->document_name, 0, 40)."<br>
-								</div>
-								<div style=\"position:absolute; bottom: 3px; width:100%\" class=\"text-center btn\">
-								<a href=\"javascript:void(0)\" data-document-link=\"{$result->document_link}\" class=\"text-success\">Download <i class=\"fas fa-download ml-1
-									\"></i></a>
-								</div>
-							</div>
-						</div>";
-				}
-			}
-
-			return $results;
-
-		} catch(PDOException $e) {
-			return false;
-		}
-	}
-
-    /**
-     * Load all emails
-     * 
-     * @return Array
-     */
-    public function loadEmails($postData = null) {
-		
-		try {
-
-			$postData->message_guid = (isset($postData->message_guid) && ($postData->message_guid != 'null')) ? xss_clean($postData->message_guid) : null;
-
-			$filter = '';
-			$filter  .= (!empty($postData->message_guid)) ? "AND em.email_guid = '{$postData->message_guid}'" : null;
-
-			if(empty($postData->message_guid)) {
-				$filter  .= (!empty($postData->message_type) && ($postData->message_type != 'all')) ? "AND em.email_state = '{$postData->message_type}'" : "AND (em.email_state != 'trash')";
-			}
-
-			$stmt = $this->db->prepare("
-				SELECT
-					em.client_guid, em.email_guid, em.favourite, em.recipient, em.subject,
-					em.message, em.email_state, em.date_sent, em.email_status, em.date_log,
-					(
-						SELECT COUNT(*) 
-						FROM emails 
-						WHERE email_state = 'trash' AND client_guid = '{$postData->clientId}' 
-							AND status != '0'
-					) AS trashCount,
-					(
-						SELECT COUNT(*) 
-						FROM emails 
-						WHERE email_state != 'trash' AND client_guid = '{$postData->clientId}' 
-						AND status != '0'
-					) AS allMailsCount
-				FROM emails em 
-				WHERE 
-					em.status != '0' {$filter} AND 
-					em.client_guid = '{$postData->clientId}'
-				ORDER BY em.id DESC LIMIT {$postData->limit}
-			");
-			$stmt->execute();
-
-			return $stmt->fetchAll(PDO::FETCH_OBJ);
-			
-		} catch(PDOException $e) {
-			return $e->getMessage();
-		}
-
-	}
-
-    /**
-     * Execute all pending emails
-     */
-    public function execute() {
-        /** Create a new object of the crons class */
-        $cronJob = load_class("crons", "models");
-
-        /** Set the database variables */
-        $cronJob->db_host = DB_HOST;
-        $cronJob->db_name = DB_NAME;
-        $cronJob->db_username = DB_USER;
-        $cronJob->db_password = DB_PASS;
-        
-        /** make the request */
-        if($cronJob->loadCommunicationEmails()) {
-            if($cronJob->loadEmailRequests()) {
-                return true;
-            }
-            return true;
-        }
     }
 
 }
 ?>
+

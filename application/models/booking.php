@@ -26,6 +26,7 @@ class Booking {
 	public $user_guid;
 	public $clientData;
 	public $global_limit = 1000;
+	public $max_attachment_size = 25;
 
 	public function __construct() {
 		global $booking, $session, $config;
@@ -43,6 +44,37 @@ class Booking {
 		$this->platform = $this->user_agent->platform();
 		$this->browser = $this->user_agent->browser();
 		$this->clientData = $this->clientData($this->client_guid);
+
+		$this->fake_files = [
+            "files" => [],
+            "files_count" => 0,
+            "files_size" => 0,
+            "raw_size_mb" => 0
+        ];
+
+		$this->favicon_array = [
+			'jpg' => 'fa fa-file-image', 'png' => 'fa fa-file-image',
+			'jpeg' => 'fa fa-file-image', 'gif' => 'fa fa-file-image',
+            'pjpeg' => 'fa fa-file-image', 'webp' => 'fa fa-file-image',
+			'pdf' => 'fa fa-file-pdf', 'doc' => 'fa fa-file-word',
+			'docx' => 'fa fa-file-word', 'mp3' => 'fa fa-file-audio',
+			'mpeg' => 'fa fa-file-video', 'mpg' => 'fa fa-file-video',
+			'mov' => 'fa fa-file-video', 'movie' => 'fa fa-file-video',
+			'webm' => 'fa fa-file-video', 'flv' => 'fa fa-file-video',
+			'qt' => 'fa fa-file-video', 'zip' => 'fa fa-archive',
+			'txt' => 'fa fa-file-alt', 'csv' => 'fa fa-file-csv',
+			'rtf' => 'fa fa-file-alt', 'xls' => 'fa fa-file-excel',
+			'xlsx' => 'fa fa-file-excel', 'php' => 'fa fa-file-alt',
+			'css' => 'fa fa-file-alt', 'ppt' => 'fa fa-file-powerpoint',
+			'pptx' => 'fa fa-file-powerpoint', 'sql' => 'fa fa-file-alt',
+			'json' => 'fa fa-file-alt', 
+		];
+
+		$this->accepted_attachment_file_types = [
+			'jpg', 'png', 'jpeg', 'txt', 'pdf', 'sql', 'docx', 'doc', 'xls', 'xlsx', 'mpeg',
+			'ppt', 'pptx', 'php', 'css', 'csv', 'rtf', 'gif', 'pub', 'json', 'zip', 
+			'mpg', 'flv', 'webm', 'movie', 'mov', 'qt', 'pjpeg', 'webp'
+		];
 	}
 
 	public function clientData($client_guid = null) {
@@ -497,6 +529,26 @@ class Booking {
 		$string .= ')';
 
 		return " AND $column IN $string"; 
+	}
+
+	/**
+	 * Get the column value
+	 * 
+	 * @return Object
+	 **/
+	final function columnValue($column = "*", $tableName, $whereClause = 1) {
+
+		try {
+
+			$stmt = $this->db->prepare("SELECT {$column} FROM {$tableName} WHERE $whereClause LIMIT 1");
+			$stmt->execute();
+
+			return $stmt->fetch(PDO::FETCH_OBJ);
+
+		} catch(PDOException $e) {
+			return $e->getMessage();
+		}
+
 	}
 
 	/**
@@ -1112,6 +1164,15 @@ class Booking {
 		} catch(PDOException $e) {
 			return 0;
 		}
+	}
+
+	/**
+	 * Confirm that the user is online by checking the difference between the last_seen and the current time
+	 * If the difference is 5 minutes or less then, the user is online if not then the user is offline
+	 */
+	public function user_is_online($last_seen) {
+		// online algorithm (user is online if last activity is at most 3 minutes ago)
+        return (bool) (raw_time_diff($last_seen) < 0.05);
 	}
 
 }

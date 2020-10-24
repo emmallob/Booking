@@ -1,351 +1,575 @@
-$(function() {
+var emails_array_list = {},
+    email_content_filters,
+    email_loader = $(`div[class="email-list"] div[class="absolute-content-loader"]`),
+    emails_container = $(`div[id="emails-content-listing"]`),
+    emails_content_display = $(`div[id="emails-content-display"]`),
+    emails_filters = $(`div[id="email-content-filters"]`),
+    listUl = $(`ul[class="nav"][data-email-duty="list"] li`),
+    listBtn = $(`a[data-email-duty="list"]`),
+    readState = $(`a[data-email-change="state"],button[data-email-change="state"]`),
+    moveToBtn = $(`button[data-email-move="mail"]`),
+    checkAllBtn = $(`input[class~="data-email-checkall"]`),
+    emailSearch = $(`input[class~="email-search-item"]`),
+    emailSearchBtn = $(`button[class~="email-search-btn"]`),
+    newEmailBtn = $(`button[class~="new-email-list"]`),
+    oldEmailBtn = $(`button[class~="old-email-list"]`),
+    noMailFound = ` <div class="email-list-item email-list-item--unread"><div class="text-center w-100"><span>No mails available</span></div></div>`;
 
-    $("html").on("dragover", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $("h1").text("Drag here");
-    });
-
-    $("html").on("drop", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-
-    $('.upload-area').on('dragenter', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        $("h1").text("Drop");
-    });
-
-    $('.upload-area').on('dragover', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        $("h1").text("Drop");
-    });
-
-    $('.upload-area').on('drop', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-
-        $("h1").text("Upload");
-
-        var file = e.originalEvent.dataTransfer.files;
-        var fd = new FormData();
-
-        fd.append('mail_attachment', file[0]);
-
-        uploadData(fd);
-    });
-
-    $("#uploadfile").click(function() {
-        $("#mail_attachment").click();
-    });
-
-    $("#mail_attachment").change(function() {
-        var fd = new FormData();
-
-        var files = $('#mail_attachment')[0].files[0];
-
-        fd.append('mail_attachment', files);
-
-        uploadData(fd);
-    });
-
+checkAllBtn.on("change", function() {
+    $(`div[id="emails-content-listing"] input[type="checkbox"]`).prop("checked", !$(`div[id="emails-content-listing"] input[type="checkbox"]`).prop('checked'));
 });
 
-function temporaryAttachments() {
-    $.ajax({
-        url: `${baseUrl}api/emails/temp_attachments`,
-        type: 'GET',
-        dataType: 'json',
-        success: function(resp) {
-            $(`div[class~="email-attachments"]`).html(resp.data.result.files);
-            $(`div[class="total-upload-size"]`).html(resp.data.result.total);
-        },
-        complete: function() {
-            setTimeout(() => {
-                removeItem();
-            }, 500)
+readState.on("click", async function() {
+    let value = $(this).attr("data-email-value"),
+        thread_Ids = new Array();
+    $.each($(`div[id="emails-content-listing"] input[type="checkbox"]`), function(ii, ie) {
+        if ($(this).prop("checked")) {
+            thread_Ids.push($(this).attr("data-thread-id"));
         }
     });
-}
-if ($(`div[class~="email-attachments"]`).length) {
-    $(() => {
-        temporaryAttachments();
-    })
-}
-
-$(`button[class~="discard-mail"]`).on('click', function() {
-    if (confirm("Are you sure you want to discard this message?")) {
-        $.ajax({
-            url: `${baseUrl}api/emails/discard`,
-            type: 'post',
-            data: { discardEmail: true },
-            dataType: 'json',
-            success: function(resp) {
-                if (resp.code == 200) {
-                    Toast.fire({
-                        title: 'Message was successfully discarded',
-                        type: 'success'
-                    });
-                    $(`div[class~="email-attachments"]`).html(``);
-                    setTimeout(() => {
-                        window.location.href = `${baseUrl}emails-list`;
-                    }, 1000);
-                }
-            }
-        });
+    if (thread_Ids.length) {
+        thread_Ids = thread_Ids.join(",");
+        if (value === "mark_as_read") {
+            await mark_As_Read(thread_Ids, true);
+        } else if (value === "mark_as_unread") {
+            await mark_As_Unread(thread_Ids, true);
+        } else if (value === "favorite") {
+            await toggle_Favorite(thread_Ids);
+        } else if (value === "important") {
+            await toggle_Important(thread_Ids);
+        } else if (value === "trash") {
+            await change_Mail_Label("move_to_trash", thread_Ids, true);
+        } else if (value === "inbox") {
+            await change_Mail_Label("move_to_inbox", thread_Ids, true);
+        }
+        await count_Emails();
+        checkAllBtn.prop("checked", false);
+        $(`div[id="emails-content-listing"] input[type="checkbox"]`).prop("checked", false);
     }
 });
 
-function removeItem() {
-    $(`svg[class~="delete-document"]`).on('click', function() {
-        let document_id = $(this).attr('data-value');
+moveToBtn.on("click", function() {
+    let thread_Ids = new Array();
+    $.each($(`div[id="emails-content-listing"] input[type="checkbox"]`), function(ii, ie) {
+        if ($(this).prop("checked")) {
+            thread_Ids.push($(this).attr("data-thread-id"));
+        }
+    });
+});
 
-        let payload = `{"document_id":"${document_id}"}`;
+var backBtn = function() {
+    emails_filters.removeClass("hidden");
+    emails_container.removeClass("hidden");
+    emails_content_display.addClass("hidden");
+    $(`div[class~="email-content-list-filter"] span`).attr("data-thread-id", "");
+}
 
-        $.ajax({
-            url: `${baseUrl}api/emails/remove_attachment`,
-            type: 'post',
-            data: payload,
-            dataType: 'json',
-            success: function(resp) {
-                if (resp.code == 200) {
-                    $(`div[data-value="${document_id}"]`).remove();
-                    $(`div[class="total-upload-size"]`).html(resp.data.result.total);
-                }
+listBtn.on("click", async function() {
+    let that = $(this).parent("li"),
+        value = $(this).attr("data-email-value");
+
+    $(`button[data-email-change="state"][data-email-value="inbox"]`).addClass("hidden");
+    $(`button[data-email-move="mail"][data-email-value="trash"]`).prop({ "disabled": false, "title": "" }).removeClass("hidden");
+    $(`button[data-email-change="state"][data-email-value="important"]`).prop({ "disabled": false, "title": "" });
+
+    $(`button[data-email-value="mark_as_read"]`).removeClass("hidden");
+    $(`button[data-email-value="mark_as_unread"]`).removeClass("hidden");
+
+    if (value == "trash") {
+        $(`button[data-email-change="state"][data-email-value="inbox"]`).removeClass("hidden");
+        $(`button[data-email-change="state"][data-email-value="trash"]`).prop({ "disabled": true, "title": "Disabled" }).addClass("hidden");
+    }
+    if (value == "important") {
+        $(`button[data-email-change="state"][data-email-value="important"]`).prop({ "disabled": true, "title": "Disabled" });
+    }
+    if (value == "sent") {
+        $(`button[data-email-value="mark_as_read"]`).addClass("hidden");
+        $(`button[data-email-value="mark_as_unread"]`).addClass("hidden");
+    }
+
+    listUl.removeClass("active");
+    that.addClass("active");
+
+    checkAllBtn.prop("checked", false);
+    emails_filters.removeClass("hidden");
+    emails_container.removeClass("hidden");
+    emails_content_display.addClass("hidden");
+    ajax_Load_Emails();
+});
+
+var toggle_Important = async(threadIds = null) => {
+    let action = {
+        action: "mark_as_important",
+        thread_id: threadIds
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        if (response.code == 200) {
+            let c_count = 0;
+            $.each(response.data.result, function(ii, ie) {
+                c_count++;
+                emails_array_list[ii].is_important = ie.is_important;
+                $(`span[class~="marked-as-important"][data-thread-id="${ii}"]`).html(ie.class);
+                $(`div[id="emails-content-listing"] input[type="checkbox"][data-thread-id="${ii}"]`).prop("checked", false);
+            });
+            let note = (c_count == 1) ? "Conversation marked as important" : `${c_count} conversations marked as important`;
+            show_Notification(note);
+        } else {}
+    });
+}
+
+var toggle_Favorite = async(threadIds = null) => {
+    let action = {
+        action: "mark_as_favorite",
+        thread_id: threadIds
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        if (response.code == 200) {
+            let c_count = 0;
+            $.each(response.data.result, function(ii, ie) {
+                c_count++;
+                emails_array_list[ii].is_favorited = ie.is_favorited;
+                $(`span[data-thread-id="${ii}"][class~="favorited"]`).removeClass("text-warning text-secondary").addClass(ie.class);
+                $(`div[id="emails-content-listing"] input[type="checkbox"][data-thread-id="${ii}"]`).prop("checked", false);
+            });
+            let note = (c_count == 1) ? "Conversation favorite mode toggled" : `${c_count} conversations favorite mode toggled`;
+            show_Notification(note);
+        } else {}
+    });
+}
+
+var mark_As_Read = async(threadIds = null, show_notification = true) => {
+    let action = {
+        action: "mark_as_read",
+        thread_id: threadIds
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        if (response.code == 200) {
+            let c_count = 0;
+            $.each(response.data.result, function(_, ie) {
+                c_count++;
+                emails_array_list[ie].is_read = 1;
+                $(`div[class~="email-list-item"][data-thread-id="${ie}"]`).attr("data-thread-status", "read");
+                $(`div[data-thread-id="${ie}"][class~="email-list-item"]`).removeClass("email-list-item--unread");
+                $(`div[id="emails-content-listing"] input[type="checkbox"][data-thread-id="${ie}"]`).prop("checked", false);
+            });
+            if (show_notification) {
+                let note = (c_count == 1) ? "Conversation marked as read" : `${c_count} conversations marked as read`;
+                show_Notification(note);
+            }
+        } else {}
+    });
+}
+
+var mark_As_Unread = async(threadIds = null, show_thread_list = false) => {
+    let action = {
+        action: "mark_as_unread",
+        thread_id: threadIds
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        if (response.code == 200) {
+            let c_count = 0;
+            $.each(response.data.result, function(_, ie) {
+                c_count++;
+                emails_array_list[ie].is_read = 0;
+                $(`div[class~="email-list-item"][data-thread-id="${ie}"]`).attr("data-thread-status", "unread");
+                $(`div[data-thread-id="${ie}"][class~="email-list-item"]`).addClass("email-list-item--unread");
+                $(`div[id="emails-content-listing"] input[type="checkbox"][data-thread-id="${ie}"]`).prop("checked", false);
+            });
+            let note = (c_count == 1) ? "Conversation marked as unread" : `${c_count} conversations marked as unread`;
+            show_Notification(note);
+
+            if (show_thread_list) {
+                emails_filters.removeClass("hidden");
+                emails_container.removeClass("hidden");
+                emails_content_display.addClass("hidden");
+            }
+        } else {}
+    });
+}
+
+var change_Mail_Label = async(label, threadIds = null, show_thread_list = false) => {
+    let action = {
+        action: label,
+        thread_id: threadIds
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        if (response.code == 200) {
+            let c_count = 0,
+                note;
+            $.each(response.data.result, function(_, ie) {
+                c_count++;
+                emails_array_list[ie] = {};
+                $(`div[class~="email-list-item"][data-thread-id="${ie}"]`).remove();
+                $(`div[id="emails-content-listing"] input[type="checkbox"][data-thread-id="${ie}"]`).prop("checked", false);
+            });
+            if (label === "move_to_trash") {
+                note = (c_count == 1) ? "Conversation moved to trash" : `${c_count} conversations moved to trash`;
+            } else if (label == "move_to_inbox") {
+                note = (c_count == 1) ? "Conversation moved from trash" : `${c_count} conversations moved from trash`;
+            } else if (label == "move_to_archive") {
+                note = (c_count == 1) ? "Conversation has been archived" : `${c_count} conversations have been archived`;
+            }
+            show_Notification(note);
+            if (show_thread_list) {
+                count_Emails();
+                emails_filters.removeClass("hidden");
+                emails_container.removeClass("hidden");
+                emails_content_display.addClass("hidden");
+            }
+        } else {}
+    });
+}
+
+var apply_email_click_handlers = () => {
+    $(`span[data-function="toggle-thread-files-attachment-list"]`).on("click", function() {
+        let reply_id = $(this).attr("data-thread-id");
+        $(`div[class~="attachments_list"][data-thread-id="${reply_id}"]`).slideToggle("slow");
+    });
+    init_image_popup();
+    $(`[data-toggle="tooltip"]`).tooltip();
+}
+
+var show_Emails_Content = async(threadId = null) => {
+
+        let status = $(`div[class~="email-list-item"][data-thread-id="${threadId}"]`).attr("data-thread-status");
+
+        if (status == "unread") {
+            await mark_As_Read(threadId, false);
+        }
+
+        let mail = emails_array_list[threadId],
+            r_count = mail.recipient_details.length,
+            rc_count = mail.copy_recipients.length,
+            r_list = mail.recipient_details,
+            rc_list = mail.copy_recipients,
+            r_content = "",
+            rc_content = "";
+
+        $.each(r_list, function(ii, ie) {
+            r_content += `<span class="text-muted"><strong>${ie.fullname}</strong> <small>&lt;${ie.email}&gt;</small></span>`;
+            if (ii < r_count - 1) {
+                r_content += ", ";
             }
         });
+
+        $.each(rc_list, function(ii, ie) {
+            rc_content += `<span class="text-muted"><strong>${ie.fullname}</strong> <small>&lt;${ie.email}&gt;</small></span>`;
+            if (ii < rc_count - 1) {
+                rc_content += ", ";
+            }
+        });
+
+        let email_content = `
+        <div class="card" id="email-full-content-display" data-thread-id="${mail.thread_id}">
+            <div class="card-header">
+                <div class="row justify-content-between" style="width:100%">
+                    <div class="d-flex align-items-start">
+                        <div class="pl-3 mr-1">
+                            <h4>${mail.subject}</h4>
+                        </div>
+                        <div>
+                            <span onclick="return toggle_Important('${mail.thread_id}');" data-thread-id="${mail.thread_id}" ${mail.is_important ? "title='Marked as important' class='text-warning marked-important'" : "class='marked-important'"} ""><i class="fa fa-tags"></i></span>
+                        </div>
+                    </div>
+                    <div class="email-content-list-filter">
+                        <span data-thread-id="${mail.thread_id}" onclick="return backBtn();" class="text-muted cursor font-18px mr-1" data-placement="bottom" data-toggle="tooltip" title="Go back"><i class="fa fa-arrow-circle-left"></i></span>
+                        <span data-thread-id="${mail.thread_id}" onclick="return change_Mail_Label('move_to_archive', '${mail.thread_id}',true);" class="text-muted cursor font-18px archieve-emails-list mr-1" data-placement="bottom" data-email-duty_change="archieve" data-toggle="tooltip" title="Archieve this conversation"><i class="fa fa-archive"></i></span>
+                        <span data-thread-id="${mail.thread_id}" onclick="return change_Mail_Label('move_to_trash', '${mail.thread_id}',true);" class="text-muted cursor font-18px delete-emails-list mr-1" data-placement="bottom" data-email-duty_change="delete" data-toggle="tooltip" title="Delete this conversation"><i class="fa fa-trash"></i></span>
+                        <span data-thread-id="${mail.thread_id}" onclick="return mark_As_Unread('${mail.thread_id}',true);" class="text-muted cursor font-18px mr-2" data-placement="bottom" data-email-duty_change="unread" data-toggle="tooltip" title="Mark as unread"><i class="fa fa-envelope-open-text"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body pt-0 p-0">
+                <div class="d-flex align-items-start p-3 pt-0 pb-0">
+                    <div style="width:60px">
+                        <img class="img-xs rounded-circle" width="50px" src="${baseUrl}${mail.sender_image}" alt="">
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong class="font-16px">${mail.sender_details.fullname}</strong> <small class="text-muted">&lt;${mail.sender_details.email}&gt;</small>
+                                </div>
+                                <div class="col-md-6 d-none d-md-block text-right">
+                                    <span class="text-muted tx-12">${mail.email_fulldate} (${mail.days_ago})</span>
+                                    <span onclick="return toggle_Favorite('${mail.thread_id}')" data-placement="bottom" data-toggle="tooltip" title="Click to toggle favorite" data-thread-id="${mail.thread_id}" class="${mail.is_favorited ? "text-warning" : "text-secondary"} cursor favorited"><i class="fa fa-star"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        ${r_content ? `<div class="col-lg-12">to: ${r_content}` : `</div>`}
+                        ${rc_content ? `<div class="col-lg-12">copy: ${rc_content}` : `</div>`}
+                    </div>
+                </div>
+                <div class="col-lg-12 border-top mt-3 p-3">
+                    ${mail.message}
+                </div>
+                <div class="row">
+                    <div class="col-lg-12 pt-3 pb-2">
+                        <div class="${mail.attachment.files.length ? `` : ""}">
+                            <p>
+                                <span ${mail.attachment.files.length ? `data-function="toggle-thread-files-attachment-list" data-thread-id="${mail.thread_id}" class="cursor" data-toggle="tooltip" title="Hide Attachments"` : ""}>
+                                ${mail.attachment.files.length ? `${mail.attachment.files.length} files attached (${mail.attachment.files_size})` : ""}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="attachments_list" data-thread-id="${mail.thread_id}">${mail.attachment_html}</div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    emails_filters.addClass("hidden");
+    emails_container.addClass("hidden");
+    emails_content_display.html(email_content);
+    emails_content_display.removeClass("hidden"); 
+    email_content_filters = $(`div[class~="email-content-list-filter"]`);
+    apply_email_click_handlers();
+}
+
+var format_Email_Content = (mail) => {
+
+    return `<div class="email-list-item ${mail.is_read ? "" : "email-list-item--unread"}" data-thread-status="${mail.is_read ? "read" : "unread"}" data-thread-id="${mail.thread_id}">
+        <div class="email-list-actions">
+            <div class="form-check form-check-flat form-check-primary">
+                <label class="form-check-label" for="email-thread-id_${mail.thread_id}">
+                    <input type="checkbox" data-thread-id="${mail.thread_id}" class="form-check-input" id="email-thread-id_${mail.thread_id}">
+                    <i class="input-frame" id="email-thread-id_${mail.thread_id}"></i>
+                </label>
+            </div>
+            <span onclick="return toggle_Favorite('${mail.thread_id}')" title="Click to toggle favorite" data-thread-id="${mail.thread_id}" class="${mail.is_favorited ? "text-warning" : "text-secondary"} favorited"><i class="fa fa-star"></i></span>
+        </div>
+        <a onclick="return show_Emails_Content('${mail.thread_id}')" href="javascript:void(0)" class="email-list-detail">
+            <div>
+                <span class="from">${mail.subject} <span data-thread-id="${mail.thread_id}" class="marked-as-important">${mail.is_important ? "<span class='txt-10'><i title='Marked as important' class='fa text-warning fa-tags'></i></span>" : ""}</span></span>
+                <p class="msg">${mail.caption}</p>
+            </div>
+            <span class="date">${mail.attachment.files.length ? `<span class="icon"><i class="fa text-muted fa-paperclip"></i></span>` : "" } ${mail.email_date}</span>
+        </a>
+    </div>`;
+}
+
+var count_Emails = async() => {
+    let action = {
+        action: "mails_count",
+        labels: "labels_count,trash_count,unread_count,read_count,favorite_count,important_count"
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        if (response.code == 200) {
+        $.each(response.data.result, function(i, e) {
+            $(`span[data-mails-count="${i}"]`).html(e);
+        });
+        } else {}
     });
 }
 
-function uploadData(formdata) {
+var ajax_Load_Emails = async() => {
+    let action = {
+        q: $(`input[class~="email-search-item"]`).val(),
+        action: "mails_list",
+        labels: $(`ul[class="nav"][data-email-duty="list"] li[class="active"] a`).attr("data-email-value")
+    };
+    await $.post(`${baseUrl}api/emails/action`, { action: action }).then((response) => {
+        email_loader.css({ "display": "none" });
+        if (response.code == 200) {
+            let emails_list = response.data.result.list,
+                emails_content = "";
 
-    $.ajax({
-        url: `${baseUrl}api/emails/attach`,
-        type: 'post',
-        data: formdata,
-        contentType: false,
-        processData: false,
-        dataType: 'json',
-        beforeSend: function() {
-            $(`div[class="upload-area"] small`).html(`Uploading file <i class="fa fa-spin fa-spinner"></i>`);
-        },
-        success: function(resp) {
-            if (resp.data.result.upload_status == 1) {
-                $(`div[class="upload-area"] small`).html(`<span class="text-success"><i style="height: 1em;" class="fa fa-check-circle"></i> File uploaded successfully</span>`);
-            } else if (resp.data.result.upload_status == 0) {
-                $(`div[class="upload-area"] small`).html(`<span class="text-danger"><i style="height: 1em;" class="em em-warning"></i> File size exceeded</span>`);
-            } else if (resp.data.result.upload_status == 2) {
-                $(`div[class="upload-area"] small`).html(`<span class="text-danger"><i style="height: 1em;" class="em em-warning"></i> File type unacceptable (${resp.allowed_types})</span>`);
-            }
-        },
-        complete: function(data) {
-            temporaryAttachments();
-
-            setTimeout(function() {
-                $(`div[class="upload-area"] small`).html(``);
-            }, 5000);
-        },
-        error: function(err) {
-            $(`div[class="upload-area"] small`).html(`<span class="text-danger"><i style="height: 1em;" class="em em-warning"></i> Error uploading file</span>`);
-        }
-    });
-}
-
-$(`form[class="submitEmailForm"]`).on('submit', function(e) {
-    e.preventDefault();
-    let sender = $(`select[name="send_from"]`).val(),
-        subject = $(`input[name="subject"]`).val(),
-        recipients = $(`input[name="recipients"]`).val(),
-        content = htmlEntities($(`textarea[data-editor="summernote"]`).val());
-
-    let payload = `{"sender":"${sender}","subject":"${subject}","message":"${content}","recipients":"${recipients}"}`;
-
-    $.ajax({
-        type: "POST",
-        url: `${baseUrl}api/emails/send`,
-        data: payload,
-        dataType: "json",
-        beforeSend: function() {
-            $(`form div[class="form-content-loader"]`).css("display", "flex");
-            $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', true);
-        },
-        success: function(resp) {
-            if (resp.code == 200) {
-                $(`input[name="subject"]`).val('');
-                $(`input[name="recipients"]`).val('');
-                Toast.fire({
-                    type: "success",
-                    title: "Email message was successfully sent"
-                });
-                $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
-                $(`textarea[data-editor="summernote"]`).val('');
-                temporaryAttachments();
-                setTimeout(() => {
-                    window.location.href = `${baseUrl}emails-list`;
-                }, 2000);
-            } else {
-                $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
-                Toast.fire({
-                    type: "error",
-                    title: resp.data.result
-                });
-            }
-        },
-        complete: function(data) {
-            $(`form div[class="form-content-loader"]`).css("display", "none");
-        },
-        error: function(err) {
-            $(`form[class="submitEmailForm"] button[type="submit"]`).prop('disabled', false);
-            $(`form div[class="form-content-loader"]`).css("display", "none");
-            Toast.fire({
-                type: "success",
-                title: "Sorry! An error was encountered while trying to send the message."
+            $.each(emails_list, function(ii, ie) {
+                emails_array_list[ie.thread_id] = ie;
+                emails_content += format_Email_Content(ie);
             });
-        }
-    });
+            emails_container.html(emails_content);
 
-});
-
-$(`button[class~="go-back"]`).on('click', function() {
-    $(`div[class~="mails-listing"]`).removeClass('hidden');
-    $(`div[class~="mails-content"]`).addClass('hidden');
-    $(`button[class~="go-back"]`).addClass('hidden');
-    $(`button[class~="delete-msg-button"]`)
-        .prop('disabled', false)
-        .css('cursor', 'pointer');
-});
-
-var showEmailContent = (messageId) => {
-
-    $(`div[class="contact_details"]`).attr({ 'contact_id': null, 'message_id': null });
-
-    $.ajax({
-        url: `${baseUrl}api/emails/list?message_guid=${messageId}`,
-        type: "GET",
-        dataType: "JSON",
-        success: function(resp) {
-
-            if (resp.data.result.mailsCount) {
-
-                $(`button[class~="go-back"]`).removeClass('hidden');
-                $(`div[class~="mails-listing"]`).addClass('hidden');
-                $(`div[class~="mails-content"]`).removeClass('hidden');
-                $(`span[class="active-msg"]`).attr('messageId', messageId);
-                $(`button[class~="delete-msg-button"]`)
-                    .prop('disabled', true)
-                    .css('cursor', 'not-allowed');
-                $(`span[class="current-msg-display"]`).attr('data-messages', 'single');
-
-                $(`div[class~="mails-content"]`).html(`
-                    <div class="mb-4">
-                        <div class="row">
-                            <div class="col-lg-8">
-                                <h4 class="font-14 m-0"><strong>Recipients</strong></h4>
-                            </div>
-                            <div class="col-lg-4 text-right">
-                                ${resp.data.result.result[0].date_sent}
-                            </div>
-                            <div class="col-lg-12 p-1" style="border:dashed 1px #ccc;">
-                                <div class="text-">${resp.data.result.result[0].recipient}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h4 class="mt-0"><strong>${resp.data.result.result[0].subject} ${resp.data.result.result[0].email_status}</strong></h4>
-                    <div style="border:dashed 1px #ccc;" class="p-2 mb-4">
-                        ${resp.data.result.result[0].message}
-                        <div class="row mt-4 justify-content-start">
-                            ${resp.data.result.result[0].attachments}
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <a class="btn btn-outline-danger delete-item" data-item="email" data-item-id="${resp.data.result.result[0].email_guid}" href="javascript:void(0)">
-                            <i class="fa fa-trash"></i> Delete
-                        </a>
-                        <a href="${baseUrl}emails-compose/fwd/${resp.data.result.result[0].email_guid}" class="btn btn-outline-primary waves-effect">Forward <i class="mdi mdi-share"></i></a>
-                    </div>
-                `);
-            }
-        },
-        complete: function(data) {
-            $(`span[class~="mail-content-loader"]`).html(``);
-        },
-        error: function(err) {
-            $(`span[class~="mail-content-loader"]`).html(``);
-        }
-    });
-}
-
-var listEmails = (contact_guid = null, message_type = null) => {
-
-    $(`span[class="current-msg-list"]`).attr('data-messages', message_type);
-    $(`button[class~="go-back"]`).addClass('hidden');
-    $(`button[data-button-action="all"]`).css({ display: 'none' });
-    $(`button[data-button-action="trash"]`).css({ display: 'none' });
-    $(`button[data-button-action="delete"]`).css({ display: 'none' });
-
-    $(`div[class="form-content-loader"]`).css("display", "flex");
-
-    $.ajax({
-        url: `${baseUrl}api/emails/list`,
-        type: "GET",
-        dataType: "json",
-        data: { contact_guid, message_type },
-        success: function(resp) {
-
-            $(`span[class="current-msg-display"]`).attr('data-messages', 'all');
-            $(`div[class~="mails-content"]`).addClass('hidden');
-            $(`div[class~="mails-listing"]`).removeClass('hidden');
-
-            if (resp.code == 200) {
-                $(`table[class~="emailsList"]`).dataTable().fnDestroy();
-                $(`table[class~="emailsList"]`).dataTable({
-                    "aaData": resp.data.result.result,
-                    "iDisplayLength": 10,
-                    "columns": [
-                        { "data": "row_id" },
-                        { "data": "main_subject" },
-                        { "data": "message" },
-                        { "data": "date_sent" },
-                        { "data": "option" }
-                    ]
-                });
-            }
-
-        },
-        complete: function() {
-            $(`div[class="form-content-loader"]`).css("display", "none");
-            $(`span[class~="mail-content-loader"]`).html(``);
-            $(`span[class="active-msg"]`).attr('messageId', 'null');
-        },
-        error: function() {
-            $(`div[class="form-content-loader"]`).css("display", "none");
-        }
-    })
-}
-
-if ($(`table[class~="emailsList"]`).length) {
-    listEmails();
-}
-
-$(`button[data-request='execute-emails']`).on("click", function() {
-    let container = $(`span[class="execute-loader"]`);
-    let button = $(`button[data-request='execute-emails']`);
-    button.prop('disabled', true);
-    container.fadeIn().html(`Executing <i class="fa fa-spin fa-spinner"></i>`);
-
-    $.post(`${baseUrl}api/emails/execute`, function(resp) {
-        if (resp.code == 200) {
-            container.html(`Success <i class="fa fa-check text-success"></i>`).fadeOut(5000);
+            $.each(response.data.result.pagination, function(ii, ie) {
+                $(`span[data-pagination="${ii}"]`).html(ie);
+            });
         } else {
-            container.html(`<span class="text-danger">Failed</span>`).fadeOut(5000);
+            $.each($(`span[data-pagination]`), function(ii, ie) {
+                $(this).html(0);
+            });
+            emails_container.html(noMailFound);
         }
-        button.prop('disabled', false);
     }).catch(() => {
-        button.prop('disabled', true);
-        container.html(`Failed`).fadeOut(5000);
+        email_loader.css({ "display": "none" });
     });
+}
+
+$(`button[class~="email-search-btn"]`).on("click", async function() {
+    let search_term = $(`input[class~="email-search-item"]`).val();
+    if(!search_term.length) {
+        show_Notification("Enter a search term!", "danger");
+        return false;
+    }
+    ajax_Load_Emails();
+});
+
+$(`input[class~="email-search-item"]`).on("keyup", async function(evt) {
+    let search_term = $(this).val();
+    if (evt.keyCode == 13) {
+        if(!search_term.length) {
+            show_Notification("Enter a search term!", "danger");
+            return false;
+        }
+        ajax_Load_Emails();
+    }
+})
+
+var append_Suggested_Email = (user_id, user_name, user_email, the_field) => {
+    
+    let last_field = $(`div[id="${the_field}sinput"] span[class="tag"]:last span`);
+        last_field.attr({"data-user_id":user_id,"data-user_name":user_name,"data-user_email":user_email});
+        last_field.html(user_name);
+
+    $(`div[data-list-id="${the_field}"][class~="list_suggestions"]`).addClass("hidden").html("");
+}
+
+var format_Email_Suggestions_List = (e, the_field) => {
+    return `<div class="each-item" data-user-id="${e.user_id}" onclick="return append_Suggested_Email('${e.user_id}','${e.name}','${e.email}','${the_field}')">
+        <div class="d-flex align-items-start">
+            <p class="mr-2"><img class="" src="${baseUrl}${e.image}" alt=""></p>
+            <p>${e.name}<br><span class="text-muted">${e.email}</span></p>
+        </div>
+    </div>`;
+}
+
+$(`div[class="email-compose-fields"] button[class~="discard-button"]`).on("click", function() {
+    $(`div[id="discardFormModal"]`).modal("show");
+    $(`div[class="form-overlay-cover"]`).css("display", "flex");
+});
+
+$(`div[class="email-compose-fields"] button[class~="send-button"]`).on("click", function() {
+    var mail_request = $(`input[name="mail_request"]`).val(),
+        recipients_list = {},
+        mailer_notice = "",
+        notice_type = "danger";
+    $.each($(`div[id="recipients_list"] div[class="ms-sel-item"]`), function(i, e) {
+        let item = $(this),
+            the_item = item.data("json");
+        recipients_list[i] = the_item;
+    });
+
+    let cc_list = {};
+    $.each($(`div[id="cc_list"] div[class="ms-sel-item"]`), function(i,e) {
+        let item = $(this),
+            the_item = item.data("json");
+        cc_list[i] = the_item;
+    });
+
+    if(mail_request == "send_later") {
+        mail_request = $(`input[id="schedule_date"]`).val();
+    }
+
+    let content = htmlEntities($(`trix-editor[id="email_content"]`).html());
+
+    let the_list = {
+        mail_content : {
+            label: "inbox",
+            scheduler: mail_request,
+            subject: $(`input[name="mail_subject"][id="mail_subject"]`).val(),
+            content: content,
+        },
+        recipients : {
+            primary: recipients_list,
+            copied: cc_list
+        }
+    };
+
+    the_list = JSON.stringify(the_list);
+
+    let action = {
+        action: "send_email",
+        labels: the_list
+    };
+
+    $.post(`${baseUrl}api/emails/action`, {action: action}).then((response) => {
+        $(`div[id="discardFormModal"]`).modal("hide");
+        if(response.code == 200) {
+            $(`div[class~="file-preview"]`).html(``);
+            $(`trix-editor[id="email_content"]`).html(``);
+            $(`input[name="mail_subject"][id="mail_subject"]`).val(``)
+            $(`div[class="ms-sel-ctn"] div[class="ms-sel-item"]`).html(``);
+
+            $(`div[class~="send-email-content"]`).addClass("hidden");
+            $(`div[class~="email-inbox-header"]`).removeClass("hidden");
+            $(`div[class~="email-filters"]`).removeClass("hidden");
+            $(`div[class~="email-list"]`).removeClass("hidden");
+
+            notice_type = "success";
+            mailer_notice = `Email successfully sent!`;
+        } else {
+            mailer_notice = response.data.result;
+        }
+        show_Notification(mailer_notice, notice_type);
+    });
+});
+
+$(`div[data-function="email"] button[data-action="schedule_send"]`).on("click", function() {
+    $(`div[data-function="email"] button[data-action="schedule_now"]`).removeClass("hidden");
+    $(`div[data-function="email"] button[data-action="schedule_send"]`).addClass("hidden");
+    $(`input[id="schedule_date"]`).removeClass("hidden");
+    $(`input[name="mail_request"]`).val("send_later");
+});
+
+$(`div[data-function="email"] button[data-action="schedule_now"]`).on("click", function() {
+    $(`div[data-function="email"] button[data-action="schedule_send"]`).removeClass("hidden");
+    $(`div[data-function="email"] button[data-action="schedule_now"]`).addClass("hidden");
+    $(`input[id="schedule_date"]`).addClass("hidden");
+    $(`input[name="mail_request"]`).val("send_now");
+});
+
+$(`div[id="discardFormModal"] button[class~="discard_email_content"]`).on("click", function() {
+    let action = {
+        action: "discard_email_composer",
+        labels: "discard"
+    };
+    $.post(`${baseUrl}api/emails/action`, {action: action}).then((response) => {
+        $(`div[id="discardFormModal"]`).modal("hide");
+        if(response.code == 200) {
+            $(`div[class~="file-preview"]`).html(``);
+            $(`trix-editor[id="email_content"]`).html(``);
+            $(`input[name="mail_subject"][id="mail_subject"]`).val(``)
+            $(`div[class="ms-sel-ctn"] div[class="ms-sel-item"]`).html(``);
+
+            $(`div[class~="send-email-content"]`).addClass("hidden");
+            $(`div[class~="email-inbox-header"]`).removeClass("hidden");
+            $(`div[class~="email-filters"]`).removeClass("hidden");
+            $(`div[class~="email-list"]`).removeClass("hidden");
+
+            show_Notification(`Email has been discarded!`, `primary`);
+        }
+    });
+});
+
+$(`a[id="send_mail"]`).on("click", function() {
+    $(`div[class~="send-email-content"]`).removeClass("hidden");
+    $(`div[class~="email-inbox-header"]`).addClass("hidden");
+    $(`div[class~="email-filters"]`).addClass("hidden");
+    $(`div[class~="email-list"]`).addClass("hidden");
+});
+
+$(() => {
+    
+    if($(`div[id="emails-content-listing"]`).length) {
+        count_Emails();
+        ajax_Load_Emails();
+    }
+     
+    $(`[data-toggle="suggestions"]`).magicSuggest({
+        method: "GET",
+        allowDuplicates: false,
+        valueField: "user_id",
+        dataUrlParams: {
+            minified: true,
+            limit: 10
+        },
+        minChars: 2,
+        maxSelection: 100,
+        data: `${baseUrl}api/users/list`,
+        strictSuggest: false,
+        autoSelect: false,
+        maxSelectionRenderer: function(v) {
+            return 'You cannot choose more than 100 email address' + (v > 1 ? 'es' : '');
+        }
+    });
+    
 });

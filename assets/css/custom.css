@@ -12,7 +12,7 @@
 }
 
 .hidden {
-    display: none;
+    display: none!important;
 }
 
 .required {
@@ -302,4 +302,35 @@ img.curve {
     text-align: center;
     overflow: auto;
     cursor: pointer;
+}
+
+.mt-n15,
+.my-n15 {
+    margin-top: -10rem !important;
+}
+
+.trix-slim-scroll::-webkit-scrollbar-track {
+    border-radius: 0px;
+    background-color: #b4b4b4;
+}
+
+.trix-slim-scroll::-webkit-scrollbar {
+    width: 4px;
+    height: 5px;
+    background-color: #919599;
+}
+
+.trix-slim-scroll::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: #919599;
+}
+
+.ajax-data-form trix-editor {
+    min-height: 150px;
+    max-height: 230px;
+}
+
+.leave-comment-wrapper trix-editor {
+    min-height: 120px;
+    max-height: 150px;
 }

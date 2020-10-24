@@ -6,54 +6,54 @@ class Sessions extends Booking {
 		parent::__construct();
 	}
 
-	private function countSessionData($sessionName) {
-		return (isset($_SESSION[$sessionName]) and count($_SESSION[$sessionName]) > 0) ? true : false;
+	private function count($session_name) {
+		return (isset($_SESSION[$session_name]) and count($_SESSION[$session_name]) > 0) ? true : false;
 	}
 
-	public function addSessionData($sessionName, $firstVariable, $secondVariable, $thirdVariable = null, $forthVariable = null, $fifthVariable = null) {
+	public function add($session_name, $first, $second, $third = null, $fourth = null, $fifth = null) {
 		
-		if($this->countSessionData($sessionName)) {
-			foreach($_SESSION[$sessionName] as $key => $value) {			
-				if($value['item_id'] == $firstVariable) {
-				 	$_SESSION[$sessionName][$key]['item_value'] = trim($secondVariable);
-				 	(!empty($thirdVariable)) ? ($_SESSION[$sessionName][$key]['item_added'] = trim($thirdVariable)) : null;
-				 	(!empty($forthVariable)) ? ($_SESSION[$sessionName][$key]['item_name'] = trim($forthVariable)) : null;
-				 	(!empty($fifthVariable)) ? ($_SESSION[$sessionName][$key]['fifth_item'] = trim($fifthVariable)) : null;
+		if($this->count($session_name)) {
+			foreach($_SESSION[$session_name] as $key => $value) {			
+				if($value['first'] == $first) {
+				 	$_SESSION[$session_name][$key]['second'] = trim($second);
+				 	(!empty($third)) ? ($_SESSION[$session_name][$key]['third'] = trim($third)) : null;
+				 	(!empty($fourth)) ? ($_SESSION[$session_name][$key]['forth'] = trim($fourth)) : null;
+				 	(!empty($fifth)) ? ($_SESSION[$session_name][$key]['fifth'] = trim($fifth)) : null;
 				 	break;
 				}
 			}
 
-			$itemId = array_column($_SESSION[$sessionName], "item_id");
+			$itemId = array_column($_SESSION[$session_name], "first");
 
-            if (!in_array($firstVariable, $itemId)) {
-            	if(empty($thirdVariable)) {
-            		$_SESSION[$sessionName][] = array(
-						'item_id'=>$firstVariable, 
-						'item_value' => trim($secondVariable)
+            if (!in_array($first, $itemId)) {
+            	if(empty($third)) {
+            		$_SESSION[$session_name][] = array(
+						'first'=>$first, 
+						'second' => trim($second)
 					);
             	} else {
-            		if(!empty($forthVariable)) {
-            			if(!empty($fifthVariable)) {
-            				$_SESSION[$sessionName][] = array(
-								'item_id'=>$firstVariable, 
-								'item_value' => trim($secondVariable),
-								'item_added' => trim($thirdVariable),
-								'item_name' => trim($forthVariable),
-								'fifth_item' => trim($fifthVariable)
+            		if(!empty($fourth)) {
+            			if(!empty($fifth)) {
+            				$_SESSION[$session_name][] = array(
+								'first'=>$first, 
+								'second' => trim($second),
+								'third' => trim($third),
+								'forth' => trim($fourth),
+								'fifth' => trim($fifth)
 							);
             			} else {
-	            			$_SESSION[$sessionName][] = array(
-								'item_id'=>$firstVariable, 
-								'item_value' => trim($secondVariable),
-								'item_added' => trim($thirdVariable),
-								'item_name' => trim($forthVariable),
+	            			$_SESSION[$session_name][] = array(
+								'first'=>$first, 
+								'second' => trim($second),
+								'third' => trim($third),
+								'forth' => trim($fourth),
 							);
 	            		}
             		} else {
-	            		$_SESSION[$sessionName][] = array(
-							'item_id'=>$firstVariable, 
-							'item_value' => trim($secondVariable),
-							'item_added' => trim($thirdVariable)
+	            		$_SESSION[$session_name][] = array(
+							'first'=>$first, 
+							'second' => trim($second),
+							'third' => trim($third)
 						);
 	            	}
             	}
@@ -61,50 +61,51 @@ class Sessions extends Booking {
             }
 
 		} else {
-			if(empty($thirdVariable)) {
-				$_SESSION[$sessionName][] = array(
-					'item_id' => $firstVariable,
-					'item_value' => $secondVariable
+			if(empty($third)) {
+				$_SESSION[$session_name][] = array(
+					'first' => $first,
+					'second' => $second
 				);
 			} else {
-				if(empty($forthVariable)) {
-					$_SESSION[$sessionName][] = array(
-						'item_id' => $firstVariable,
-						'item_value' => $secondVariable,
-						'item_added' => trim($thirdVariable)
+				if(empty($fourth)) {
+					$_SESSION[$session_name][] = array(
+						'first' => $first,
+						'second' => $second,
+						'third' => trim($third)
 					);
 				} else {
-					if(!empty($fifthVariable)) {
-						$_SESSION[$sessionName][] = array(
-							'item_id'=>$firstVariable, 
-							'item_value' => trim($secondVariable),
-							'item_added' => trim($thirdVariable),
-							'item_name' => trim($forthVariable),
-							'fifth_item' => trim($fifthVariable)
+					if(!empty($fifth)) {
+						$_SESSION[$session_name][] = array(
+							'first'=>$first, 
+							'second' => trim($second),
+							'third' => trim($third),
+							'forth' => trim($fourth),
+							'fifth' => trim($fifth)
 						);
 					} else {
-						$_SESSION[$sessionName][] = array(
-							'item_id'=>$firstVariable, 
-							'item_value' => trim($secondVariable),
-							'item_added' => trim($thirdVariable),
-							'item_name' => trim($forthVariable),
+						$_SESSION[$session_name][] = array(
+							'first'=>$first, 
+							'second' => trim($second),
+							'third' => trim($third),
+							'forth' => trim($fourth),
 						);
 					}
 				}
 			}
 		}
 
-		$this->session->set($sessionName, $_SESSION[$sessionName]);
+		$this->session->set($session_name, $_SESSION[$session_name]);
 	}
 
-	public function removeSessionValue($sessionName, $itemId, $unlink = false) {
-
-		if($this->countSessionData($sessionName)) {
-			foreach($_SESSION[$sessionName] as $key => $value) {
+	public function remove($session_name, $itemId, $unlink = false) {
+		// count the rows
+		if($this->count($session_name)) {
+			// loop through the array item
+			foreach($_SESSION[$session_name] as $key => $value) {
 				// confirm if the item id parsed is in the array
-				if($value['item_id'] == $itemId) {
+				if($value['first'] == $itemId) {
 					// unset the session
-				 	unset($_SESSION[$sessionName][$key]);
+				 	unset($_SESSION[$session_name][$key]);
 				 	// unlink the file
 				 	if($unlink) {
 				 		// confirm the file exists
@@ -113,6 +114,7 @@ class Sessions extends Booking {
 				 			unlink($unlink.$itemId);
 				 		}
 				 	}
+					return true;
 				 	break;
 				}				
 			}
@@ -120,27 +122,28 @@ class Sessions extends Booking {
 
 	}
 
-	public function removeAllItems($sessionName, $unlink) {
+	public function clear($session_name, $unlink) {
 
 		// ensure that the session is not empty
-		if($this->countSessionData($sessionName)) {
-
+		if($this->count($session_name)) {
+			
 			// loop through the session data list
-			foreach($_SESSION[$sessionName] as $key => $value) {
+			foreach($_SESSION[$session_name] as $key => $value) {
 				
 				// confirm the file exists
-				if(is_file($unlink.$value['item_id']) && file_exists($unlink.$value['item_id'])) {
+				if(is_file($unlink.$value['first']) && file_exists($unlink.$value['first'])) {
+					
 					// delete the file
-					unlink($unlink.$value['item_id']);
+					unlink($unlink.$value['first']);
 				}
-		
 			}
+			unset($_SESSION[$session_name]);
 
+			// return true
+			return true;
 		}
 
 	}
-
-
 	
 }
 ?>

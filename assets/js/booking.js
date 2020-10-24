@@ -1,4 +1,6 @@
-var current_url = $("#current_url").attr('value');
+var current_url = $("#current_url").attr('value'),
+    app_notification_box = $(`div[class~="email-notification"]`),
+    app_notification_content = $(`div[class~="email-notification"] div[class="content"]`);
 
 const Toast = Swal.mixin({
     toast: true,
@@ -37,6 +39,23 @@ var confirmNotice = (noticeName) => {
     }
 }
 
+var show_Notification = (notice, notice_type = "success", timer = 5000) => {
+    app_notification_box.fadeIn();
+    app_notification_box.removeClass(`text-success text-danger`).addClass(`text-${notice_type}`);
+    app_notification_content.html(notice);
+    setTimeout(() => {
+        app_notification_box.fadeOut("");
+    }, timer);
+}
+
+$(() => {
+    $(`div[class~="trix-button-row"] span[class~="trix-button-group--file-tools"], div[class~="trix-button-row"] span[class~="trix-button-group-spacer"]`).remove();
+});
+
+$(`div[class~="email-notification"] i[class~="fa-times-circle"]`).on("click", function() {
+    app_notification_box.fadeOut("");
+});
+
 var hideNotice = (noticeName) => {
     let itemId = Cookies.get(`${noticeName}_notice`);
     if (itemId == undefined) {
@@ -61,6 +80,20 @@ var pushIntoOptions = async(selectField, dataSet, selectTitle) => {
     $(`select[name="${selectField}"]`).append(`<option value="">${selectTitle}</option>`);
     $.each(dataSet, function(val, text) {
         $(`select[name="${selectField}"]`).append('<option value=' + text.guid + '>' + text.title + '</option>');
+    });
+}
+
+var init_image_popup = () => {
+    $(`a[class~="image-popup"]`).magnificPopup({
+        type: 'image',
+        callbacks: {
+            beforeOpen: function() {
+                this.st.image.markup = this.st.image.markup.replace('mfp-figure', 'mfp-figure animated zoomInDown');
+            }
+        },
+        gallery: {
+            enabled: true
+        }
     });
 }
 

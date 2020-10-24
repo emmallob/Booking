@@ -99,6 +99,7 @@ $accessObject = load_class('accesslevel', 'controllers');
 
 // default file to include
 $defaultFile = config_item('default_view_path').strtolower(preg_replace('/[^\w_]-/','',$SITEURL[0])).'.php';
+$errorFile = config_item('default_view_path').'404.php';
 
 # Check the site status
 GLOBAL $SITEURL, $session;
@@ -123,6 +124,6 @@ if(isset($SITEURL[1]) && (!in_array($SITEURL[0], ["api", "auth", "reservation"])
 elseif(is_file($defaultFile) and file_exists($defaultFile)) {
 	include($defaultFile);
 } else {
-	server_log();
+	include($errorFile);
 }
 ?>

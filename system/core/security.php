@@ -345,18 +345,8 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 function esc_html( $text ) {
 	$safe_text = check_invalid_utf8( $text );
 	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
-	/**
-	 * Filters a string cleaned and escaped for output in HTML.
-	 *
-	 * Text passed to esc_html() is stripped of invalid or special characters
-	 * before output.
-	 *
-	 * @since 2.8.0
-	 *
-	 * @param string $safe_text The text after it has been escaped.
-	 * @param string $text      The text prior to being escaped.
-	 */
-	return apply_filters( 'esc_html', $safe_text, $text );
+	
+	return $safe_text;
 }
 
 /**
@@ -431,8 +421,6 @@ function xss_clean( $str, $keep_newlines = false ) {
 		return '';
 	}
 
-	global $dbconn;
-
 	$str = (string) $str;
 
 	$filtered = check_invalid_utf8( $str );
@@ -464,6 +452,51 @@ function xss_clean( $str, $keep_newlines = false ) {
 	}
 
 	return $filtered;
+}
+
+function custom_clean($str) {
+	
+	// Remove Invisible Characters
+	// This prevents sandwiching null characters
+	// between ascii characters, like Java\0script.
+	remove_invisible_characters($str);
+	
+	// Fix &entity\n;
+	$str = str_replace(array('&amp;','&lt;','&gt;'), array('&amp;amp;','&amp;lt;','&amp;gt;'), $str);
+	$str = preg_replace('/(&#*\w+)[\x00-\x20]+;/u', '$1;', $str);
+	
+	$str = preg_replace('/(&#x*[0-9A-F]+);*/iu', '$1;', $str);
+	$str = html_entity_decode($str, ENT_COMPAT, 'UTF-8');
+	
+	// Remove any attribute starting with "on" or xmlns
+	$str = preg_replace('#(<[^>]+?[\x00-\x20"\'])(?:on|xmlns)[^>]*+>#iu', '$1>', $str);
+	
+	// Remove javascript: and vbscript: protocols
+	$str = preg_replace('#([a-z]*)[\x00-\x20]*=[\x00-\x20]*([`\'"]*)[\x00-\x20]*j[\x00-\x20]*a[\x00-\x20]*v[\x00-\x20]*a[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2nojavascript...', $str);
+	
+	$str = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*v[\x00-\x20]*b[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2novbscript...', $str);
+	
+	$str = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*-moz-binding[\x00-\x20]*:#u', '$1=$2nomozbinding...', $str);
+	
+	// Only works in IE: <span style="width: expression(alert('Ping!'));"></span>
+	$str = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?expression[\x00-\x20]*\([^>]*+>#i', '$1>', $str);
+	
+	$str = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?behaviour[\x00-\x20]*\([^>]*+>#i', '$1>', $str);
+	
+	$str = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:*[^>]*+>#iu', '$1>', $str);
+	
+	// Remove namespaced elements (we do not need them)
+	$str = preg_replace('#</*\w+:\w[^>]*+>#i', '', $str);
+	
+	do {
+		// Remove really unwanted tags
+		$old_data = $str;
+		
+		$str = preg_replace('#</*(?:applet|b(?:ase|gsound|link)|embed|frame(?:set)?|i(?:frame|layer)|l(?:ayer|ink)|meta|object|s(?:cript|tyle)|title|xml)[^>]*+>#i', '', $str);
+	} while ($old_data !== $str);
+	
+	// we are done...
+	return $str;
 }
 
 /**

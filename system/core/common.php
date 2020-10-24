@@ -932,3 +932,56 @@ function no_data_to_display($title = "No data to Show at the Moment", $button = 
 			</div>    
 		</div>';
 }
+
+/** 
+ * Form loader placeholder 
+ * 
+ * @return String
+ */
+function absolute_loader() {
+  return '
+    <div class="absolute-content-loader" style="display: none; position: absolute">
+        <div class="offline-content text-center">
+            <p><i class="fa fa-spin fa-spinner fa-3x"></i></p>
+        </div>
+    </div>';
+}
+
+/**
+ * Save Information Popup
+ * 
+ * 
+ * @return String
+ */
+function discard_form($button = "confirm_form_discard", $modal_output = "modal-dialog-right right") {
+    $html = "<div class=\"modal fade {$modal_output}\" style=\"z-index: 99999\" id=\"discardFormModal\" data-backdrop=\"static\" data-keyboard=\"false\">
+        <div class=\"modal-dialog modal-dialog-top\" style=\"width:100%;\" role=\"document\">
+            <div class=\"modal-content\">
+                <div class=\"modal-header\">
+                    <h5 class=\"modal-title\">Discard</h5>
+                    <button type=\"button\" class=\"close\" data-dismiss=\"modal\"><span>&times;</span></button>
+                </div>
+                <div class=\"modal-body\" data-scrolling=\"false\" style=\"text-align:left\">
+                    Are you sure you want to discard this form?
+                </div>
+                <div class=\"modal-footer\">
+                    <button class=\"btn btn-outline-success {$button}\">Yes! Confirm</button>
+                    <button class=\"btn btn-outline-danger\" data-dismiss=\"modal\">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>";
+    return $html;
+}
+
+/**
+ * Upload overlay
+ * 
+ * @return String
+ */
+function upload_overlay() {
+  return '
+    <div class="upload-overlay-cover" style="display: none; position: fixed">
+        <div class="upload-content text-center"></div>
+    </div>';
+}

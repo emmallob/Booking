@@ -54,6 +54,13 @@ $accessObject->userId = $userId;
 	<link href='<?= "{$baseUrl}assets/libs/select/select.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/libs/sweetalert/sweetalert.css" ?>' rel="stylesheet" type="text/css" />
 	<link href='<?= "{$baseUrl}assets/css/custom.css" ?>' rel="stylesheet" type="text/css" />
+	<link href='<?= "{$baseUrl}assets/libs/trix/trix.css" ?>' rel="stylesheet" type="text/css" />
+	<?php if(isset($loadedCSS)) { 
+			foreach($loadedCSS as $eachCSS) { ?>
+        		<link rel="stylesheet" href="<?= $baseUrl ?><?= $eachCSS ?>">
+			<?php } ?>
+    <?php } ?>
+	
 	<link rel="stylesheet" href="<?= $baseUrl ?>assets/libs/summernote/dist/summernote-bs4.css">
 	<script data-search-pseudo-elements defer src="<?= $baseUrl ?>assets/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
 	<script src="<?= $baseUrl ?>assets/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
@@ -207,6 +214,23 @@ $accessObject->userId = $userId;
 						<div class="collapse <?= in_array($SITEURL[0], ["reservation"]) ? "show" : null ?>" id="collapseFlows" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav"><a class="nav-link" target="_blank" href="<?= $baseUrl ?>reservation/<?= $clientData->client_abbr ?>">Reserve Seat</a></nav>
 						</div>
+
+						<?php if($accessObject->hasAccess("list", "members")) { ?>
+						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseMembers" aria-expanded="false" aria-controls="collapseMembers">
+							<div class="nav-link-icon"><i data-feather="users"></i></div>
+							Members
+							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+						</a>
+						<div class="collapse <?= in_array($SITEURL[0], ["members", "members-add", "members-edit"]) ? "show" : null ?>" id="collapseMembers" data-parent="#accordionSidenav">
+							<nav class="sidenav-menu-nested nav">
+								<a class="nav-link" href="<?= $baseUrl ?>members">List Members</a>
+								<?php if($accessObject->hasAccess("add", "members")) { ?>
+								<a class="nav-link" href="<?= $baseUrl ?>members-add">Add Member</a>
+								<?php } ?>
+							</nav>
+						</div>
+						<?php } ?>
+
 						<?php if($accessObject->hasAccess("list", "departments")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseDepartments" aria-expanded="false" aria-controls="collapseDepartments">
 							<div class="nav-link-icon"><i data-feather="book"></i></div>

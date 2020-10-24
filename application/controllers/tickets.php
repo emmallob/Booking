@@ -133,22 +133,22 @@ class Tickets extends Booking {
             
             /** check the paid state */
             if(!in_array($params->ticket_is_payable, [0, 1])) {
-                return "The payable state should have a value of 0 or 1";
+                return ["code" => 203, "The payable state should have a value of 0 or 1"];
             }
             
             /** Ticket pricing */
             if($params->ticket_is_payable && empty($params->ticket_amount)) {
-                return "Sorry, Please enter the price for the ticket";
+                return ["code" => 203, "msg" => "Sorry, Please enter the price for the ticket"];
             }
 
             /** Ticket amount */
             if(!empty($params->ticket_amount) && !preg_match("/^[0-9.]+$/", $params->ticket_amount)) {
-                return "Sorry! Please enter a valid amount.";
+                return ["code" => 203, "msg" => "Sorry! Please enter a valid amount."];
             }
 
             /** Length of Tickets to Generate and the Length of Character Check */
             if($length < strlen($quantity)) {
-                return "Sorry! The length of the Serial Number cannot be less than the Quantity to generate.";
+                return ["code" => 203, "msg" => "Sorry! The length of the Serial Number cannot be less than the Quantity to generate."];
             }
 
             /** Ticket guid */
@@ -219,7 +219,7 @@ class Tickets extends Booking {
 
         } catch(\Exception $e) {
             $this->db->rollBack();
-            return "Error processing request";
+            return ["code" => 203, "Error processing request"];
         }
 
     }   
@@ -236,9 +236,7 @@ class Tickets extends Booking {
         try {
 
             /** Prepare the statement */
-            $stmt = $this->db->prepare("
-                UPDATE tickets SET activated = ? WHERE client_guid = ? AND ticket_guid = ?
-            ");
+            $stmt = $this->db->prepare("UPDATE tickets SET activated = ? WHERE client_guid = ? AND ticket_guid = ?");
 
             /** Log the user activity */
             $this->userLogs('tickets', $params->ticket_guid, "Activated the ticket.", $params->userId, $params->clientId);
@@ -279,7 +277,7 @@ class Tickets extends Booking {
 
         /** Get the first key */
         if(empty($eventData)) {
-            return "Invalid Event ID was parsed";
+            return ["code" => 203, "msg" => "Invalid Event ID was parsed"];
         }
 
         /** Limit the length to 32 */
@@ -293,7 +291,7 @@ class Tickets extends Booking {
 
         /** Get the first key */
         if(empty($ticketData)) {
-            return "An invalid Ticket Serial Number was submitted for processing";
+            return ["code" => 203, "msg" => "An invalid Ticket Serial Number was submitted for processing"];
         }
 
         /** Set the event data */
@@ -304,12 +302,12 @@ class Tickets extends Booking {
 
         /** Confirm that the ticket applies to the current event */
         if(!in_array($ticketData->ticket_guid, $eventTickets)) {
-            return "An invalid Ticket Serial Number was submitted for processing";
+            return ["code" => 203, "msg" => "An invalid Ticket Serial Number was submitted for processing"];
         }
 
         /** Confirm that the ticket is not already used */
         if($ticketData->status != "pending") {
-            return "Sorry! This ticket has already been used.";
+            return ["code" => 203, "msg" => "Sorry! This ticket has already been used."];
         }       
 
         /** Set the sessions */
@@ -320,7 +318,7 @@ class Tickets extends Booking {
 
 
         /** Return success */
-        return "Ticket successfully validated";
+        return ["msg" => "Ticket successfully validated"];
 
     }
 
@@ -339,12 +337,12 @@ class Tickets extends Booking {
 
         // confirm valid contact number
 		if(!preg_match("/^[0-9+]+$/", $params->contact) || (strlen($params->contact) < 10)) {
-			return "Sorry! An invalid contact number was entered";
+			return ["code" => 203, "msg" => "Sorry! An invalid contact number was entered"];
 		}
 
 		// confirm valid email address
 		if(isset($params->email) && !filter_var($params->email, FILTER_VALIDATE_EMAIL)) {
-			return "Sorry! An invalid email address was entered";
+			return ["code" => 203, "msg" => "Sorry! An invalid email address was entered"];
 		}
 
         // check if the event already exist using the name, date and start time
@@ -352,7 +350,7 @@ class Tickets extends Booking {
 
         // count the number of rows found
         if(empty($eventData)) {
-            return "Sorry! An invalid event guid has been supplied.";
+            return ["code" => 203, "msg" => "Sorry! An invalid event guid has been supplied."];
         }
 
         // check if the ticket already exist using the name, date and start time
@@ -360,7 +358,7 @@ class Tickets extends Booking {
 
         // count the number of rows found
         if(empty($ticketData)) {
-            return "Sorry! An invalid ticket guid has been supplied.";
+            return ["code" => 203, "msg" => "Sorry! An invalid ticket guid has been supplied."];
         }
 
         // make a request for at least on ticket
@@ -368,7 +366,7 @@ class Tickets extends Booking {
         
         // count the number of rows found
         if(empty($ticketsList)) {
-            return "Sorry! There are no available tickets under this category.";
+            return ["code" => 203, "msg" => "Sorry! There are no available tickets under this category."];
         }
 
         // begin a transaction

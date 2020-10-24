@@ -7,19 +7,21 @@
  * @package     Helpers
  * @subpackage  Time Helper Functions
  * @category    Core Functions
- * @author      VisamiNet Solutions Dev Team
+ * @author      Analitica Innovare Dev Team
  */
 
-function time_diff($timestamp, $current_time=null) {
-	date_default_timezone_set("UTC");
+function time_diff($timestamp, $current_time = false) {
 	
 	$strTime = array("sec", "min", "hr", "day", "wk", "mnth", "yr");
 	$length = array("60","60","24","4","30","12","10");
 
-	$currentTime = ($current_time) ?? time();
-	if($currentTime >= $timestamp) {
+    $timestamp = !preg_match("/^[0-9]+$/", $timestamp) ? strtotime($timestamp) : $timestamp;
 
-		$diff = $current_time - $timestamp;
+	$currentTime = !empty($current_time) ? $current_time : time();
+	
+    if($currentTime >= $timestamp) {
+
+        $diff = $currentTime - $timestamp;
 
 		for($i = 0; $diff >= $length[$i] && $i < count($length)-1; $i++) {
 			$diff = $diff / $length[$i];
@@ -27,18 +29,37 @@ function time_diff($timestamp, $current_time=null) {
 
 		$diff = round($diff);
 
-		return $diff . " " . $strTime[$i] . "s";
+		return $diff . " " . $strTime[$i] . "s ago";
 
 	} else {
 		
-		$diff = $timestamp - $current_time;
+		$diff = $timestamp - $currentTime;
 		for($i = 0; $diff >= $length[$i] && $i < count($length)-1; $i++) {
 		$diff = $diff / $length[$i];
 		}
 
 		$diff = round($diff);
-		return $diff . " " . $strTime[$i] . "s";
+		return $diff . " " . $strTime[$i] . "s to go";
 	}
+	
+}
+
+/**
+ * Get the row time differences. 
+ * Find the difference in hours between the current time and the timestamp parsed
+ * 
+ * @param String $timestamp     This is the timestamp in date format or int
+ * 
+ * @return Float
+ */
+function raw_time_diff($timestamp) {
+	
+	$current_time = time();
+    $timestamp = !preg_match("/^[0-9]+$/", $timestamp) ? strtotime($timestamp) : $timestamp;
+
+    $difference = ($current_time - $timestamp);
+
+    return round(($difference / (60*60)), 2);
 	
 }
 

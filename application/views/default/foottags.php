@@ -1,3 +1,4 @@
+    <?php global $loadedJS; ?>
     <footer class="footer mt-auto footer-light">
         <div class="container-fluid">
             <div class="row">
@@ -88,6 +89,12 @@
         </div>
     </div>
     <?php } ?>
+    <div class="email-notification" style="display:none">
+        <div class="d-flex row justify-content-between">
+            <div class="content"></div>
+            <div><i class="fa font-18px fa-times-circle"></i></div>
+        </div>
+    </div>
     <?php if(in_array($SITEURL[0], ["activity-logs", "profile"])) { ?>
     <div class="modal fade" id="DefaultModalWindow" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -123,19 +130,26 @@
     <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/select/select.js" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
+    <script src="<?= $baseUrl; ?>assets/libs/trix/trix.js"></script>
     <script src="<?= $rootDir ?>assets/js/scripts.js"></script>
+    <?php if(in_array($SITEURL[0], ["endpoints"])) { ?>
     <script src="<?= $rootDir ?>assets/js/endpoints.js"></script>
+    <?php } ?>
+    <script src="<?= $rootDir; ?>assets/js/magnify.js"></script>
     <?php if(in_array($SITEURL[0], ["events-add", "events-edit", "halls-add", "halls-edit", "emails-compose"])) { ?>
     <script src="<?= $rootDir ?>assets/libs/summernote/dist/summernote-bs4.min.js"></script>
     <?php } ?>
     <script src="<?= $rootDir ?>assets/js/tojson.js"></script>
     <script src="<?= $rootDir ?>assets/js/cookies.js"></script>
     <script src="<?= $rootDir ?>assets/js/booking.js"></script>
-    <?php if(in_array($SITEURL[0], ["sms-list", "emails-list"])) { ?>
+    <?php if(in_array($SITEURL[0], ["sms-list"])) { ?>
     <script src="<?= $rootDir ?>assets/js/communication.js"></script>
     <?php } ?>
-    <?php if(in_array($SITEURL[0], ["emails-compose", "emails-list"])) { ?>
-    <script src="<?= $rootDir ?>assets/js/emails.js"></script>
+    <?php 
+    if(isset($loadedJS)) {
+        foreach($loadedJS as $eachJS) { ?>
+            <script src="<?= $baseUrl; ?><?= $eachJS ?>"></script>
+        <?php } ?>
     <?php } ?>
     <script>
         confirmNotice("dashboard");

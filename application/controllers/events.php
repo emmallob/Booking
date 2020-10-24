@@ -217,22 +217,22 @@ class Events extends Booking {
 
         // departments checker 
         if(!empty($params->department_guid) && ($params->department_guid !== "null") && empty($this->pushQuery("id", "departments", "department_guid='{$params->department_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
-            return "Sorry! An invalid department guid was submitted.";
+            return ["code" => 203, "msg" => "Sorry! An invalid department guid was submitted."];
         }
 
         // tickets checker
         if(!empty($params->ticket_guid) && ($params->ticket_guid != "null") && empty($this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
-            return "Sorry! An invalid tickets guid was submitted.";
+            return ["code" => 203, "msg" => "Sorry! An invalid tickets guid was submitted."];
         }
 
         // check if the event already exist using the name, date and start time
         if(!empty($this->pushQuery("id", "events", "event_title='{$params->event_title}' AND event_date='{$params->event_date}' AND start_time='{$params->start_time}' AND client_guid='{$params->clientId}' AND status='pending'"))) {
-            return "Sorry! A duplicate event has been submitted.";
+            return ["code" => 203, "msg" => "Sorry! A duplicate event has been submitted."];
         }
 
         // check the start date
         if(strtotime($params->event_date) < strtotime(date("Y-m-d"))) {
-            return "Sorry! The event date should either be today or a day after.";
+            return ["code" => 203, "msg" => "Sorry! The event date should either be today or a day after."];
         }
 
         // check the event date and the booking start and end dates
@@ -241,37 +241,37 @@ class Events extends Booking {
 
         // if the booking start is lesser than the event date
         if(strtotime($book_start) > strtotime($params->event_date)) {
-            return "Sorry! The booking start date should not be before the Event Date";
+            return ["code" => 203, "msg" => "Sorry! The booking start date should not be before the Event Date"];
         }
 
         // if the booking start is lesser than current time
         if(strtotime($book_start) < time()) {
-            return "Sorry! The booking start date should not be lower than current time";
+            return ["code" => 203, "msg" => "Sorry! The booking start date should not be lower than current time"];
         }
 
         // if the booking end time is before the start time then an error should pop up
         if(strtotime($book_start) > strtotime($book_end)) {
-            return "Sorry! The booking end date should be after the start date";
+            return ["code" => 203, "msg" => "Sorry! The booking end date should be after the start date"];
         }
 
         // if the booking end time is after the event date
         if(strtotime($book_end) > strtotime($params->event_date)) {
-            return "Sorry! The booking end date should be before or on the Event date";
+            return ["code" => 203, "msg" => "Sorry! The booking end date should be before or on the Event date"];
         }
 
         /** check the multiple_booking value */
         if(!empty($params->multiple_booking) && !in_array($params->multiple_booking, [0, 1])) {
-            return "The multiple_booking should have a value of 0 or 1";
+            return ["code" => 203, "msg" => "The multiple_booking should have a value of 0 or 1"];
         }
 
         /** check the event_is_payable value */
         if(!empty($params->event_is_payable) && !in_array($params->event_is_payable, [0, 1])) {
-            return "The event_is_payable should have a value of 0 or 1";
+            return ["code" => 203, "msg" => "The event_is_payable should have a value of 0 or 1"];
         }
 
         /** Confirm that the maximum booking value is a numeric integer */
         if(!preg_match("/^[0-9]+$/", $params->maximum_booking)) {
-            return "Sorry! The maximum booking value must be an integer";
+            return ["code" => 203, "msg" => "Sorry! The maximum booking value must be an integer"];
         }
 
         // check the event date and the booking start and end dates
@@ -312,7 +312,7 @@ class Events extends Booking {
                 }
                 // return error
                 if(isset($hall_bug)) {
-                    return "Sorry! An invalid hall guid was parsed.";
+                    return ["code" => 203, "msg" => "Sorry! An invalid hall guid was parsed."];
                 }
             }
         }
@@ -475,12 +475,12 @@ class Events extends Booking {
 
         // departments checker 
         if(!empty($params->department_guid) && ($params->department_guid !== "null") && empty($this->pushQuery("id", "departments", "department_guid='{$params->department_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
-            return "Sorry! An invalid department guid was submitted.";
+            return ["code" => 203, "msg" => "Sorry! An invalid department guid was submitted."];
         }
 
         // tickets checker
         if(!empty($params->ticket_guid) && ($params->ticket_guid != "null") && empty($this->pushQuery("id", "tickets", "ticket_guid='{$params->ticket_guid}' AND client_guid='{$params->clientId}' AND status='1'"))) {
-            return "Sorry! An invalid tickets guid was submitted.";
+            return ["code" => 203, "msg" => "Sorry! An invalid tickets guid was submitted."];
         }
 
         // check if the event already exist using the name, date and start time
@@ -488,13 +488,13 @@ class Events extends Booking {
 
         // count the number of rows found
         if(empty($eventData)) {
-            return "Sorry! An invalid event guid has been supplied.";
+            return ["code" => 203, "msg" => "Sorry! An invalid event guid has been supplied."];
         }
         $eventData = $eventData[0];
 
         // check the start date
         if(strtotime($params->event_date) < strtotime(date("Y-m-d"))) {
-            return "Sorry! The event date should either be today or a day after.";
+            return ["code" => 203, "msg" => "Sorry! The event date should either be today or a day after."];
         }
 
         // check the event date and the booking start and end dates
@@ -503,37 +503,37 @@ class Events extends Booking {
 
         // if the booking start is lesser than the event date
         if(strtotime($book_start) > strtotime($params->event_date)) {
-            return "Sorry! The booking start date should not be before the Event Date";
+            return ["code" => 203, "msg" => "Sorry! The booking start date should not be before the Event Date"];
         }
 
         // if the booking start is lesser than current time
         if(strtotime($params->booking_starttime) < strtotime($eventData->booking_start_time)) {
-            return "Sorry! The booking start date should not be lower than the previous start time.";
+            return ["code" => 203, "msg" => "Sorry! The booking start date should not be lower than the previous start time."];
         }
 
         // if the booking end time is before the start time then an error should pop up
         if(strtotime($book_start) > strtotime($book_end)) {
-            return "Sorry! The booking end date should be after the start date";
+            return ["code" => 203, "msg" => "Sorry! The booking end date should be after the start date"];
         }
 
         // if the booking end time is after the event date
         if(strtotime($book_end) > strtotime($params->event_date)) {
-            return "Sorry! The booking end date should be before or on the Event date";
+            return ["code" => 203, "msg" => "Sorry! The booking end date should be before or on the Event date"];
         }
 
         /** check the multiple_booking value */
         if(!empty($params->multiple_booking) && !in_array($params->multiple_booking, [0, 1])) {
-            return "The multiple_booking should have a value of 0 or 1";
+            return ["code" => 203, "msg" => "The multiple_booking should have a value of 0 or 1"];
         }
 
         /** check the event_is_payable value */
         if(!empty($params->event_is_payable) && !in_array($params->event_is_payable, [0, 1])) {
-            return "The event_is_payable should have a value of 0 or 1";
+            return ["code" => 203, "msg" => "The event_is_payable should have a value of 0 or 1"];
         }
 
         /** Confirm that the maximum booking value is a numeric integer */
         if(!preg_match("/^[0-9]+$/", $params->maximum_booking)) {
-            return "Sorry! The maximum booking value must be an integer";
+            return ["code" => 203, "msg" => "Sorry! The maximum booking value must be an integer"];
         }
 
         // check the event date and the booking start and end dates

@@ -30,40 +30,44 @@ require "headtags.php";
                 </div>
             </div>
             <div class="card-body">
-                <form autocomplete="Off" action="<?= $baseUrl ?>api/departments/add" method="POST" class="appForm">
-                    <div class="row">
-                        <?= form_loader() ?>
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <div class="col-lg-12 col-md-12">
-                                    <div class="form-group">
-                                        <label for="department_name">Department Name <span class="required">*</span></label>
-                                        <input type="text" name="department_name" id="department_name" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-4">
-                                    <div class="form-group">
-                                        <label for="color">Color <span class="required">*</span></label>
-                                        <input type="color" min="1" name="color" id="color" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
-                                    <div class="cards">
+                <?php if(!$accessObject->hasAccess("add", "departments")) { ?>
+                    <?= pageNotFound($baseUrl) ?>
+                <?php } else { ?>
+                    <form autocomplete="Off" action="<?= $baseUrl ?>api/departments/add" method="POST" class="appForm">
+                        <div class="row">
+                            <?= form_loader() ?>
+                            <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12">
                                         <div class="form-group">
-                                            <label for="description">Description</label>
-                                            <textarea name="description" id="description" class="form-control" cols="30" rows="4"></textarea>
+                                            <label for="department_name">Department Name <span class="required">*</span></label>
+                                            <input type="text" name="department_name" id="department_name" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4">
+                                        <div class="form-group">
+                                            <label for="color">Color <span class="required">*</span></label>
+                                            <input type="color" min="1" name="color" id="color" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="cards">
+                                            <div class="form-group">
+                                                <label for="description">Description</label>
+                                                <textarea name="description" id="description" class="form-control" cols="30" rows="4"></textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-lg-12"><hr></div>
+                                <div class="col-lg-12 text-right">
+                                    <button class="btn btn-sm btn-outline-success"><i class="fa fa-save"></i>&nbsp; Save Record</button>
+                                </div>
                             </div>
-                            <div class="col-lg-12"><hr></div>
-                            <div class="col-lg-12 text-right">
-                                <button class="btn btn-sm btn-outline-success"><i class="fa fa-save"></i>&nbsp; Save Record</button>
-                            </div>
+                            
                         </div>
-                        
-                    </div>
-                </form>
+                    </form>
+                <?php } ?>
 
             </div>
         </div>

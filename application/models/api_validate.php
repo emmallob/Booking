@@ -133,6 +133,7 @@ class Api_validate {
 		// loop through each item and append to the params array
 		// confirm that the incoming data is not empty
 		if( !empty($json) ) {
+			
 			// loop through the list if its a valid array
 			if( is_array($json) ) {
 
@@ -209,9 +210,9 @@ class Api_validate {
 				// loop through the url items
 				foreach($post as $key => $value) {
 					// only parse if the value is not empty
-					if( !empty($value) && ($key != "access_token") ) {
+					if( (!empty($value) && ($key != "access_token")) || !in_array($key, ["hall_guid_key"]) ) {
 						// append the parameters
-						$params[$key] = (is_array($value)) ? $value : xss_clean($value);
+						$params[$key] = is_array($value) ? $value : xss_clean($value);
 					}
 				}
 			}

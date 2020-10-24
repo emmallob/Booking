@@ -152,10 +152,10 @@ class Halls extends Booking {
         try {
 
             /** Prepare the statement */
-            $stmt = $this->db->prepare("
-                UPDATE halls SET status = ? WHERE client_guid = ? AND hall_guid = ?
-            ");
-            return $stmt->execute([1, $params->clientId, $params->hall_guid]);
+            $stmt = $this->db->prepare("UPDATE halls SET status = ? WHERE client_guid = ? AND hall_guid = ?");
+            $stmt->execute([1, $params->clientId, $params->hall_guid]);
+
+            return ["code" => 200, "msg" => "Hall successfully activated"];
 
         } catch(\Exception $e) {
             return false;
@@ -182,7 +182,7 @@ class Halls extends Booking {
 
         // confirm that the user has not reached the subscription ratio
 		if($cSubscribe['halls_created'] >= $cSubscribe['halls']) {
-			return "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['halls']} halls";
+			return ["code" => 203, "msg" => "Sorry! Your current subscription will only permit a maximum of {$cSubscribe['halls']} halls"];
 		}
 
         // continue processing
@@ -191,11 +191,11 @@ class Halls extends Booking {
         $params->description = !empty($params->description) ? $params->description : null;
 
         if($params->hall_rows > 100) {
-            return "Maximum hall rows must be 100";
+            return ["code" => 203, "msg" => "Maximum hall rows must be 100"];
         }
 
         if($params->hall_columns > 70) {
-            return "Maximum hall columns must be 70";
+            return ["code" => 203, "msg" => "Maximum hall columns must be 70"];
         }
 
         // configure default hall information
@@ -283,22 +283,22 @@ class Halls extends Booking {
         
         // confirm that data was found
         if(empty($hallData)) {
-            return "Sorry! An invalid hall guid was parsed";
+            return ["code" => 203, "msg" => "Sorry! An invalid hall guid was parsed"];
         }
 
         // confirm that an array data was parsed
         if(!is_array($params->available_seats)) {
-            return "Sorry, The seats must be an array data";
+            return ["code" => 203, "msg" => "Sorry, The seats must be an array data"];
         }
 
         // confirm valid array for the blocked list
         if(!empty($params->blocked_seats) && !is_array($params->blocked_seats)) {
-            return "Sorry, The blocked seats must be an array data";
+            return ["code" => 203, "msg" => "Sorry, The blocked seats must be an array data"];
         }
         
         // confirm valid array for the removed list
         if(!empty($params->removed_seats) && !is_array($params->removed_seats)) {
-            return "Sorry, The removed seats must be an array data";
+            return ["code" => 203, "msg" => "Sorry, The removed seats must be an array data"];
         }        
 
         // set the variables
@@ -376,7 +376,7 @@ class Halls extends Booking {
         
         // confirm that data was found
         if(empty($hallData)) {
-            return "Sorry! An invalid hall guid was parsed";
+            return ["code" => 203, "msg" => "Sorry! An invalid hall guid was parsed"];
         }
         
         // configure default hall information
@@ -403,7 +403,9 @@ class Halls extends Booking {
             $stmt->execute([0, json_encode($configuration), $params->clientId, $params->hall_guid]);
 
             /** Reset the hall configuration in the events configuration table as well */
-            return $this->db->query("UPDATE events_halls_configuration SET `configuration` = '".json_encode($configuration)."' WHERE hall_guid = '{$params->hall_guid}' AND commenced = '0'");
+            $this->db->query("UPDATE events_halls_configuration SET `configuration` = '".json_encode($configuration)."' WHERE hall_guid = '{$params->hall_guid}' AND commenced = '0'");
+
+            return ["code" => 200, "msg" => "The hall configuration has been resetted"];
 
         } catch(\Exception $e) {
             return false;
@@ -432,7 +434,7 @@ class Halls extends Booking {
 
         // return error
         if(empty($hallQuery)) {
-            return "Sorry! An invalid hall guid was parsed.";
+            return ["code" => 203, "msg" => "Sorry! An invalid hall guid was parsed."];
         }
         
         // continue processing
@@ -441,11 +443,11 @@ class Halls extends Booking {
         $params->description = !empty($params->description) ? $params->description : null;
 
         if($params->hall_rows > 100) {
-            return "Maximum hall rows must be 100";
+            return ["code" => 203, "msg" => "Maximum hall rows must be 100"];
         }
 
         if($params->hall_columns > 70) {
-            return "Maximum hall columns must be 70";
+            return ["code" => 203, "msg" => "Maximum hall columns must be 70"];
         }
 
         // configure default hall information

@@ -164,7 +164,7 @@ class Reservations extends Booking {
      * 
      * @return Array
      */
-    public function reserveSeat(stdClass $parameters) {
+    public function reserve(stdClass $parameters) {
         
         try {
             
@@ -184,32 +184,32 @@ class Reservations extends Booking {
 
             /** Validate the user credentials */
             if(!is_array($parameters->booking_details)) {
-                return "Sorry! The booking details must be a valid array";
+                return ["code" => 203, "msg" => "Sorry! The booking details must be a valid array"];
             }
 
             /** confirm event exits */
             if(empty($eventData)) {
-                return "Sorry! An invalid event guid has been parsed.";
+                return ["code" => 203, "msg" => "Sorry! An invalid event guid has been parsed."];
             }
 
             /** Confirm if a valid ticket has been parsed if its a paid event */
             if($eventData->is_payable && empty($this->session->eventTicketValidated)) {
-                return "This is a paid event and requires a valid ticket to be used for booking";
+                return ["code" => 203, "msg" => "This is a paid event and requires a valid ticket to be used for booking"];
             }
 
             /** Confirm if a valid ticket has been parsed if its a paid event */
             if($eventData->is_payable && !empty($this->session->eventTicketValidated) && ($this->session->eventTicketValidatedId != $parameters->event_guid)) {
-                return "The ticket could not be validated";
+                return ["code" => 203, "msg" => "The ticket could not be validated"];
             }
 
             /** confirm that the hall is actually a part of the list of halls for this event */
             if(!in_array($parameters->hall_guid, array_column($eventData->event_halls, "guid"))) {
-                return "An invalid hall guid has been parsed";
+                return ["code" => 203, "msg" => "An invalid hall guid has been parsed"];
             }
 
             /** confirm that the booking information parsed is not more than the accepted maximum booking */
             if(count($parameters->booking_details) > $eventData->maximum_multiple_booking) {
-                return "Sorry! The data submitted exceeds the accepted of {$eventData->maximum_multiple_booking} bookings.";
+                return ["code" => 203, "msg" => "Sorry! The data submitted exceeds the accepted of {$eventData->maximum_multiple_booking} bookings."];
             }
 
             $this->db->beginTransaction();
@@ -222,25 +222,25 @@ class Reservations extends Booking {
 
                 /** Confirm that it has four part */
                 if(!isset($item[3])) {
-                    return "Sorry an invalid array data has been parsed. Accepted (seat_id||fullname||contact||address)";
+                    return ["code" => 203, "msg" => "Sorry an invalid array data has been parsed. Accepted (seat_id||fullname||contact||address)"];
                     break;
                 }
 
                 /** Ensure that the seat has not already been booked */
                 if(!isset($eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]])) {
-                    return "Sorry! The selected seat has already been booked.";
+                    return ["code" => 203, "msg" =>"Sorry! The selected seat has already been booked."];
                     break;
                 }
 
                 /** Validate the contact number */
                 if(!preg_match("/^[+0-9]+$/", $item[2])) {
-                    return "Sorry please enter a valid contact number for Seat ".$eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]];
+                    return ["code" => 203, "msg" => "Sorry please enter a valid contact number for Seat ".$eventData->event_halls[$parameters->hall_guid_key]->configuration["labels"][$item[0]]];
                     break;
                 }
 
                 /** Confirm the contact has not reached the maximum booking count */
                 if($this->countBooking($parameters->event_guid, $item[2]) == $eventData->maximum_multiple_booking) {
-                    return "Sorry! The contact {$item[2]} has already been used to book {$eventData->maximum_multiple_booking} times and cannot be used again.";
+                    return ["code" => 203, "msg" => "Sorry! The contact {$item[2]} has already been used to book {$eventData->maximum_multiple_booking} times and cannot be used again."];
                     break;
                 }
 
@@ -290,7 +290,7 @@ class Reservations extends Booking {
             ]);
             
             /** print a success message */
-            return "perfect";
+            return ["msg" => "Seat succesfully booked"];
 
         } catch(\Exception $e) {
             $this->db->rollBack();
@@ -302,6 +302,12 @@ class Reservations extends Booking {
     /**
      * Remove a seat from the list of available seats and append to the blocked list
      * afterwards update the database table column
+     * 
+     * @param \stdClass $parameters
+     * @param String    $seat_key
+     * @param String    $hall_guid
+     * 
+     * @return Array
      */
     private function removeAvailableSeat(stdClass $parameters, $seat_key, $hall_guid) {
 
@@ -323,7 +329,9 @@ class Reservations extends Booking {
 
             /** Update the database accordingly */
             $stmt = $this->db->prepare("UPDATE events_halls_configuration SET `configuration` = '{$hallsConf}' WHERE `event_guid` = '{$parameters->event_guid}' AND `hall_guid`='{$hall_guid}'");
-            return $stmt->execute();
+            $stmt->execute();
+
+            return ["msg" => "Seat successfully removed"];
 
         } catch(PDOException $e) {
             return $e->getMessage();
@@ -432,10 +440,10 @@ class Reservations extends Booking {
             $stmt = $this->db->prepare("UPDATE events_booking SET `deleted` = ? WHERE `id` = ?");
             $stmt->execute([1, $rowId]);
 
-            return "great";
+            return ["msg" => "The seat has successfully been unbooked", "additional" => ["reload" => true, "href" => "{$this->session->current_url}"]];
 
         } catch(PDOException $e) {
-            return "denied";
+            return ["code" => 203, "msg" => "denied"];
         }
     }
 

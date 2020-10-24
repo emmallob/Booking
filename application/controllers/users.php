@@ -69,11 +69,34 @@ class Users extends Booking {
 
 		$condition = !empty($params->user_guid) ? "AND a.user_guid='{$params->user_guid}'" : null;
 
+		// if minified list was requested
+		if(isset($params->minified)) {
+			$params->columns = "a.user_guid, a.user_guid AS user_id, a.name, a.email, a.image";
+
+			// exempt current user
+			if(($params->minified == "chat_list_users")) {
+				// set the order
+				$order_by = "ORDER BY a.name ASC";
+				
+				// set the columns to load
+				$params->columns .= ", a.occupation, a.online, a.last_seen, (
+					SELECT b.message_unique_id FROM users_chat b WHERE 
+						(b.sender_id = a.item_id AND b.receiver_id = '{$params->userId}' AND b.receiver_deleted = '0') OR 
+						(b.receiver_id = '{$params->userId}' AND b.sender_id = a.item_id AND b.sender_deleted = '0')
+					LIMIT 1
+				) AS msg_id";
+				$params->query .= " AND a.item_id != '{$params->userId}' ";
+			}
+		}
+
 		try {
-			$query = $this->booking->prepare("
-				SELECT a.*, b.access_level_name, 
-					(SELECT b.permissions FROM users_roles b WHERE b.user_guid = a.user_guid AND b.client_guid=a.client_guid LIMIT 1) AS user_permissions
-					FROM users a 
+			$query = $this->booking->prepare("SELECT 
+				".((isset($params->columns) ? $params->columns : "
+					a.*, b.access_level_name, 
+					(SELECT b.permissions FROM users_roles b 
+					WHERE b.user_guid = a.user_guid AND b.client_guid=a.client_guid LIMIT 1) AS user_permissions
+				"))."
+				FROM users a 
 				LEFT JOIN users_access_levels b
 					ON a.access_level = b.id
 					WHERE a.client_guid = ? && a.deleted = ? {$condition}
@@ -90,52 +113,62 @@ class Users extends Booking {
 				while ($data = $query->fetch(PDO::FETCH_OBJ)) {
 					$i++;
 
-					$date = date('jS F, Y', strtotime($data->created_on));
+					// if not a minified suggestion list
+					if(!isset($params->minified)) {
+						$date = date('jS F, Y', strtotime($data->created_on));
 
-					$action = '<div width="100%" align="center">';
+						$action = '<div width="100%" align="center">';
 
-					if($manageUsers) {
-						if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+						if($manageUsers) {
+							if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+									$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
+									<i class=\"fa fa-edit\"></i>
+								</a> ";
+							} elseif(!in_array($data->access_level, [1, 2])) {
 								$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
-								<i class=\"fa fa-edit\"></i>
-							</a> ";
-						} elseif(!in_array($data->access_level, [1, 2])) {
-							$action .= "<a href=\"{$this->baseUrl}profile/{$data->user_guid}\" title=\"Edit the details of {$data->name}\" class=\"btn btn-sm btn-outline-success edit-user\" data-user-id=\"{$data->user_guid}\">
-								<i class=\"fa fa-edit\"></i>
-							</a> ";
+									<i class=\"fa fa-edit\"></i>
+								</a> ";
+							}
 						}
-					}
 
-					if($deleteUsers) {
-						if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
-							if($data->user_guid != $this->session->userId) {
+						if($deleteUsers) {
+							if(in_array($data->access_level, [1, 2]) && (in_array($this->session->accessLevel, [1, 2]))) {
+								if($data->user_guid != $this->session->userId) {
+									$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
+										<i class=\"fa fa-trash\"></i>
+									</a> ";
+								}
+							} elseif(!in_array($data->access_level, [1, 2])) {
 								$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
 									<i class=\"fa fa-trash\"></i>
 								</a> ";
 							}
-						} elseif(!in_array($data->access_level, [1, 2])) {
-							$action .= "&nbsp;<a href=\"javascript:void(0)\" title=\"Delete the record of {$data->name}\" class=\"btn btn-sm btn-outline-danger delete-item\" data-url=\"{$this->baseUrl}api/remove/confirm\" data-item=\"user\" data-item-id=\"{$data->user_guid}\" data-msg=\"Are you sure you want to delete the user {$data->name}?\">
-								<i class=\"fa fa-trash\"></i>
-							</a> ";
 						}
+
+						$action .= "</div>";
+
+						$result[] = (object) [
+							'user_id' => $data->user_guid,
+							'user_guid' => $data->user_guid,
+							'client_guid' => $data->client_guid,
+							'row_id' => $i,
+							'name' => $data->name,
+							'fullname' => $data->name . ((!$data->status) ? "<br><span class='badge badge-danger'>Inactive</span>" : "<br><span class='badge badge-success'>Active</span>"),
+							'access_level' => $data->access_level_name,
+							'access_level_id' => $data->access_level,
+							'gender' => $data->gender,
+							'contact' => $data->contact,
+							'email' => $data->email,
+							'registered_date' => $date,
+							'user_permissions' => $data->user_permissions,
+							'action' => $action,
+							'deleted' => 0
+						];
 					}
-
-					$action .= "</div>";
-
-					$result[] = (object) [
-						'user_id' => $data->user_guid,
-						'row_id' => $i,
-						'fullname' => $data->name . ((!$data->status) ? "<br><span class='badge badge-danger'>Inactive</span>" : "<br><span class='badge badge-success'>Active</span>"),
-						'access_level' => $data->access_level_name,
-						'access_level_id' => $data->access_level,
-						'gender' => $data->gender,
-						'contact' => $data->contact,
-						'email' => $data->email,
-						'registered_date' => $date,
-						'user_permissions' => $data->user_permissions,
-						'action' => $action,
-						'deleted' => 0
-					];
+					else {
+						// append to the results set to return
+						$result[] = $data;
+					}
 
 				}
 			}
