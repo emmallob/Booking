@@ -80,7 +80,7 @@ IF ( FILE_EXISTS(DOC_ROOT.'/'.$URL) && ($_SERVER['SCRIPT_FILENAME'] != DOC_ROOT.
 	If $url is empty of default value, set action to 'default'
 	otherwise, explode $URL into an array
 */
-$SITEURL = (($URL == '') || ($URL == 'Index.php') || ($URL == 'Index.html')) ? ARRAY('Index') : EXPLODE('/', html_entity_decode($URL));
+$SITEURL = (($URL == '') || ($URL == 'index.php') || ($URL == 'index.html')) ? ARRAY('index') : EXPLODE('/', html_entity_decode($URL));
 
 /*
 	I strip out non word characters from $SITEURL[0] as the include

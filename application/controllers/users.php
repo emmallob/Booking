@@ -105,7 +105,6 @@ class Users extends Booking {
 
 			$manageUsers = $accessObject->hasAccess('manage', 'users');
 			$deleteUsers = $accessObject->hasAccess('delete', 'users');
-			$userAccessLevels = $accessObject->hasAccess('accesslevel', 'users');
 
 			if ($query->execute([$params->clientId, 0])) {
 				$i = 0;
@@ -152,6 +151,11 @@ class Users extends Booking {
 							'user_guid' => $data->user_guid,
 							'client_guid' => $data->client_guid,
 							'row_id' => $i,
+							'subscriptions' => $data->subscriptions,
+							'assessment_test' => $data->assessment_test,
+							'image' => $data->image,
+							'dashboard_settings' => $data->dashboard_settings,
+							'theme' => $data->theme,
 							'name' => $data->name,
 							'fullname' => $data->name . ((!$data->status) ? "<br><span class='badge badge-danger'>Inactive</span>" : "<br><span class='badge badge-success'>Active</span>"),
 							'access_level' => $data->access_level_name,

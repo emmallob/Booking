@@ -19,7 +19,7 @@ var responseCode = (code) => {
 
 $(`div[id="layoutAuthentication"] div[id="validateTicket"]`).length ? $(`input[name="event_ticket"]`).focus() : null;
 
-$(`div[id="layoutAuthentication"] div[class~="event-selector"]`).on('click', function() {
+$(`div[id="layoutAuthentication"] button[class~="event-selector"]`).on('click', function() {
     let event_guid = $(this).attr("data-event-guid"),
         event_halls_guid = $(this).attr("data-url");
     $(`div[id="eventDialogModal"] input[name="event_guid"]`).val(event_guid);
@@ -123,6 +123,7 @@ $(`div[id="layoutAuthentication"] div[class~="seats-table"] table tr td div`).on
 
 $(`button[class~="reserve-seat"]`).on("click", function() {
     var booking_details = [];
+
     $.each($(`div[class~="selected-seats"] div[class~="selected-seats-content"] div[data-seat]`), function(i, e) {
         let seatLabel = $(this).attr("data-seat"),
             seatAddress = $(`input[name="address"][data-seat-id="${seatLabel}"]`).val(),
@@ -139,9 +140,12 @@ $(`button[class~="reserve-seat"]`).on("click", function() {
             type: (response.code == 200) ? "success" : "error"
         });
         if (response.code == 200) {
+            $(`button[class~="reserve-seat"]`).addClass(`hidden`);
+            $(`div[class="selected-seats-content"]`).html(``);
+            bookingSelectedItems = new Array();
             setTimeout(function() {
                 window.location.href = `${baseUrl}reservation/${abbr}/book/${event_guid}/${hall_guid}?history`;
-            }, 1000);
+            }, 4000);
         }
     }, "json");
 });

@@ -36,7 +36,7 @@ if(confirm_url_id(1, "event")) {
     $eventObj = load_class('insight', 'controllers');
     
     // check if the event already exist using the name, date and start time
-    $eventData = $eventObj->generateInsight($parameters);
+    $eventData = $eventObj->report($parameters);
 
     // count the number of rows found
     if(empty($eventData)) {

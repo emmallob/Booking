@@ -16,8 +16,16 @@ img.header-logo {
     width: 85px;
     border-radius: 50%;
     left: 10px;
+    z-index: 999;
+    box-shadow: 0px 1px 2px #ccc;
     top: 0;
 }
+
+div.app-name {
+    margin-left: 100px;
+}
+
+div.user-account {}
 
 @media (max-width: 425px) {
     table td.logo-td {
@@ -31,6 +39,9 @@ img.header-logo {
     }
     .booking-header h1 {
         font-size: 20px;
+    }
+    div.app-name {
+        margin-left: 90px;
     }
 }
 
@@ -55,6 +66,10 @@ span.booked {
 
 .mouse-hover:hover {
     border-bottom: solid 4px #0061f2;
+}
+
+.tx-11 {
+    font-size: 11px;
 }
 
 .halls-listing {

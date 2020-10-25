@@ -12,18 +12,28 @@ if(!$usersClass->logged_InControlled()) {
 // set the default variables
 $baseUrl = $rootDir = $config->base_url();
 $userId = $session->userId;
-$brandId = null;
+$clientId = $session->clientId;
+
+$params = (object) [
+	"limit" => 1,
+	"clientId" => $clientId,
+	"userId" => $userId,
+	"user_guid" => $userId,
+];
 
 // load the user data
-$userData = (Object) $usersClass->item_by_id("users", $userId);
+$userData = $usersClass->list($params);
 $clientData = $bookingClass->clientData($session->clientId);
 
 // if the userdata is empty the remove all sessions
-if(!isset($userData->name)) {
+if(empty($userData)) {
 	$session->destroy();
 	require "login.php";
 	exit(-1);
 }
+
+// get the first item
+$userData = $userData[0];
 
 // user settings
 $userSettings = json_decode($userData->dashboard_settings);
@@ -37,6 +47,18 @@ $session->set("current_url", current_url());
 // create a new object for the access level
 $accessObject->userId = $userId;
 $accessObject->userPermits = $userData->user_permissions;
+
+$quizModerator = $accessObject->hasAccess("moderator", "quiz");
+
+// if the user has permission to the quiz dashboard
+if($accessObject->hasAccess("quiz", "dashboard")) {
+	// create a new object
+	$quizClass = load_class("quiz", "controllers");
+
+	// convert the subscriptions into an array
+	$studentSubscription = $bookingClass->stringToArray($userData->subscriptions);
+	$studentAssessmentSubscription = $bookingClass->stringToArray($userData->assessment_test);
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -76,7 +98,7 @@ $accessObject->userPermits = $userData->user_permissions;
 </head>
 <body class="nav-fixed dashboard bg <?= $userSettings->navbar ?> <?= $userSettings->theme ?> <?= (!empty($session->clientId)) ? "menu-pin" : null ?>">
 	<div id="current_url" value="<?= $session->current_url; ?>"></div>
-	<nav class="topnav navbar navbar-expand shadow navbar-light bg-white" id="sidenavAccordion">
+	<nav class="topnav navbar navbar-expand shadow navbar-light" id="sidenavAccordion">
 		<a class="navbar-brand d-none d-sm-block" href="<?= $baseUrl ?>"><?= config_item("site_name") ?></a><button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 mr-lg-2" id="sidebarToggle" href="#"><i data-feather="menu"></i></button>
 		<form autocomplete="Off" class="form-inline mr-auto d-none d-lg-block" method="GET" action="<?= $baseUrl ?>search">
 			<input class="form-control form-control-solid mr-sm-2" type="search" name="q" placeholder="Search" aria-label="Search" />
@@ -157,7 +179,9 @@ $accessObject->userPermits = $userData->user_permissions;
 							<div class="nav-link-icon"><i data-feather="activity"></i></div>
 							Dashboard
 						</a>
+						<?php if($accessObject->hasAccess("list", "events")) { ?>
 						<div class="sidenav-menu-heading">Interface</div>
+						<?php } ?>
 						<?php if($accessObject->hasAccess("list", "halls")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseHalls" aria-expanded="false" aria-controls="collapseHalls">
 							<div class="nav-link-icon"><i data-feather="package"></i></div>
@@ -207,6 +231,7 @@ $accessObject->userPermits = $userData->user_permissions;
 							</nav>
 						</div>
 						<?php } ?>
+						<?php if($accessObject->hasAccess("reservation", "events")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseFlows" aria-expanded="false" aria-controls="collapseFlows">
 							<div class="nav-link-icon"><i data-feather="repeat"></i></div>
 							Reservation
@@ -215,7 +240,7 @@ $accessObject->userPermits = $userData->user_permissions;
 						<div class="collapse <?= in_array($SITEURL[0], ["reservation"]) ? "show" : null ?>" id="collapseFlows" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav"><a class="nav-link" target="_blank" href="<?= $baseUrl ?>reservation/<?= $clientData->client_abbr ?>">Reserve Seat</a></nav>
 						</div>
-
+						<?php } ?>
 						<?php if($accessObject->hasAccess("list", "members")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseMembers" aria-expanded="false" aria-controls="collapseMembers">
 							<div class="nav-link-icon"><i data-feather="users"></i></div>
@@ -247,6 +272,22 @@ $accessObject->userPermits = $userData->user_permissions;
 							</nav>
 						</div>
 						<?php } ?>
+						<?php if($accessObject->hasAccess("quiz", "dashboard")) { ?>
+						<div class="sidenav-menu-heading">Quiz Portal</div>
+						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseTests" aria-expanded="false" aria-controls="collapseTests">
+							<div class="nav-link-icon"><i class="fas fa-book"></i></div>
+							Tests
+							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+						</a>
+						<div class="collapse <?= in_array($SITEURL[0], ["tests-category", "tests-prepping", "tests-performance"]) ? "show" : null ?>" id="collapseTests" data-parent="#accordionSidenav">
+							<nav class="sidenav-menu-nested nav">
+								<a class="nav-link" href="<?= $baseUrl ?>tests-category"> View all Tests</a>
+								<a class="nav-link" href="<?= $baseUrl ?>tests-prepping">Exams Prepping</a>
+								<a class="nav-link" href="<?= $baseUrl ?>tests-performance">Performance</a>
+							</nav>
+						</div>
+
+						<?php } ?>
 						<div class="sidenav-menu-heading">Addons</div>
 						<?php if($accessObject->hasAccess("manage", "communications")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseCommunication" aria-expanded="false" aria-controls="collapseCommunication">
@@ -254,11 +295,11 @@ $accessObject->userPermits = $userData->user_permissions;
 							Communications
 							<div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
 						</a>
-						<div class="collapse <?= in_array($SITEURL[0], ["sms-list", "emails-list", "emails-compose"]) ? "show" : null ?>" id="collapseCommunication" data-parent="#accordionSidenav">
+						<div class="collapse <?= in_array($SITEURL[0], ["sms-list", "emails-list", "chats"]) ? "show" : null ?>" id="collapseCommunication" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
 								<a class="nav-link" href="<?= $baseUrl ?>sms-list"> SMS List</a>
 								<a class="nav-link" href="<?= $baseUrl ?>emails-list">Emails List</a>
-								<a class="nav-link" href="<?= $baseUrl ?>emails-compose">Compose Email</a>
+								<a class="nav-link" href="<?= $baseUrl ?>chats">Chats</a>
 							</nav>
 						</div>
 						<?php } ?>
@@ -272,6 +313,7 @@ $accessObject->userPermits = $userData->user_permissions;
 							User Management
 						</a>
 						<?php } ?>
+						<?php if($accessObject->hasAccess("view", "reports")) { ?>
 						<a class="nav-link collapsed" href="javascript:void(0);" data-toggle="collapse" data-target="#collapseReports" aria-expanded="false" aria-controls="collapseReports">
 							<div class="nav-link-icon"><i class="fa fa-chart-bar"></i></div>
 							Reports
@@ -279,12 +321,13 @@ $accessObject->userPermits = $userData->user_permissions;
 						</a>
 						<div class="collapse <?= in_array($SITEURL[0], ["events-report", "tickets-report"]) ? "show" : null ?>" id="collapseReports" data-parent="#accordionSidenav">
 							<nav class="sidenav-menu-nested nav">
-								<?php if($accessObject->hasAccess("reports", "tickets")) { ?>
+								<?php if($accessObject->hasAccess("tickets", "reports")) { ?>
 								<a class="nav-link" href="<?= $baseUrl ?>tickets-report">Tickets</a>
 								<?php } ?>
 								<a class="nav-link" href="<?= $baseUrl ?>events-report">Events</a>
 							</nav>
 						</div>
+						<?php } ?>
 						<?php if($accessObject->hasAccess("manage", "account")) { ?>
 						<a class="nav-link" href="<?= $baseUrl ?>configuration">
 							<div class="nav-link-icon"><i data-feather="filter"></i></div>
@@ -293,8 +336,9 @@ $accessObject->userPermits = $userData->user_permissions;
 						<?php } ?>
 					</div>
 				</div>
-				<div class="sidenav-footer p-2 bg-white">
-					<div class="sidenav-footer-content" style="width: 100%">
+				<?php if($accessObject->hasAccess("manage", "account")) { ?>
+				<div class="sidenav-footer p-2">
+					<div class="sidenav-footer-content p-0 m-0" style="width: 100%">
 						<div class="sidenav-footer-subtitle">:</div>
 						<div class="row">
 							<div class="col-lg-12">
@@ -306,6 +350,7 @@ $accessObject->userPermits = $userData->user_permissions;
 						</div>
 					</div>
 				</div>
+				<?php } ?>
 				<div class="sidenav-footer">
 					<div class="sidenav-footer-content">
 						<div class="sidenav-footer-subtitle">Logged in as:</div>

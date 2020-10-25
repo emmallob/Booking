@@ -1,0 +1,9 @@
+.option-selecter {
+    color: #fff;
+    background-color: #3f9ce8;
+    background-image: none;
+    border-color: #3f9ce8;
+    border-radius: 5px;
+    padding: 15px;
+    font-weight: 700;
+}

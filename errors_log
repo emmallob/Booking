@@ -1,1 +1,0 @@
-[24-Oct-2020 13:40:03 Africa/Accra] PHP Notice:  Undefined property: stdClass::$user_permissions in C:\xampp\htdocs\booking\application\views\default\headtags.php on line 39

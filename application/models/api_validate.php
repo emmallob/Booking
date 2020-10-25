@@ -210,7 +210,7 @@ class Api_validate {
 				// loop through the url items
 				foreach($post as $key => $value) {
 					// only parse if the value is not empty
-					if( (!empty($value) && ($key != "access_token")) || !in_array($key, ["hall_guid_key"]) ) {
+					if( (!empty($value) && ($key != "access_token")) || in_array($key, ["hall_guid_key"]) ) {
 						// append the parameters
 						$params[$key] = is_array($value) ? $value : xss_clean($value);
 					}

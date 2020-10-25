@@ -123,7 +123,7 @@
     <script>var baseUrl = "<?= $rootDir ?>";</script>
     <script src="<?= "{$baseUrl}assets/js/jquery.js" ?>" type="text/javascript" crossorigin="anonymous"></script>
     <script src="<?= $rootDir ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <?php if(in_array($SITEURL[0], ["dashboard", "reports"])) { ?>
+    <?php if(in_array($SITEURL[0], ["dashboard", "reports", "index"])) { ?>
     <script src="<?= $rootDir ?>assets/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
     <?php } ?>
     <script src="<?= $rootDir ?>assets/libs/datatables/js/datatable.min.js" crossorigin="anonymous"></script>

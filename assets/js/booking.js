@@ -1114,3 +1114,49 @@ async function fetchTopupList() {
 
 }
 fetchTopupList();
+
+var populateMembersList = (data) => {
+    if ($(`table[class~="membersList"]`).length) {
+        $(`table[class~="membersList"]`).dataTable().fnDestroy();
+        $(`table[class~="membersList"]`).dataTable({
+            "aaData": data,
+            "iDisplayLength": 10,
+            "columns": [
+                { "data": 'row_id' },
+                { "data": 'uniqueid' },
+                { "data": 'fullname' },
+                { "data": 'class_name' },
+                { "data": 'gender' },
+                { "data": 'dob' },
+                { "data": 'phone' },
+                { "data": 'email' },
+                { "data": 'action' }
+            ]
+        });
+        $(`table th:last`).removeClass('sorting');
+        deleteItem();
+    }
+    $(`div[class="form-content-loader"]`).css("display", "none");
+}
+async function membersList() {
+    $(`div[class="form-content-loader"]`).css("display", "flex");
+    $.ajax({
+        url: `${baseUrl}api/members/list`,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            if (response.code == 200) {
+                populateMembersList(response.data.result);
+            } else {
+                $(`div[class="form-content-loader"]`).css("display", "none");
+            }
+        },
+        error: function() {
+            $(`div[class="form-content-loader"]`).css("display", "none");
+        },
+        complete: function() {}
+    });
+}
+if ($(`table[class~="membersList"]`).length) {
+    membersList();
+}

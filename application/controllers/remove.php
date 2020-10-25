@@ -53,7 +53,7 @@ class Remove extends Booking {
                     return ["code" => 200, "msg" => "The ".ucfirst($params->item)." was successfully deleted"];
                 }
             } else {
-                return ["code" => 200, "msg" => "Sorry! Your request could not be processed. Please try again later."];
+                return ["code" => 203, "msg" => "Sorry! Your request could not be processed. Please try again later."];
             }
         }
     }
@@ -419,6 +419,34 @@ class Remove extends Booking {
 
 					/** Log the user activity */
 					$this->userLogs("remove", $params->item_id, "Deleted the User From the List of Users for this Account.", $params->userId, $params->clientId);
+
+					/** Commit the transactions */
+					$this->db->commit();
+					
+					/** Return the success response */
+					return "great";
+				}
+				
+			}
+
+			/** remove a member */
+			elseif($params->item == "member") {
+				
+				/** Confirm that department is not already deleted */
+				$userActive = $this->db->prepare("SELECT `id` FROM `members` WHERE `id` = ? AND `status`=? AND client_guid = ?");
+				$userActive->execute([$params->item_id, 1, $params->clientId]);
+
+				/** Count the number of rows */
+				if($userActive->rowCount() != 1) {
+					return "denied";
+				} else {
+					
+					/** Remove the department from the list of members by setting it as been deleted */
+					$stmt = $this->db->prepare("UPDATE `members` SET `status`=? WHERE `id` = ? AND client_guid = ?");
+					$stmt->execute([0, $params->item_id, $params->clientId]);
+
+					/** Log the user activity */
+					$this->userLogs("remove", $params->item_id, "Deleted a member.", $params->userId, $params->clientId);
 
 					/** Commit the transactions */
 					$this->db->commit();

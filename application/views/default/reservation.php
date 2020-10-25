@@ -6,7 +6,6 @@ $baseUrl = $config->base_url();
 $accountFound = false;
 $eventFound = false;
 $eventId = null;
-
 // if theAccount variable is empty then get the clientGUID
 if(confirm_url_id(1)) {
 
@@ -112,21 +111,28 @@ $session->set("current_url", current_url());
                             print pageNotFound($baseUrl);
                             print '</div>';
                         } else { ?>
-                        
                         <div class="col-lg-12 bg-default booking-header">
                             <div class="row m-1">
                                 <div class="pt-2 col-lg-12 col-md-12">
-                                    <table width="100%">
-                                        <tr>
-                                            <td class="logo-td"><img class="header-logo" src="<?= $baseUrl ?><?= $thisAccount->account_logo ?>" alt=""></td>
-                                            <td>
-                                                <h1><a class="text-black-75" href="<?= $baseUrl ?>reservation/<?= $theId ?>"><?= $thisAccount->name ?></a></h1>
-                                            </td>
-                                            <td class="text-right user-account">
-                                                <i class="fa fa-user"></i> <?= $session->loggedInUser ?>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <div class="row">
+                                        <div class="col-md-9">
+                                            <div class="d-flex align-items-center">
+                                                <div class="logo-td">
+                                                    <img class="header-logo" src="<?= $baseUrl ?><?= $thisAccount->account_logo ?>" alt="">
+                                                </div>
+                                                <div class="app-name">
+                                                    <h1><a class="text-black-75" href="<?= $baseUrl ?>reservation/<?= $theId ?>"><?= $thisAccount->name ?></a></h1>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-none d-md-block text-right">
+                                            <div class="user-account">
+                                                <?php if(!empty($session->loggedInUser)) { ?>
+                                                    <span><i class="fa fa-user"></i> <?= $session->loggedInUser ?></span>
+                                                <?php } ?>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -144,24 +150,37 @@ $session->set("current_url", current_url());
                                     // event attachement
                                     $eventAttachments = $bookingClass->pushQuery("a.*", "events_media a", "a.event_guid='{$eachEvent->event_guid}' AND a.status='1'");
                                     ?>
-                                    <div data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" title="Click to book the Event <?= $eachEvent->event_title ?>" class="col-lg-3 col-md-6 mb-2 event-selector">
-                                        <div class="card cursor">
-                                            <div class="card-header text-success"><?= date("l jS F, Y", strtotime($eachEvent->event_date)) ?></div>
-                                            <div class="card-body mouse-hover">
-                                                <div class="border-bottom pb-2">
-                                                    <strong><?= $eachEvent->event_title ?></strong>
-                                                    <?php if(isset($eachEvent->user_booking_count) && ($eachEvent->user_booking_count > 0)) { ?>
+                                    <div class="col-lg-3 col-md-6 mb-2">
+                                        <div class="card">
+                                            <div class="card-header text-success">
+                                                <?= date("l jS F, Y", strtotime($eachEvent->event_date)) ?>
+                                                <?php if(isset($eachEvent->user_booking_count) && ($eachEvent->user_booking_count > 0)) { ?>
                                                     <span class="booked" title="Event has been Booked"><i class="fa text-success fa-check-circle"></i></span>
-                                                    <?php } ?>
+                                                <?php } ?>
+                                            </div>
+                                            <div class="card-body pt-2 pb-2 mouse-hover pr-2 pl-2">
+                                                <div class="border-bottom mb-2 pb-2">
+                                                    <strong><?= $eachEvent->event_title ?></strong>
                                                 </div>
                                                 <div style="display: inline-flex">
                                                     <div style="text-overflow:ellipsis; overflow:hidden; height: 4.5rem">
                                                         <em><?= $eachEvent->description ?></em>
                                                     </div>
                                                 </div>
-                                                <div class="mt-2 border-top text-gray-700">
-                                                    <i class="fa fa-clock"></i>
-                                                    <strong><?= $eachEvent->start_time ?> </strong> to <strong><?= $eachEvent->end_time ?></strong>
+                                                <div class="mt-2 border-top text-gray-700 pb-0">
+                                                    <div class="d-flex justify-content-between pb-0">
+                                                        <div>
+                                                            <div> <i class="fa fa-clock"></i> <strong><?= $eachEvent->start_time ?> </strong> to <strong><?= $eachEvent->end_time ?></strong></div>
+                                                            <?php if($eachEvent->is_payable) { ?>
+                                                                <div class="badge badge-indigo">Paid Event</div>
+                                                            <?php } else { ?>
+                                                                <div class="p-0 m-0">&nbsp;</div>
+                                                            <?php } ?>
+                                                        </div>
+                                                        <div>
+                                                            <button title="Click to book the Event <?= $eachEvent->event_title ?>" data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" class="btn mt-1 event-selector btn-sm btn-outline-success">Select Event</button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -244,6 +263,10 @@ $session->set("current_url", current_url());
                                             <input type="hidden" value="<?= $eventId ?>" name="event_guid" class="event_guid">
                                             <button type="submit" class="btn btn-sm btn-outline-success">Validate Ticket</button>
                                         </div>
+                                        <div class="text-center mt-4 pt-4 border-top border-cyan-soft">
+                                            Contact Admin to purchase a ticket or lodge complaint: <strong><a href="tel:<?= $thisAccount->phone ?>"><?= $thisAccount->phone ?></a></strong> or 
+                                            send email <strong><a href="mailto:<?= $thisAccount->email ?>"><?= $thisAccount->email ?></a></strong>
+                                        </div>
                                     </form>
                                 </div>
                                 <?php } else {
@@ -284,7 +307,7 @@ $session->set("current_url", current_url());
                                             /** Append to the object variable */
                                             $hallStd->hall_guid = $eachHall->guid;
                                             ?>
-                                            <div class="col-lg-3 col-md-6 mb-2 cursor" onclick="window.location.href='<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $eachHall->guid ?>'">
+                                            <div class="col-lg-3 col-md-6 mb-2">
                                                 <div class="card halls-listing mouse-hover">
                                                     <?php if(in_array($eachHall->guid, $hallsBooked)) { ?>
                                                     <span class="booked" title="Hall has already been booked"><i class="fa text-success fa-check-circle"></i></span>
@@ -294,6 +317,13 @@ $session->set("current_url", current_url());
                                                     </div>
                                                     <div class="card-body">
                                                         <strong><?= ($eachHall->seats - $eventsObj->bookedCount($hallStd)); ?></strong> out of <strong><?= $eachHall->seats ?></strong> available seats
+                                                    </div>
+                                                    <div class="mt-2 p-2 text-right border-top text-gray-700">
+                                                        <?php if(($eventData->user_booking_count !== $eventData->maximum_multiple_booking)) { ?>
+                                                            <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $eachHall->guid ?>" title="Click to book the Event" class="btn mt-1 event-selector btn-sm btn-outline-success">Select Hall</a>
+                                                        <?php } else { ?>
+                                                            <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $eachHall->guid ?>" title="View booking history" class="btn mt-1 event-selector btn-sm btn-outline-success">View Booked Seats</a>
+                                                        <?php } ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -380,8 +410,8 @@ $session->set("current_url", current_url());
                                                     <table style="font-size:15px" class="table nowrap table-bordered table-hover" width="100%">
                                                         <thead>
                                                             <tr>
-                                                                <th class="text-left">Name</th>
-                                                                <th class="text-left">Seat</th>
+                                                                <th width="35%" class="text-left">Name</th>
+                                                                <th width="45%" class="text-left">Seat Booked</th>
                                                                 <th>Code</th>
                                                             </tr>
                                                         </thead>
@@ -413,6 +443,9 @@ $session->set("current_url", current_url());
                                                                 <td class="text-left">
                                                                     <strong>Hall</strong>: <?= $result->hall_name ?><br>
                                                                     <strong>Seat</strong>: <?= $result->seat_name ?>
+                                                                    <?php if(!empty($result->ticket_serial)) { ?><br>
+                                                                    <strong>Ticket Serial</strong>: <?= $result->ticket_serial ?>
+                                                                    <?php } ?>
                                                                 </td>
                                                                 <td><?= $result->id ?></td>
                                                             </tr>    
@@ -427,9 +460,13 @@ $session->set("current_url", current_url());
                                                     Change <?= ($eventData->is_payable) ? "Contact Number & Ticket" : "Contact" ?>
                                                 </a>
                                                 <?php } else { ?>
-                                                <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
-                                                    Book Another Seat
-                                                </a>
+                                                    <a href="<?= $baseUrl ?>reservation/<?= $theId ?>/book/<?= $eventId ?>/<?= $hallId ?>">
+                                                        Book Another Seat
+                                                    </a>
+                                                    <strong>OR</strong>
+                                                    <a href="<?= $baseUrl ?>reservation/<?= $theId ?>">
+                                                        Change <?= ($eventData->is_payable) ? "Contact Number & Ticket" : "Contact" ?>
+                                                    </a>
                                                 <?php } ?>
                                             </div>
                                         </div>
@@ -479,16 +516,16 @@ $session->set("current_url", current_url());
                                         <div class="col-lg-3 mt-2 col-md-3">
                                             <div class="mb-2 col-lg-12">
                                                 <h6 class="border-bottom border-cyan-soft">
-                                                    <div class="text-uppercase text-center">
+                                                    <div class="text-uppercase border-cyan-soft border-bottom mb-2 pb-2 text-center">
                                                         <strong><?= $eventData->event_title ?></strong>
                                                     </div>
-                                                    <div class="text-justify mt-2 mb-3 border-cyan-soft border-top pt-2 pb-2 border-bottom">
+                                                    <!-- <div class="text-justify mt-2 mb-3 border-cyan-soft border-top pt-2 pb-2 border-bottom">
                                                         <?= $eventData->description ?>
-                                                    </div>
+                                                    </div> -->
                                                     <div class="mt-2 pb-2 text-uppercase text-center">
                                                         <small style="font-size: 15px">
-                                                            <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
-                                                            | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                            <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?><br>
+                                                            <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
                                                         </small>
                                                     </div>
                                                 </h6>
@@ -549,11 +586,11 @@ $session->set("current_url", current_url());
                 <footer style="height: 3rem;" class="footer mt-auto footer-dark">
                     <div class="container-fluid">
                         <div class="row text-white">
-                            <div class="col-md-6 small">Copyright &copy; <a href="<?= $baseUrl ?>" target="_blank"><?= config_item("site_name") ?></a> <?= date("Y") ?></div>
+                            <div class="col-md-6 small">Copyright &copy; <strong><a href="<?= $baseUrl ?>" target="_blank"><?= config_item("site_name") ?></a></strong> <?= date("Y") ?></div>
                             <div class="col-md-6 text-md-right small">
-                                <a href="<?= $baseUrl ?>pages/privacy-policy">Privacy Policy</a>
+                                <a href="javascript:void(0)">Privacy Policy</a>
                                 &#xB7;
-                                <a href="<?= $baseUrl ?>pages/terms-and-conditions">Terms &amp; Conditions</a>
+                                <a href="javascript:void(0);">Terms &amp; Conditions</a>
                             </div>
                         </div>
                     </div>
@@ -563,7 +600,7 @@ $session->set("current_url", current_url());
         <script src="<?= $baseUrl ?>assets/js/jquery.js" crossorigin="anonymous"></script>
         <script src="<?= $baseUrl ?>assets/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
         <script src="<?= $baseUrl ?>assets/libs/sweetalert/sweetalert.js" crossorigin="anonymous"></script>
-        <script src="<?= $baseUrl ?>assets/js/Cookies.js"></script>
+        <script src="<?= $baseUrl ?>assets/js/cookies.js"></script>
         <script>var baseUrl = "<?= $baseUrl ?>";</script>
         <?php if(isset($settingsPassed)) { ?>
         <script>

@@ -91,7 +91,7 @@ function raw_time_diff($timestamp) {
     $txt = "";
     if($shortText) {
         if($obj['h'] > 0) {
-        	$txt .= " ".$obj['h']. " Hour". ($obj['h'] > 1) ? "s" : null;
+        	$txt .= " ".$obj['h']. " Hour". (($obj['h'] > 1) ? "s" : null);
         }
         if($obj['m'] > 0) {
         	$txt .= " ".$obj['m']. " Minute";
