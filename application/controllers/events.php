@@ -239,6 +239,8 @@ class Events extends Booking {
         $book_start = date("Y-m-d H:i:s", strtotime($params->booking_starttime));
         $book_end = date("Y-m-d H:i:s", strtotime($params->booking_endtime));
 
+        $raw_date = date("Y-m-d H:i", strtotime("{$params->event_date} {$params->start_time}"));
+
         // if the booking start is lesser than the event date
         if(strtotime($book_start) > strtotime($params->event_date)) {
             return ["code" => 203, "msg" => "Sorry! The booking start date should not be before the Event Date"];
@@ -255,7 +257,7 @@ class Events extends Booking {
         }
 
         // if the booking end time is after the event date
-        if(strtotime($book_end) > strtotime($params->event_date)) {
+        if(strtotime($book_end) > strtotime($raw_date)) {
             return ["code" => 203, "msg" => "Sorry! The booking end date should be before or on the Event date"];
         }
 

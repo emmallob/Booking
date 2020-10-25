@@ -153,24 +153,24 @@ $session->set("current_url", current_url());
                                     <div class="col-lg-3 col-md-6 mb-2">
                                         <div class="card">
                                             <div class="card-header text-success">
-                                                <?= date("l jS F, Y", strtotime($eachEvent->event_date)) ?>
+                                                <?= date("l, jS F, Y", strtotime($eachEvent->event_date)) ?>
                                                 <?php if(isset($eachEvent->user_booking_count) && ($eachEvent->user_booking_count > 0)) { ?>
                                                     <span class="booked" title="Event has been Booked"><i class="fa text-success fa-check-circle"></i></span>
                                                 <?php } ?>
                                             </div>
                                             <div class="card-body pt-2 pb-2 mouse-hover pr-2 pl-2">
                                                 <div class="border-bottom mb-2 pb-2">
-                                                    <strong><?= $eachEvent->event_title ?></strong>
+                                                    <strong style="font-size:18px"><?= $eachEvent->event_title ?></strong>
                                                 </div>
                                                 <div style="display: inline-flex">
                                                     <div style="text-overflow:ellipsis; overflow:hidden; height: 4.5rem">
-                                                        <em><?= $eachEvent->description ?></em>
+                                                        <em><?= htmlspecialchars_decode($eachEvent->description) ?></em>
                                                     </div>
                                                 </div>
                                                 <div class="mt-2 border-top text-gray-700 pb-0">
                                                     <div class="d-flex justify-content-between pb-0">
                                                         <div>
-                                                            <div> <i class="fa fa-clock"></i> <strong><?= $eachEvent->start_time ?> </strong> to <strong><?= $eachEvent->end_time ?></strong></div>
+                                                            <div> <i class="fa fa-clock"></i> <strong><?= date("h:iA", strtotime($eachEvent->start_time)) ?> </strong> to <strong><?= date("h:iA", strtotime($eachEvent->end_time)) ?></strong></div>
                                                             <?php if($eachEvent->is_payable) { ?>
                                                                 <div class="badge badge-indigo">Paid Event</div>
                                                             <?php } else { ?>
@@ -178,7 +178,7 @@ $session->set("current_url", current_url());
                                                             <?php } ?>
                                                         </div>
                                                         <div>
-                                                            <button title="Click to book the Event <?= $eachEvent->event_title ?>" data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" class="btn mt-1 event-selector btn-sm btn-outline-success">Select Event</button>
+                                                            <button title="Click to book the Event <?= $eachEvent->event_title ?>" data-url="<?= $baseUrl ?>reservation/<?= $theId ?>/halls/<?= $eachEvent->event_guid ?>" data-event-guid="<?= $eachEvent->event_guid ?>" class="btn mt-1 event-selector btn-sm btn-outline-success">Select</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -398,7 +398,7 @@ $session->set("current_url", current_url());
                                                     <div class="mt-2 pb-2">
                                                         <small style="font-size: 15px">
                                                             <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?>
-                                                            | <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                            | <i class="fa fa-clock"></i> <?= date("h:iA", strtotime($eventData->start_time)) ?> to <?= date("h:iA", strtotime($eventData->end_time)) ?>
                                                         </small>
                                                     </div>
                                                 </h5>
@@ -525,7 +525,7 @@ $session->set("current_url", current_url());
                                                     <div class="mt-2 pb-2 text-uppercase text-center">
                                                         <small style="font-size: 15px">
                                                             <i class="fa fa-calendar"></i> <?= date("jS F, Y", strtotime($eventData->event_date)) ?><br>
-                                                            <i class="fa fa-clock"></i> <?= $eventData->start_time ?> to <?= $eventData->end_time ?>
+                                                            <i class="fa fa-clock"></i> <?= date("h:iA", strtotime($eventData->start_time)) ?> to <?= date("h:iA", strtotime($eventData->end_time)) ?>
                                                         </small>
                                                     </div>
                                                 </h6>
